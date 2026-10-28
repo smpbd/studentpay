@@ -458,6 +458,8 @@ dialog .row.end{position:sticky;bottom:-24px;background:#fff;padding:10px 0 2px;
 .brow.chk{border:1px solid var(--line);border-radius:10px}
 .bsel-f{padding:9px 12px;background:#f7f8fb;border-top:1px solid var(--line);font-size:13px;color:var(--mut);font-weight:600}
 #dlg:has(.bsel){width:min(660px,96vw)}
+#dlg:has(.stubl){width:min(1100px,97vw)}
+.stubl .ledt{font-size:15px}.stubl .ledt th{font-size:14px;white-space:nowrap}.stubl .ledt td,.stubl .ledt th{padding:12px 14px}.stubl h4{font-size:17px}
 .ledt{width:100%}.ledt td{white-space:normal}.ledt td.n{white-space:nowrap}
 .ledt tr.sum td{font-weight:800;background:#f4f2ff}
 .ledt tr.big td{font-weight:800;font-size:16px;background:#ece8ff;color:var(--pri-d,#4b2fc4)}
@@ -798,8 +800,8 @@ th.pc,td.pc{width:42px;text-align:center;padding-left:10px;padding-right:6px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, reauthenticateWithCredential, EmailAuthProvider, setPersistence, inMemoryPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-import { getDatabase, ref, get, set as fbSet, update as fbUpdate, push, onValue, onDisconnect, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
+import { getAuth, initializeAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, reauthenticateWithCredential, EmailAuthProvider, setPersistence, inMemoryPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import { getDatabase, ref, get, set as fbSet, update as fbUpdate, push, onValue, onDisconnect, query, orderByChild, limitToLast, startAt } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
 
 /* ---- অনুমোদনের জন্য জমা: কর্মীর কাজের ডাটাবেস-লেখা ধরে রাখার স্তর ----
    CAP চালু থাকলে set/update আসল ডাটাবেসে না গিয়ে তালিকায় জমা হয়; প্রধান অনুমোদন দিলে সেগুলো প্রয়োগ হয়। */
@@ -822,7 +824,8 @@ const firebaseConfig = {
 // একমাত্র অ্যাডমিনের UID (Rules-এও একই UID আছে)
 const ADMIN_UID = "4suOEKRZhoT2MuLJfXgUdZGf6Tq1";
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+/* লগইন শুধু এই ট্যাব/ব্রাউজার সেশনে থাকে — ব্রাউজার বা ট্যাব বন্ধ করলে নিজে থেকেই লগআউট হয়ে যায় */
+const auth = initializeAuth(app, { persistence: browserSessionPersistence });
 const db = getDatabase(app);
 const root = () => ref(db);
 
@@ -1063,7 +1066,24 @@ function portalKey(uid, cls, roll, phone) {
   return `${uid}_${c}_${r}_${p}`;
 }
 /* একাধিক বিল: students/{sid}/bills/{billId}; পুরোনো একক `bill` থাকলে সেটিও তালিকায় আসে (id = legacy) */
-const billsOf = o => { const a = []; Object.entries((o && o.bills) || {}).forEach(([id, b]) => { if (b && b.amount > 0) a.push({ id, ...b }); }); if (o && o.bill && o.bill.amount > 0) a.push({ id: 'legacy', ...o.bill }); return a.sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0)); };
+const billsAll = o => { const a = []; Object.entries((o && o.bills) || {}).forEach(([id, b]) => { if (b && b.amount > 0) a.push({ id, ...b }); }); if (o && o.bill && o.bill.amount > 0) a.push({ id: 'legacy', ...o.bill }); return a.sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0)); };
+const billsOf = o => effBills(o).filter(b => !b.paid);
+/* প্রতিটি বিলের ইউনিক আইডি: ডাটাবেসের বিল-কী (সারা সিস্টেমে ইউনিক) থেকে — বিলের স্ট্যাটাস বদলালেও আইডি একই থাকে */
+const billNo = id => id === 'legacy' ? 'BL-OLD' : 'BL-' + String(id || '').replace(/[^A-Za-z0-9]/g, '').slice(-7).toUpperCase();
+/* বিলের কার্যকর অবস্থা: অপরিশোধিত বিলের সাথে একই বিবরণ, মাস ও টাকার পেমেন্ট থাকলে সেই বিলটিকেই "পরিশোধিত" ধরা হয় (virt = ডাটাবেসে এখনো লেখা হয়নি) */
+const effBills = (o, pays) => {
+  if (!pays) pays = o && o.payments ? listOf(o.payments) : o && o.id ? stuPays(o.id) : [];
+  const all = billsAll(o), used = new Set(all.filter(b => b.paid && b.payId).map(b => b.payId)), pool = (pays || []).filter(x => !used.has(x.id));
+  return all.map(b => {
+    if (b.paid || b.id === 'legacy') return b;
+    const i = pool.findIndex(x => (!x.billId || x.billId === b.id) && sameCat(x.category, b.title) && (x.month || '') === (b.month || '') && Number(x.amount) === Number(b.amount));
+    if (i < 0) return b; const x = pool.splice(i, 1)[0];
+    return { ...b, paid: true, virt: true, payId: x.id, paidAt: x.createdAt || Date.parse(x.date) || b.createdAt || 0 };
+  });
+};
+let _pc = null, _pp = null;
+const stuPays = sid => { if (_pp !== P) { _pp = P; _pc = {}; Object.entries(P || {}).forEach(([id, v]) => { if (v && v.type === 'income' && v.studentId) (_pc[v.studentId] = _pc[v.studentId] || []).push({ id, ...v }); }); } return _pc[sid] || []; };
+const payNo = id => 'PAY-' + String(id || '').replace(/[^A-Za-z0-9]/g, '').slice(-6).toUpperCase();
 const billSum = a => a.reduce((t, b) => t + (Number(b.amount) || 0), 0);
 function buildPortal(sid, s, extra = {}, drop = null, school = ctxProfile.name) {
   const pays = {};
@@ -1123,11 +1143,11 @@ function msg(i, t, b) { $('#msgIcon').textContent = i; $('#msgT').textContent = 
 function openWorkspace(uid, p) {
   unAll(dataUns); ctx = uid; ctxProfile = p; S = {}; P = {}; page = (REST && REST.ctx === uid && TITLES[REST.page] && REST.page !== 'head') ? REST.page : 'dash'; REST = null; ui = {};
   instLogo = ''; pendingInst = undefined; LG = {}; AP = {}; headIn = false;
-  dataUns.push(onValue(ref(db, `institutionData/${uid}/approvals`), s => { AP = s.val() || {}; updChip(); if ((page === 'head' || page === 'hpro') && !$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#headF'))) render(); }, () => {}));
+  dataUns.push(onValue(ref(db, `institutionData/${uid}/approvals`), s => { AP = s.val() || {}; updChip(); if ((page === 'head' || page === 'hpro' || page === 'dash') && !$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#headF'))) render(); }, () => {}));
   dataUns.push(onValue(ref(db, `instLedger/${uid}`), s => { LG = s.val() || {}; if (ctx === uid && page === 'dash' && !$('#dlg').open) render(); }, () => {}));
   dataUns.push(onValue(ref(db, `schoolLogos/${uid}`), s => { instLogo = (s.val() || {}).logo || ''; }, () => {}));
-  dataUns.push(onValue(ref(db, `institutionData/${uid}/students`), s => { S = s.val() || {}; render(); }, e => toast(errMsg(e))));
-  dataUns.push(onValue(ref(db, `institutionData/${uid}/payments`), s => { P = s.val() || {}; render(); }, e => toast(errMsg(e))));
+  dataUns.push(onValue(ref(db, `institutionData/${uid}/students`), s => { S = s.val() || {}; render(); autoHeal(); }, e => toast(errMsg(e))));
+  dataUns.push(onValue(ref(db, `institutionData/${uid}/payments`), s => { P = s.val() || {}; render(); autoHeal(); }, e => toast(errMsg(e))));
   BK = {}; dataUns.push(onValue(ref(db, `instBanks/${uid}`), s => { BK = s.val() || {}; if (ctx === uid && (page === 'bnk' || page === 'dash') && !$('#dlg').open) render(); }, () => {}));
   N = {}; EX = {}; HO = {}; RS = {};
   [['notices', v => N = v], ['exams', v => EX = v], ['holidays', v => HO = v]].forEach(([k, f]) => dataUns.push(onValue(ref(db, `${k}/${uid}`), s => { f(s.val() || {}); render(); }, () => {})));
@@ -1219,13 +1239,14 @@ async function verifyReq(rid, via, smsId, trx) {
   const hasPortal = (await get(ref(db, 'studentPortal/' + r.key))).exists();
   const pid = push(ref(db, `institutionData/${r.uid}/payments`)).key, date = today(), mname = r.method === 'rocket' ? 'রকেট' : 'বিকাশ';
   const rno = 'OP-' + date.slice(2).replace(/-/g, '') + '-' + rid.slice(-5).toUpperCase();
-  const bid = r.bid && r.bid !== 'legacy' ? r.bid : '';
-  const curBill = st ? (bid ? (st.bills || {})[bid] : st.bill) : null;
+  let bid = r.bid && r.bid !== 'legacy' ? r.bid : '';
+  let curBill = st ? (bid ? (st.bills || {})[bid] : st.bill) : null;
+  if (st && bid && !curBill) { const m = Object.entries(st.bills || {}).find(([, b]) => b && !b.paid && b.title === r.title && (b.month || '') === (r.month || '')); if (m) { bid = m[0]; curBill = m[1]; } }
   const left = curBill ? Math.round(Math.max(0, curBill.amount - r.amount) * 100) / 100 : 0;
-  const bill = curBill && left > 0 ? { ...curBill, amount: left } : null;
+  const bill = curBill && left > 0 ? { ...curBill, amount: left } : (curBill && bid ? { ...curBill, paid: true, paidAt: Date.now(), payId: pid } : null);
   const bPath = bid ? `/bills/${bid}` : '/bill';
   const upd = {
-    [`institutionData/${r.uid}/payments/${pid}`]: { type: 'income', category: r.title, amount: r.amount, method: mname, date, month: r.month || '', studentId: r.sid, studentName: r.name, studentClass: r.class, note: 'অনলাইন পেমেন্ট' + (trx ? ' • ' + trx : ''), receiptNo: rno, createdAt: Date.now(), createdBy: 'online' },
+    [`institutionData/${r.uid}/payments/${pid}`]: { type: 'income', category: r.title, amount: r.amount, method: mname, date, month: r.month || '', studentId: r.sid, ...(bid ? { billId: bid } : {}), studentName: r.name, studentClass: r.class, note: 'অনলাইন পেমেন্ট' + (trx ? ' • ' + trx : ''), receiptNo: rno, createdAt: Date.now(), createdBy: 'online' },
     [`payReq/${rid}/status`]: 'verified', [`payReq/${rid}/verifiedAt`]: Date.now(), [`payReq/${rid}/via`]: via, [`payReq/${rid}/receiptNo`]: rno
   };
   upd[`instLedger/${r.uid}/online/${rid}`] = { amount: Number(r.amount) || 0, charge: Number(r.charge) || 0, total: Number(r.total) || ((Number(r.amount) || 0) + (Number(r.charge) || 0)), date, name: r.name || '', title: r.title || '', receiptNo: rno };
@@ -1265,7 +1286,7 @@ const calcPay = a => { const c = Math.ceil(Math.round(a * CHG * 1e6) / 1e6 - 1e-
 function stopPay() { if (payUn) payUn(); payUn = null; clearInterval(payTick); payTick = null; payCur = null; payMode = ''; $('#dlg').removeAttribute('data-pm'); }
 $('#dlg').addEventListener('close', stopPay);
 let stuBid = '';
-const stuBill = () => billsOf(stuRec).find(x => x.id === stuBid);
+const stuBill = () => effBills(stuRec, listOf(stuRec.payments)).filter(b => !b.paid).find(x => x.id === stuBid);
 async function openPayDlg(bid) {
   stuBid = bid || stuBid;
   if (!fwOnline()) { const d0 = $('#dlg'); d0.innerHTML = `<div style="text-align:center"><div style="font-size:54px">🔴</div><h3>অটো ভেরিফিকেশন বন্ধ আছে</h3><p class="sub">অটো ভেরিফিকেশন এখন চালু নেই, তাই এই মুহূর্তে পেমেন্ট করা যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।</p></div><div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`; if (!d0.open) d0.showModal(); return; }
@@ -1287,7 +1308,7 @@ function openPayForm() {
   const b = stuRec && stuBill(); if (!b || !(b.amount > 0)) return;
   const { charge, total } = calcPay(b.amount), d = $('#dlg'); payM = 'bkash'; d.dataset.pm = 'bkash';
   d.innerHTML = `<h3>পেমেন্ট</h3>
-  <div class="paybox"><div class="sub">${esc(b.title)}${b.month ? ' (' + bnMonth(b.month) + ')' : ''}</div><div class="rowb"><span>পরিশোধযোগ্য টাকা</span><b>${tk(b.amount)}</b></div><div class="rowb"><span>সার্ভিস চার্জ</span><b>${tk(charge)}</b></div><div class="totl"><span>মোট পরিশোধ</span><b>৳ ${money2(total)}</b></div></div>
+  <div class="paybox"><div class="sub"><b>${esc(billNo(b.id))}</b> • ${esc(b.title)}${b.month ? ' (' + bnMonth(b.month) + ')' : ''}</div><div class="rowb"><span>পরিশোধযোগ্য টাকা</span><b>${tk(b.amount)}</b></div><div class="rowb"><span>সার্ভিস চার্জ</span><b>${tk(charge)}</b></div><div class="totl"><span>মোট পরিশোধ</span><b>৳ ${money2(total)}</b></div></div>
   <form id="pf"><label>পেমেন্ট মাধ্যম</label><div class="seg mseg"><button type="button" class="on" data-act="pm" data-m="bkash" aria-label="বিকাশ">${mLogo('bkash', 40)}</button><button type="button" data-act="pm" data-m="rocket" aria-label="রকেট">${mLogo('rocket', 40)}</button></div>
   <label>যে নম্বর থেকে পেমেন্ট করবেন</label><div class="ph"><span>+880</span><input name="sender" required maxlength="10" inputmode="numeric" pattern="1[3-9][0-9]{8}" title="+880 এর পরে ১০ সংখ্যার মোবাইল নম্বর দিন" placeholder="১০ সংখ্যা"></div>
   ${paySet.qr ? '' : '<div class="hint" style="color:var(--out)">পেমেন্ট এখনো চালু হয়নি।</div>'}${fwOnline() ? '' : '<div class="hint" style="color:var(--out)">অটো ভেরিফিকেশন বন্ধ আছে, এখন পেমেন্ট করা যাবে না।</div>'}
@@ -1670,7 +1691,7 @@ function pDash() {
     return { l: d.toLocaleDateString('bn-BD', { month: 'short' }), i: sumBy(a, 'income'), e: sumBy(a, 'expense') };
   });
   const mx = Math.max(1, ...series.flatMap(s => [s.i, s.e]));
-  $('#main').innerHTML = `
+  $('#main').innerHTML = apPendingHtml() + `
   <div class="kpis">
     <div class="kpi in"><span>এ মাসে গ্রহণ</span><b>${tk(sumBy(mp, 'income'))}</b></div>
     <div class="kpi ex"><span>এ মাসে প্রদান</span><b>${tk(sumBy(mp, 'expense'))}</b></div>
@@ -1801,16 +1822,16 @@ const inp = (l, n, v = '', t = 'text', x = '', w = false) => `<div class="${w ? 
 const sel = (l, n, o, v = '', w = false, x = '') => `<div class="${w ? 'w' : ''}"><label>${l}</label><select name="${n}" ${x}>${o.map(([k, t]) => `<option value="${esc(k)}" ${k === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
 function modal(title, body, onSave) {
   const d = $('#dlg'), gk = curGate;
-  d.innerHTML = `<form id="mf"><h3>${title}</h3><div class="fg">${body}</div>${gk ? '<div class="note" style="margin:12px 0 0">কাজটি সম্পন্ন করে জমা দিন — প্রতিষ্ঠান প্রধান অনুমোদন দিলে তবেই এটি সফলভাবে সংরক্ষিত হবে।</div>' : ''}<div class="row end"><button type="button" class="btn ghost" data-act="close">বাতিল</button><button class="btn">${gk ? 'অনুমোদনের জন্য জমা দিন' : 'সংরক্ষণ করুন'}</button></div></form>`;
+  d.innerHTML = `<form id="mf"><h3>${title}</h3><div class="fg">${body}</div><div id="mErr" role="alert" style="display:none;margin:12px 0 0;padding:11px 14px;border-radius:10px;background:#fdeaea;color:#c0271d;border:1px solid #f4b7b2;font-weight:700"></div>${gk ? '<div class="note" style="margin:12px 0 0">কাজটি সম্পন্ন করে জমা দিন — প্রতিষ্ঠান প্রধান অনুমোদন দিলে তবেই এটি সফলভাবে সংরক্ষিত হবে।</div>' : ''}<div class="row end"><button type="button" class="btn ghost" data-act="close">বাতিল</button><button class="btn">${gk ? 'অনুমোদনের জন্য জমা দিন' : 'সংরক্ষণ করুন'}</button></div></form>`;
   $('#mf').onsubmit = async e => {
-    e.preventDefault(); const b = e.submitter; if (b) b.disabled = true;
+    e.preventDefault(); const b = e.submitter; if (b) b.disabled = true; const me_ = $('#mErr'); if (me_) me_.style.display = 'none';
     try {
       const fd = Object.fromEntries(new FormData(e.target));
       if (gk) { const detail = formDetail(e.target), cap = await withCap(() => onSave(fd)); if (cap.ops.length) await submitCap(gk.key, gk.t, gk.tl, cap.ops, detail); else cap.toasts.forEach(m => toast(m)); }
       else await onSave(fd);
       d.close();
     }
-    catch (err) { toast(errMsg(err)); }
+    catch (err) { const m = errMsg(err), box = $('#mErr'); if (box) { box.textContent = '⚠ ' + m; box.style.display = 'block'; box.scrollIntoView({ block: 'center', behavior: 'smooth' }); } else toast(m); }
     finally { if (b) b.disabled = false; }
   };
   d.showModal();
@@ -1818,6 +1839,14 @@ function modal(title, body, onSave) {
 
 const BILL_TYPES = ['মাসিক বেতন', 'পরীক্ষা ফি', 'টিউশন ফি', 'টিফিন', 'জরিমানা', 'ভর্তি ফি', 'সেশন ফি', 'বই / খাতা', 'ইউনিফর্ম', 'পরিবহন ফি', 'হোস্টেল ফি', 'লাইব্রেরি ফি', 'ল্যাব ফি', 'খেলাধুলা ফি', 'আইডি কার্ড ফি', 'সার্টিফিকেট ফি'];
 const isMonthly = c => c === 'মাসিক ফি' || c === 'মাসিক বেতন';
+const MONTHS_BN = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
+/* মাস (১২টি) ও বছর (২০২৬–২০৪৬) আলাদা ড্রপডাউন; মান জমা হয় YYYY-MM আকারে */
+const monthYearFields = (cur = '') => {
+  const [cy, cm] = String(cur || '').split('-'), yrs = []; for (let y = 2026; y <= 2046; y++) yrs.push(String(y)); if (cy && !yrs.includes(cy)) yrs.unshift(cy);
+  const yb = y => Number(y).toLocaleString('bn-BD', { useGrouping: false });
+  return sel('মাস নির্বাচন করুন *', 'mm', [['', '— মাস —'], ...MONTHS_BN.map((n, i) => [String(i + 1).padStart(2, '0'), n])], cm || '', false, 'required') + sel('বছর নির্বাচন করুন *', 'yy', [['', '— বছর —'], ...yrs.map(y => [y, yb(y)])], cy || '', false, 'required');
+};
+const ymVal = f => f.yy && f.mm ? f.yy + '-' + f.mm : '';
 const billFields = cur => { if (cur === 'মাসিক ফি') cur = 'মাসিক বেতন'; const known = BILL_TYPES.includes(cur); return sel('বিলের ধরন *', 'btype', [...BILL_TYPES, 'অন্যান্য'].map(x => [x, x]), known ? cur : 'অন্যান্য', true) + `<div class="w" data-other ${known ? 'style="display:none"' : ''}>` + inp('অন্যান্য — নিজে লিখুন *', 'otitle', known ? '' : cur, 'text', 'maxlength="40" placeholder="বিলের নাম লিখুন"') + '</div>'; };
 const billTitle = f => { const t = f.btype === 'অন্যান্য' ? (f.otitle || '').trim() : f.btype; if (!t) throw new Error('বিলের নাম লিখুন'); if (t.length > 40) throw new Error('বিলের নাম ৪০ অক্ষরের মধ্যে হতে হবে'); return t; };
 const bulkRows = f => [...f.querySelectorAll('.brow[data-q]')].filter(r => r.style.display !== 'none');
@@ -1943,12 +1972,54 @@ function billHistoryHtml(sid, lg, ex) {
   Object.keys(payN).forEach(k => { if (payN[k] > 1) warn.push(`${nm(k)} খাতে টাকা ${bn(payN[k])} বার নেওয়া হয়েছে`); });
   const added = rows.filter(r => r.kind === 'add').reduce((t, r) => t + (Number(r.amount) || 0), 0), got = pays.reduce((t, x) => t + (Number(x.amount) || 0), 0);
   const bd = { add: ['বিল যোগ', 'pending'], del: ['বিল মুছা', 'rejected'], pay: ['টাকা গ্রহণ', 'approved'] };
+  /* প্রতিটি 'বিল যোগ' সারির বর্তমান অবস্থা: এখনো বকেয়া থাকলে বকেয়া, টাকা নেওয়া হয়ে গেলে পরিশোধিত */
+  const dueLeft = { ...unpN }, paidLeft = { ...payN }, delLeft = { ...delN };
+  rows.filter(r => r.kind === 'add').sort((a, b) => b.at - a.at).forEach(r => {
+    const k = r.title + '|' + r.month;
+    if (!r.month) { r.st = ex.some(b => b.title === r.title && !b.month) ? 'due' : (delLeft[k] > 0 ? 'del' : 'paid'); return; }
+    if (dueLeft[k] > 0) { dueLeft[k]--; r.st = 'due'; }
+    else if (delLeft[k] > 0) { delLeft[k]--; r.st = 'del'; }
+    else if (paidLeft[k] > 0) { paidLeft[k]--; r.st = 'paid'; }
+    else r.st = 'paid';
+  });
+  const stB = { due: ['বকেয়া', 'due'], paid: ['পরিশোধিত', 'paid'], del: ['মুছে ফেলা', 'suspended'] };
   return `<div class="w bsec"><h4>এই শিক্ষার্থীর সকল বিলের তথ্য</h4>
   <div class="hd-chips" style="margin:0 0 8px"><span>মোট বিল যোগ: ${tk(added)}</span><span>মোট টাকা গ্রহণ: ${tk(got)}</span><span>বর্তমান বকেয়া: ${tk(billSum(ex))}</span></div>
   ${warn.length ? `<div class="note" style="margin:0 0 8px;border-color:#f0b429"><b>⚠ সম্ভাব্য ডুপ্লিকেট:</b><br>${warn.join('<br>')}</div>` : '<div class="sub" style="margin:0 0 8px">✔ একই নাম ও মাসের ডুপ্লিকেট বিল পাওয়া যায়নি।</div>'}
   <div class="tw" style="max-height:260px;overflow:auto"><table class="ledt"><tr><th>তারিখ</th><th>ঘটনা</th><th>বিল / খাত</th><th>মাস</th><th class="n">টাকা</th><th>মন্তব্য</th></tr>
-  ${rows.map(r => `<tr><td>${dFmt(r.at)}</td><td><span class="badge b-${bd[r.kind][1]}">${bd[r.kind][0]}</span></td><td>${esc(r.title)}</td><td>${r.month ? bnMonth(r.month) : '—'}</td><td class="n">${tk(r.amount)}</td><td class="sub">${esc(r.note)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty"><b>এখনো কোনো বিলের ইতিহাস নেই</b></td></tr>'}</table></div>
+  ${rows.map(r => `<tr><td>${dFmt(r.at)}</td><td>${r.kind === 'add' ? `<span class="badge b-${bd.add[1]}">${bd.add[0]}</span> <span class="badge b-${stB[r.st][1]}">${stB[r.st][0]}</span>` : `<span class="badge b-${bd[r.kind][1]}">${bd[r.kind][0]}</span>`}</td><td>${esc(r.title)}</td><td>${r.month ? bnMonth(r.month) : '—'}</td><td class="n">${tk(r.amount)}</td><td class="sub">${esc(r.note)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty"><b>এখনো কোনো বিলের ইতিহাস নেই</b></td></tr>'}</table></div>
   <div class="hint">নতুন বিল যোগ ও মোছা এখন থেকে এখানে লেখা থাকবে। আগের যে বিল এই তালিকা চালুর আগে যোগ হয়েছিল তার যোগের রেকর্ড নেই — শুধু বকেয়া ও টাকা গ্রহণের তথ্য আসবে।</div></div>`;
+}
+
+/* শিক্ষার্থীর বিলের তালিকা: আইডি নং, বিবরণ, মাস, বছর, তারিখ, স্ট্যাটাস (অপরিশোধিত = লাল, পরিশোধিত = সবুজ) */
+const bYear = t => { const d = t ? new Date(t) : null; return d && !isNaN(d) ? d.getFullYear().toLocaleString('bn-BD', { useGrouping: false }) : '—'; };
+const bMonOnly = m => m ? new Date(m + '-01T00:00:00').toLocaleDateString('bn-BD', { month: 'long' }) : '—';
+/* আগের পেমেন্টের সাথে মিলে যাওয়া অপরিশোধিত বিল (একই বিবরণ, মাস ও টাকা) নিজে থেকেই "পরিশোধিত" করে দেয় — আলাদা নতুন সারি আর থাকে না */
+async function healBills(sid, s) {
+  if (curGate) return null;
+  const hits = effBills(s, stuPays(sid)).filter(b => b.virt);
+  if (!hits.length) return null;
+  const upd = {}, patched = { ...(s.bills || {}) };
+  hits.forEach(b => { const nb = { ...b }; ['id', 'virt'].forEach(k => delete nb[k]); upd[`${base()}/students/${sid}/bills/${b.id}`] = nb; patched[b.id] = nb; });
+  try {
+    const k = portalKey(ctx, s.class, s.roll, s.phone);
+    if (k && (await get(ref(db, 'studentPortal/' + k))).exists()) Object.keys(upd).slice().forEach(p => { const id = p.split('/').pop(); upd[`studentPortal/${k}/bills/${id}`] = upd[p]; });
+    await update(root(), upd); return patched;
+  } catch (e) { return null; }
+}
+let healT = null, healBusy = false;
+const autoHeal = () => { clearTimeout(healT); healT = setTimeout(async () => { if (healBusy || !ctx || curGate || !me) return; healBusy = true; try { for (const [sid, st] of Object.entries(S)) { if (effBills(st, stuPays(sid)).some(b => b.virt)) await healBills(sid, { ...st }); } } finally { healBusy = false; } }, 1200); };
+function stuBillListHtml(sid, s) {
+  const all = effBills(s, stuPays(sid)), closed = new Set(all.filter(b => b.paid && b.payId).map(b => b.payId)), rows = [];
+  all.forEach(b => rows.push({ t: b.paid ? 'paid' : 'due', uid: billNo(b.id), bid: b.id, pid: b.payId || '', title: b.title, amount: b.amount, month: b.month || '', at: (b.paid ? b.paidAt : 0) || b.createdAt || 0 }));
+  payArr().filter(x => x.type === 'income' && x.studentId === sid && !closed.has(x.id)).forEach(x => rows.push({ t: 'paid', uid: payNo(x.id), pid: x.id, title: x.category, amount: x.amount, month: x.month || '', at: x.createdAt || Date.parse(x.date) || 0 }));
+  rows.sort((a, b) => b.at - a.at);
+  const st = { due: ['অপরিশোধিত', '#d93025', '#fdeaea'], paid: ['পরিশোধিত', '#0a7a5b', '#dcf7ee'] };
+  const pend = apList().filter(a => apPend(a) && a.key === 'bill' && (a.target === sid || String(a.target || '').startsWith(sid + '_')));
+  const pendRows = pend.map(a => `<tr style="background:#fff8e6"><td style="white-space:nowrap;font-weight:700">—</td><td colspan="5"><b>${esc(a.label)}</b>${a.detail || a.tlabel ? `<div class="sub">${esc(a.detail || a.tlabel)}</div>` : ''}<div class="sub">${fmtT(a.createdAt)}</div></td><td>${apBadge(a)}</td><td>${a.status === 'pending' ? `<button type="button" class="btn sm ghost" data-act="apcancel" data-id="${esc(a.id)}">বাতিল</button>` : ''}</td></tr>`).join('');
+  return `<div class="w bsec stubl"><h4>বিলের তালিকা (${bn(rows.length)} টি${pend.length ? ' • অনুমোদনের অপেক্ষায় ' + bn(pend.length) + ' টি' : ''})</h4>
+  <div class="tw" style="max-height:55vh;overflow:auto"><table class="ledt"><tr><th>আইডি নং</th><th>বিবরণ</th><th class="n">বিলের পরিমাণ</th><th>মাস</th><th>বছর</th><th>তারিখ</th><th>স্ট্যাটাস</th><th></th></tr>
+  ${pendRows}${rows.map(r => `<tr><td style="white-space:nowrap;font-weight:700;letter-spacing:.3px">${esc(r.uid)}</td><td><b>${esc(r.title || '')}</b></td><td class="n"><b>${tk(r.amount)}</b></td><td>${bMonOnly(r.month)}</td><td>${r.month ? bn(Number(r.month.slice(0, 4))).replace(/,/g, '') : bYear(r.at)}</td><td>${dFmt(r.at)}</td><td><span class="badge" style="background:${st[r.t][2]};color:${st[r.t][1]};font-weight:700">${st[r.t][0]}</span></td><td>${r.t === 'due' ? `<button type="button" class="btn sm ghost" data-act="editbill" data-sid="${esc(sid)}" data-bid="${esc(r.bid)}">✏ এডিট</button> <button type="button" class="btn sm ghost" data-act="delbill" data-sid="${esc(sid)}" data-bid="${esc(r.bid)}">মুছুন</button>` : (r.pid && P[r.pid] ? `<button type="button" class="btn sm ok" data-act="receipt" data-id="${esc(r.pid)}">🧾 রসিদ</button>` : '')}</td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এখনো কোনো বিল নেই</b></td></tr>'}</table></div></div>`;
 }
 const A = {
   go: d => show(d.v),
@@ -1957,7 +2028,7 @@ const A = {
     if (!list.length) return toast('কোনো সক্রিয় শিক্ষার্থী নেই');
     const cls = [...new Set(list.map(s => s.class))];
     modal('একসাথে বিল যোগ করুন',
-      `<div class="w bsec"><h4>১। বিলের তথ্য</h4></div>` + billFields('মাসিক বেতন') + inp('পরিশোধযোগ্য টাকা (৳) *', 'amount', '', 'number', 'min="0" step="0.01" required') + inp('মাস (ঐচ্ছিক)', 'month', today().slice(0, 7), 'month') +
+      `<div class="w bsec"><h4>১। বিলের তথ্য</h4></div>` + billFields('মাসিক বেতন') + inp('পরিশোধযোগ্য টাকা (৳) *', 'amount', '', 'number', 'min="0" step="0.01" required') + monthYearFields(today().slice(0, 7)) +
       `<div class="w bsec"><h4>২। শিক্ষার্থী নির্বাচন</h4>
         <div class="bsel">
           <div class="bsel-h"><label class="all"><input type="checkbox" id="bAll"> সকল শিক্ষার্থী নির্বাচন</label><input type="search" id="bSearch" placeholder="নাম বা রোল দিয়ে খুঁজুন" autocomplete="off"></div>
@@ -1969,6 +2040,7 @@ const A = {
       async f => {
         const ids = [...$('#mf').querySelectorAll('input[name=stu]:checked')].map(i => i.value);
         if (!ids.length) throw new Error('অন্তত একজন শিক্ষার্থী বাছাই করুন');
+        f.month = ymVal(f); if (!f.month) throw new Error('মাস ও বছর নির্বাচন করুন');
         const amt = Number(f.amount) || 0; if (!(amt > 0)) throw new Error('টাকার পরিমাণ দিন');
         const bill = { title: billTitle(f), amount: amt, createdAt: Date.now() }; if (f.month) bill.month = normMonth(f.month);
         let skipped = 0, n = 0, failed = 0, lastErr = null;
@@ -1983,16 +2055,18 @@ const A = {
       });
   },
   setbill: async d => {
-    const s = S[d.id]; if (!s) return;
-    const ex = billsOf(s); let lg = {}; try { lg = (await get(ref(db, `${base()}/billLog/${d.id}`))).val() || {}; } catch (e) {}
+    let s = S[d.id]; if (!s) return;
+    const hb = await healBills(d.id, s); if (hb) s = { ...s, bills: hb };
+    const ex = billsOf(s);
     modal('বিল — ' + s.name,
-      `<div class="w bsec"><h4>বিদ্যমান অপরিশোধিত বিল (${bn(ex.length)} টি)</h4>${ex.length ? `<div class="tw"><table class="ledt"><tr><th>বিল</th><th>মাস</th><th class="n">টাকা</th><th></th></tr>${ex.map(b => `<tr><td>${esc(b.title)}</td><td>${b.month ? bnMonth(b.month) : '—'}</td><td class="n">${tk(b.amount)}</td><td><button type="button" class="btn sm ghost" data-act="delbill" data-sid="${esc(d.id)}" data-bid="${esc(b.id)}">মুছুন</button></td></tr>`).join('')}<tr class="sum"><td colspan="2">মোট</td><td class="n">${tk(billSum(ex))}</td><td></td></tr></table></div>` : '<div class="sub">এখন কোনো অপরিশোধিত বিল নেই।</div>'}</div>` + billHistoryHtml(d.id, lg, ex) +
-      `<div class="w bsec"><h4>নতুন বিল যোগ করুন (ঐচ্ছিক)</h4></div>` + billFields('মাসিক বেতন') + inp('পরিশোধযোগ্য টাকা (৳)', 'amount', '', 'number', 'min="0" step="0.01"') + inp('মাস (ঐচ্ছিক)', 'month', '', 'month'),
+      `<div class="w bsec"><h4>নতুন বিল যোগ করুন</h4></div>` + billFields('মাসিক বেতন') + inp('পরিশোধযোগ্য টাকা (৳) *', 'amount', '', 'number', 'min="0" step="0.01" required') + monthYearFields('') +
+      stuBillListHtml(d.id, s) ,
       async f => {
+        f.month = ymVal(f); if (!f.month) throw new Error('মাস ও বছর নির্বাচন করুন');
         const amt = Number(f.amount) || 0; if (!(amt > 0)) throw new Error('নতুন বিল যোগ করতে টাকার পরিমাণ দিন (আগের বিল মুছতে "মুছুন" চাপুন)');
         const bill = { title: billTitle(f), amount: amt, createdAt: Date.now() }; if (f.month) bill.month = normMonth(f.month);
-        if (ex.some(b => b.title === bill.title && (b.month || '') === (bill.month || ''))) throw new Error('এই নাম ও মাসের একটি বিল আগে থেকেই আছে');
-        if (paidSame(d.id, bill.title, bill.month) && !confirm('এই নাম ও মাসের টাকা এই শিক্ষার্থীর কাছ থেকে আগেই নেওয়া হয়েছে।\nতবুও নতুন বিল যোগ করবেন?')) throw new Error('বিল যোগ করা হয়নি');
+        const same = (t, m) => sameCat(t, bill.title) && (m || '') === (bill.month || '');
+        if (billsAll(s).some(b => same(b.title, b.month)) || payArr().some(x => x.type === 'income' && x.studentId === d.id && same(x.category, x.month))) throw new Error('একই বিবরণ, মাস ও বছরের বিল আগে থেকেই আছে — আবার যোগ করা যাবে না');
         const bid = push(ref(db, `${base()}/students/${d.id}/bills`)).key, upd = { [`${base()}/students/${d.id}/bills/${bid}`]: bill, [`${base()}/billLog/${d.id}/${push(ref(db, `${base()}/billLog/${d.id}`)).key}`]: billLogRow(bill, 'add') }, k = portalKey(ctx, s.class, s.roll, s.phone);
         if (k) {
           const exists = (await get(ref(db, 'studentPortal/' + k))).exists();
@@ -2000,6 +2074,25 @@ const A = {
           else upd[`studentPortal/${k}`] = buildPortal(d.id, { ...s, bills: { ...(s.bills || {}), [bid]: bill } });
         }
         await update(root(), upd); toast('নতুন বিল যোগ হয়েছে');
+        setTimeout(() => A.setbill(d), 900);
+      });
+  },
+  editbill: async d => {
+    const s = S[d.sid]; if (!s) return;
+    const b = billsOf(s).find(x => x.id === d.bid); if (!b) return toast('বিলটি আর অপরিশোধিত নেই — এডিট করা যাবে না');
+    modal('বিল এডিট — ' + s.name + ' (' + billNo(b.id) + ')',
+      billFields(b.title) + inp('পরিশোধযোগ্য টাকা (৳) *', 'amount', b.amount, 'number', 'min="0" step="0.01" required') + monthYearFields(b.month || ''),
+      async f => {
+        f.month = ymVal(f); if (!f.month) throw new Error('মাস ও বছর নির্বাচন করুন');
+        const amt = Number(f.amount) || 0; if (!(amt > 0)) throw new Error('টাকার পরিমাণ দিন');
+        const title = billTitle(f), month = normMonth(f.month);
+        const same = (t, m) => sameCat(t, title) && (m || '') === month;
+        if (billsAll(s).some(x => x.id !== b.id && same(x.title, x.month)) || stuPays(d.sid).some(x => same(x.category, x.month))) throw new Error('একই বিবরণ, মাস ও বছরের বিল আগে থেকেই আছে — এডিট করা যাবে না');
+        const nb = { ...b, title, amount: amt, month }; delete nb.id; delete nb.virt;
+        const bp = b.id === 'legacy' ? '/bill' : `/bills/${b.id}`, upd = { [`${base()}/students/${d.sid}${bp}`]: nb }, k = portalKey(ctx, s.class, s.roll, s.phone);
+        if (k && (await get(ref(db, 'studentPortal/' + k))).exists()) upd[`studentPortal/${k}${bp}`] = nb;
+        await update(root(), upd); toast('বিল এডিট হয়েছে');
+        setTimeout(() => A.setbill({ id: d.sid }), 900);
       });
   },
   delbill: async d => {
@@ -2244,10 +2337,11 @@ function sFee(r) {
     months.push({ k, paid, st: paid >= fee ? 'paid' : paid > 0 ? 'part' : 'due' });
   }
   const totalPaid = pays.reduce((a, p) => a + p.amount, 0);
-  const bl = billsOf(r);
-  return `${bl.length ? `<div class="billcard"><div><span>অপরিশোধিত বিল ${bn(bl.length)} টি • মোট</span><b>${tk(billSum(bl))}</b></div></div>
-    <div class="panel flush"><h3>অপরিশোধিত বিলের তালিকা</h3><div class="tw"><table><tr><th>বিল</th><th>মাস</th><th class="n">টাকা</th><th></th></tr>
-    ${bl.map(b => `<tr><td><b>${esc(b.title)}</b></td><td>${b.month ? bnMonth(b.month) : '—'}</td><td class="n"><b>${tk(b.amount)}</b></td><td><button class="btn sm" data-act="paydlg" data-bid="${esc(b.id)}" ${fwOnline() ? '' : 'disabled'}>পেমেন্ট করুন</button></td></tr>`).join('')}</table></div></div>${fwNote()}` : `<div class="panel"><b>বর্তমানে কোনো বকেয়া বিল নেই।</b></div>`}
+  const eb = effBills(r, pays), bl = eb.filter(b => !b.paid);
+  const all = eb.slice().sort((x, y) => ((y.paid ? y.paidAt : 0) || y.createdAt || 0) - ((x.paid ? x.paidAt : 0) || x.createdAt || 0));
+  return `${bl.length ? `<div class="billcard"><div><span>অপরিশোধিত বিল ${bn(bl.length)} টি • মোট</span><b>${tk(billSum(bl))}</b></div></div>` : `<div class="panel"><b>বর্তমানে কোনো বকেয়া বিল নেই।</b></div>`}
+    ${all.length ? `<div class="panel flush"><h3>বিলের তালিকা</h3><div class="tw"><table><tr><th>আইডি</th><th>বিল</th><th>মাস</th><th class="n">টাকা</th><th>স্ট্যাটাস</th><th></th></tr>
+    ${all.map(b => `<tr><td style="white-space:nowrap;font-weight:700">${esc(billNo(b.id))}</td><td><b>${esc(b.title)}</b></td><td>${b.month ? bnMonth(b.month) : '—'}</td><td class="n"><b>${tk(b.amount)}</b></td><td><span class="badge" style="background:${b.paid ? '#dcf7ee' : '#fdeaea'};color:${b.paid ? '#0a7a5b' : '#d93025'};font-weight:700">${b.paid ? 'পরিশোধিত' : 'অপরিশোধিত'}</span></td><td>${b.paid ? (b.payId && (r.payments || {})[b.payId] ? `<button class="btn sm ok" data-act="srcpt" data-id="${esc(b.payId)}">🧾 রসিদ</button>` : '') : `<button class="btn sm" data-act="paydlg" data-bid="${esc(b.id)}" ${fwOnline() ? '' : 'disabled'}>পেমেন্ট করুন</button>`}</td></tr>`).join('')}</table></div></div>${bl.length ? fwNote() : ''}` : ''}
     ${fee ? `<div class="panel"><h3>গত ৬ মাসের মাসিক ফি</h3><div class="months">${months.map(m => `<div class="mth"><span>${bnMonth(m.k)}</span><span class="badge b-${m.st}">${m.st === 'paid' ? 'পরিশোধিত' : m.st === 'part' ? 'আংশিক' : 'বকেয়া'}</span>${m.st !== 'paid' ? `<div class="sub" style="margin-top:6px">বাকি ${tk(fee - m.paid)}</div>` : ''}</div>`).join('')}</div></div>` : ''}
     <div class="panel flush"><h3>ফি পরিশোধের তালিকা</h3><div class="tw"><table>
       <tr><th>তারিখ</th><th>রসিদ নং</th><th>খাত</th><th>পদ্ধতি</th><th class="n">টাকা</th></tr>
@@ -2522,6 +2616,15 @@ function pHead() {
   }
   $('#main').innerHTML = top + body;
 }
+/* অনুমোদনের অপেক্ষায় থাকা কাজ (অপেক্ষমাণ, বা অনুমোদিত কিন্তু এখনো সংরক্ষিত হয়নি) */
+const apPend = a => a.status === 'pending' || (a.status === 'approved' && a.ops);
+const apBadge = a => a.status === 'approved' ? '<span class="badge b-approved">অনুমোদিত — সংরক্ষণ বাকি</span>' : '<span class="badge b-pending" style="font-weight:700">⏳ অনুমোদনের অপেক্ষায়</span>';
+function apPendingHtml() {
+  const rows = apList().filter(apPend);
+  if (!rows.length) return '';
+  return `<div class="panel flush" style="border:1px solid #f0b429"><h3>⏳ অনুমোদনের অপেক্ষায় (${bn(rows.length)})</h3><div class="tw"><table class="ledt"><tr><th>কাজ</th><th>বিবরণ</th><th>সময়</th><th>অবস্থা</th><th></th></tr>
+  ${rows.map(a => `<tr><td><b>${esc(a.label)}</b></td><td>${esc(a.tlabel || '')}${a.detail && a.detail !== a.tlabel ? `<div class="sub">${esc(a.detail)}</div>` : ''}</td><td class="sub">${fmtT(a.createdAt)}</td><td>${apBadge(a)}<div class="sub">${a.status === 'approved' ? 'প্রধানের প্যানেল থেকে সংরক্ষণ সম্পন্ন হবে' : 'অনুমোদন পেলে নিজে থেকেই সংরক্ষিত হবে'}</div></td><td>${a.status === 'pending' ? `<button type="button" class="btn sm ghost" data-act="apcancel" data-id="${esc(a.id)}">বাতিল</button>` : ''}</td></tr>`).join('')}</table></div></div>`;
+}
 /* কর্মীর দিক: নিজের পাঠানো অনুরোধের অবস্থা */
 function apStatusHtml() {
   const rows = apList().slice(0, 10);
@@ -2664,7 +2767,7 @@ document.addEventListener('change', e => { const el = e.target; if (el.name !== 
 const sNm = id => (S[id] || {}).name || '';
 const GATE = {
   addstu: ['stuSave', 'modal', () => ['', 'নতুন শিক্ষার্থী যোগ']], editstu: ['stuSave', 'modal', d => [d.id, sNm(d.id)]], delstu: ['stuDel', 'now', d => [d.id, sNm(d.id)]],
-  setbill: ['bill', 'modal', d => [d.id, sNm(d.id)]], delbill: ['bill', 'now', d => [d.sid + '_' + d.bid, sNm(d.sid)]], bulkbill: ['bill', 'modal', () => ['bulk', 'একসাথে বিল']],
+  setbill: ['bill', 'modal', d => [d.id, sNm(d.id)]], delbill: ['bill', 'now', d => [d.sid + '_' + d.bid, sNm(d.sid)]], editbill: ['bill', 'modal', d => [d.sid + '_' + d.bid, sNm(d.sid)]], bulkbill: ['bill', 'modal', () => ['bulk', 'একসাথে বিল']],
   addpay: [d => d.t === 'expense' ? 'payOut' : 'payIn', 'modal', () => ['', 'নতুন লেনদেন']], stupay: ['payIn', 'modal', d => [d.id, sNm(d.id)]], duepay: ['payIn', 'modal', d => [d.id, sNm(d.id)]],
   delpay: ['payDel', 'now', d => { const x = P[d.id] || {}; return [d.id, `${x.category || ''} — ৳${bn(x.amount)}${x.studentName ? ' (' + x.studentName + ')' : ''}`]; }],
   addnotice: ['notice', 'modal', () => ['', 'নতুন নোটিশ']], editnotice: ['notice', 'modal', d => [d.id, (N[d.id] || {}).title || '']], delnotice: ['notice', 'now', d => [d.id, (N[d.id] || {}).title || '']],
