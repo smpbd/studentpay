@@ -466,6 +466,16 @@ dialog .row.end{position:sticky;bottom:-24px;background:#fff;padding:10px 0 2px;
 .apvg{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:8px}
 .apvg label{display:flex;gap:8px;align-items:center;margin:0;font-weight:500;padding:8px 10px;border:1px solid var(--line);border-radius:10px;cursor:pointer;font-size:14px}
 .apvg input,.apvall input{width:18px;height:18px;min-height:0;padding:0;flex:none}
+.pchk{display:inline-flex;gap:8px;align-items:center;margin:0;font-weight:600;cursor:pointer}
+.pchk input,td.pc input,th.pc input{width:18px;height:18px;min-height:0;padding:0;margin:0;flex:none;cursor:pointer}
+th.pc,td.pc{width:42px;text-align:center;padding-left:10px;padding-right:6px}
+.paybar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.paybar .btn[disabled]{opacity:.45;cursor:not-allowed}
+.bkp .row{gap:10px;flex-wrap:wrap}
+.bkcnt{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0}
+.bkcnt div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;background:#fff}.bkcnt b{display:block;font-size:18px}
+.bksec{display:flex;flex-wrap:wrap;gap:6px 16px;margin:8px 0 12px}.bksec label{display:inline-flex;gap:6px;align-items:center;font-weight:500;margin:0}.bksec input{width:18px;height:18px;min-height:0;padding:0}
+#bkSt{margin-top:10px;font-weight:600}
 .apvall{display:flex;gap:8px;align-items:center;margin:10px 0 0;font-weight:700}
 @media(max-width:600px){.apvg{grid-template-columns:1fr}}
 .hd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.hd-chips span{font-size:12.5px;background:#eef2ff;color:var(--ink);padding:3px 10px;border-radius:99px}
@@ -510,6 +520,9 @@ dialog .row.end{position:sticky;bottom:-24px;background:#fff;padding:10px 0 2px;
 .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}.rgrid .panel{margin:0}.rgrid h3{margin:0 0 4px;font-size:16px}.rgrid .use{font-size:12px;color:var(--mut);margin:0 0 10px}
 
 
+.bklogo{display:inline-grid;place-items:center;border-radius:10px;background:#fff;border:1px solid var(--line);overflow:hidden;flex:none}.bklogo img{width:70%;height:70%;object-fit:contain}.bklogo i{font-style:normal;font-weight:800;color:var(--pri);place-items:center}
+.bkbtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font:inherit;text-align:left}.bkbtn>span:first-child{display:flex;align-items:center;gap:10px}
+.bklist{border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:6px;padding:8px}.bksr{width:100%;margin-bottom:6px}.bkrows{max-height:240px;overflow:auto}.bkrow{display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border:0;background:none;border-radius:8px;cursor:pointer;font:inherit;text-align:left}.bkrow:hover{background:#f2f4f7}
 </style>
 </head>
 <body>
@@ -785,7 +798,15 @@ dialog .row.end{position:sticky;bottom:-24px;background:#fff;padding:10px 0 2px;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
-import { getDatabase, ref, get, set, update, push, onValue, onDisconnect, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
+import { getDatabase, ref, get, set as fbSet, update as fbUpdate, push, onValue, onDisconnect, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
+
+/* ---- অনুমোদনের জন্য জমা: কর্মীর কাজের ডাটাবেস-লেখা ধরে রাখার স্তর ----
+   CAP চালু থাকলে set/update আসল ডাটাবেসে না গিয়ে তালিকায় জমা হয়; প্রধান অনুমোদন দিলে সেগুলো প্রয়োগ হয়। */
+let CAP = null, CAPT = [];
+const pathOf = r => decodeURIComponent(String(r).replace(/^https?:\/\/[^/]+\/?/, '')).replace(/^\/+|\/+$/g, '');
+const capAdd = (p, v) => CAP.push([p, v === undefined ? null : v]);
+const set = (r, v) => { if (!CAP) return fbSet(r, v); capAdd(pathOf(r), v); return Promise.resolve(); };
+const update = (r, v) => { if (!CAP) return fbUpdate(r, v); const b = pathOf(r); Object.entries(v).forEach(([k, x]) => capAdd(b ? b + '/' + k : k, x)); return Promise.resolve(); };
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSEchFRuXWfD8Ejt20W700qFTbrURbDnU",
@@ -813,7 +834,7 @@ const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000
 const bnDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', {day:'numeric',month:'short',year:'numeric'}) : '';
 const bnMonth = m => m ? new Date(m + '-01T00:00:00').toLocaleDateString('bn-BD', {month:'long',year:'numeric'}) : '';
 let tt;
-const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3500); };
+const toast = m => { if (CAP) { CAPT.push(m); return; } const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3500); };
 /* রিফ্রেশ দিলে যেখানে ছিলেন সেখানেই থাকার জন্য বর্তমান অবস্থান sessionStorage-এ রাখা হয় */
 const NAVK = 'sm_nav';
 let REST = null; try { REST = JSON.parse(sessionStorage.getItem(NAVK) || 'null'); } catch (e) {}
@@ -841,7 +862,8 @@ const ICO = {
   bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/>',
   trophy:'<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 13v4M8 20h8M10 17h4"/>',
   card:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M6 16c.5-1.500 1.700-2 3-2s2.500.5 3 2M15 10h3M15 13h3"/>',
-  cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'
+  cal:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  db:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>'
 };
 const ic = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 
@@ -849,8 +871,8 @@ const STATUS = {pending:'অপেক্ষমাণ', approved:'অনুমো
 const INC = ['মাসিক ফি','ভর্তি ফি','পরীক্ষা ফি','সেশন ফি','অন্যান্য আয়'];
 const EXP = ['শিক্ষক-কর্মচারী বেতন','ভাড়া','বিদ্যুৎ/পানি/ইন্টারনেট','শিক্ষা উপকরণ','মেরামত','অন্যান্য খরচ'];
 const METHODS = ['নগদ','বিকাশ','নগদ (Nagad)','রকেট','ব্যাংক','চেক'].map(x => [x, x]);
-const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['pro','প্রোফাইল','pro']];
-const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল'};
+const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['pro','প্রতিষ্ঠানের প্রোফাইল','pro'],['hpro','প্রধানের প্রোফাইল','stu'],['bnk','পেমেন্ট গ্রহণের অ্যাকাউন্ট','pay'],['slg','শিক্ষার্থী লগইন','card']];
+const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল', hpro:'প্রতিষ্ঠান প্রধানের প্রোফাইল', bnk:'পেমেন্ট গ্রহণের অ্যাকাউন্ট', slg:'শিক্ষার্থী লগইন'};
 
 /* ---------- সাইটের নাম ও লোগো ---------- */
 const DEF_SITE = { name: 'স্কুল ম্যানেজার', tagline: '', logo: '' };
@@ -1096,12 +1118,12 @@ function msg(i, t, b) { $('#msgIcon').textContent = i; $('#msgT').textContent = 
 function openWorkspace(uid, p) {
   unAll(dataUns); ctx = uid; ctxProfile = p; S = {}; P = {}; page = (REST && REST.ctx === uid && TITLES[REST.page] && REST.page !== 'head') ? REST.page : 'dash'; REST = null; ui = {};
   instLogo = ''; pendingInst = undefined; LG = {}; AP = {}; headIn = false;
-  dataUns.push(onValue(ref(db, `institutionData/${uid}/approvals`), s => { AP = s.val() || {}; updChip(); if (page === 'head' && !$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#headF'))) render(); }, () => {}));
+  dataUns.push(onValue(ref(db, `institutionData/${uid}/approvals`), s => { AP = s.val() || {}; updChip(); if ((page === 'head' || page === 'hpro') && !$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#headF'))) render(); }, () => {}));
   dataUns.push(onValue(ref(db, `instLedger/${uid}`), s => { LG = s.val() || {}; if (ctx === uid && page === 'dash' && !$('#dlg').open) render(); }, () => {}));
   dataUns.push(onValue(ref(db, `schoolLogos/${uid}`), s => { instLogo = (s.val() || {}).logo || ''; }, () => {}));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/students`), s => { S = s.val() || {}; render(); }, e => toast(errMsg(e))));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/payments`), s => { P = s.val() || {}; render(); }, e => toast(errMsg(e))));
-  BK = {}; dataUns.push(onValue(ref(db, `instBanks/${uid}`), s => { BK = s.val() || {}; if (ctx === uid && (page === 'pro' || page === 'dash') && !$('#dlg').open) render(); }, () => {}));
+  BK = {}; dataUns.push(onValue(ref(db, `instBanks/${uid}`), s => { BK = s.val() || {}; if (ctx === uid && (page === 'bnk' || page === 'dash') && !$('#dlg').open) render(); }, () => {}));
   N = {}; EX = {}; HO = {}; RS = {};
   [['notices', v => N = v], ['exams', v => EX = v], ['holidays', v => HO = v]].forEach(([k, f]) => dataUns.push(onValue(ref(db, `${k}/${uid}`), s => { f(s.val() || {}); render(); }, () => {})));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/results`), s => { RS = s.val() || {}; }, () => {}));
@@ -1126,9 +1148,10 @@ function shell({ nav, active, act, title, sub, actions = '', who = 'প্রত
 }
 
 /* ---------- অ্যাডমিন প্যানেল ---------- */
-const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set']];
+const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set'], ['backup', 'ব্যাকআপ', 'db']];
 let payReqs = {}, smsList = {}, paySet = {}, payKey = '', pendingQr, matching = false;
 let pf = { st: 'all', m: 'all', sc: 'all', from: '', to: '', q: '' };
+const paySel = new Set(); /* মোছার জন্য বাছা পেমেন্টের আইডি (ভেরিফাইড কখনো এতে আসে না) */
 const WIN = 600000, CHG = 0.0125, nowSrv = () => Date.now() + srvOff;
 const payExp = r => r.createdAt + WIN * (1 + (r.ext || 0)); /* সময় শেষের মুহূর্ত (প্রতিবার আরো সময় নিলে ১০ মিনিট বাড়ে) */
 let srvOff = 0;
@@ -1166,10 +1189,13 @@ function payRowsFiltered() {
 function payListHtml() {
   const rows = payRowsFiltered(), ok = rows.filter(r => r.status === 'verified');
   const sum = (a, k) => a.reduce((t, r) => t + (Number(r[k]) || 0), 0);
-  return `<div class="sub" style="padding:10px 16px">মোট ${bn(rows.length)} টি পেমেন্ট • পরিশোধিত ${bn(ok.length)} টি — বিল ${tk(sum(ok, 'amount'))}, সার্ভিস চার্জ ${tk(sum(ok, 'charge'))}, মোট গৃহীত ${tk(sum(ok, 'total'))}</div>
-  <table><tr><th>সময়</th><th>শিক্ষার্থী / স্কুল</th><th>বিষয়</th><th>মাধ্যম</th><th>প্রেরক নম্বর</th><th class="n">বিল</th><th class="n">চার্জ</th><th class="n">মোট</th><th>রসিদ / TrxID</th><th>অবস্থা</th><th></th></tr>
-  ${rows.map(r => { const [c, t] = effSt(r); return `<tr><td>${new Date(r.createdAt).toLocaleString('bn-BD')}</td><td><b>${esc(r.name)}</b><div class="sub">${esc(r.school)} • ${esc(r.class)}${r.roll ? ' / ' + esc(r.roll) : ''}</div></td><td>${esc(r.title)}${r.month ? '<div class="sub">' + bnMonth(r.month) + '</div>' : ''}</td><td>${mLogo(r.method, 24)}<div class="sub">${r.method === 'rocket' ? 'রকেট' : 'বিকাশ'}</div></td><td>+880${esc(r.sender)}</td><td class="n">${tk(r.amount)}</td><td class="n">${tk(r.charge)}</td><td class="n">${tk(r.total)}</td><td>${esc(r.receiptNo || '')}${r.trx ? '<div class="sub">' + esc(r.trx) + '</div>' : ''}${r.via ? '<div class="sub">' + (r.via === 'auto' ? 'অটো যাচাই' : 'হাতে যাচাই') + '</div>' : ''}</td><td><span class="badge b-${c}">${t}</span>${r.ext ? '<div class="sub">সময় বাড়ানো: ' + bn(r.ext) + ' বার</div>' : ''}</td>
-  <td>${r.status === 'pending' || r.status === 'review' ? `<div class="row"><button class="btn sm ok" data-act="payv" data-id="${r.id}">যাচাই করে পেইড</button><button class="btn sm bad" data-act="payr" data-id="${r.id}">বাতিল</button></div>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="11" class="empty"><b>কোনো পেমেন্ট পাওয়া যায়নি</b>ফিল্টার বদলে দেখুন।</td></tr>'}</table>`;
+  const delRows = rows.filter(r => r.status !== 'verified'), visIds = new Set(delRows.map(r => r.id));
+  [...paySel].forEach(id => { if (!visIds.has(id)) paySel.delete(id); }); /* ফিল্টারে লুকানো বা ভেরিফাইড হয়ে যাওয়া আইডি বাদ */
+  const nSel = paySel.size, allSel = delRows.length > 0 && nSel === delRows.length;
+  return `<div class="paybar"><button type="button" class="btn sm bad" data-act="paydelsel" ${nSel ? '' : 'disabled'}>🗑 ডিলিট${nSel ? ' (' + bn(nSel) + ')' : ''}</button><label class="pchk"><input type="checkbox" data-act="pasela" ${allSel ? 'checked' : ''} ${delRows.length ? '' : 'disabled'}> সব নির্বাচন</label><span class="sub">ভেরিফাইড (পরিশোধিত) পেমেন্ট ডিলিট করা যাবে না ${'🔒'}</span></div><div class="sub" style="padding:10px 16px">মোট ${bn(rows.length)} টি পেমেন্ট • পরিশোধিত ${bn(ok.length)} টি — বিল ${tk(sum(ok, 'amount'))}, সার্ভিস চার্জ ${tk(sum(ok, 'charge'))}, মোট গৃহীত ${tk(sum(ok, 'total'))}</div>
+  <table><tr><th class="pc"></th><th>সময়</th><th>শিক্ষার্থী / স্কুল</th><th>বিষয়</th><th>মাধ্যম</th><th>প্রেরক নম্বর</th><th class="n">বিল</th><th class="n">চার্জ</th><th class="n">মোট</th><th>রসিদ / TrxID</th><th>অবস্থা</th><th></th></tr>
+  ${rows.map(r => { const [c, t] = effSt(r); return `<tr${paySel.has(r.id) ? ' style="background:#fff5f5"' : ''}><td class="pc">${r.status === 'verified' ? '<span title="ভেরিফাইড পেমেন্ট মোছা যাবে না">🔒</span>' : `<input type="checkbox" data-act="paysel" data-id="${r.id}" ${paySel.has(r.id) ? 'checked' : ''} aria-label="নির্বাচন">`}</td><td>${new Date(r.createdAt).toLocaleString('bn-BD')}</td><td><b>${esc(r.name)}</b><div class="sub">${esc(r.school)} • ${esc(r.class)}${r.roll ? ' / ' + esc(r.roll) : ''}</div></td><td>${esc(r.title)}${r.month ? '<div class="sub">' + bnMonth(r.month) + '</div>' : ''}</td><td>${mLogo(r.method, 24)}<div class="sub">${r.method === 'rocket' ? 'রকেট' : 'বিকাশ'}</div></td><td>+880${esc(r.sender)}</td><td class="n">${tk(r.amount)}</td><td class="n">${tk(r.charge)}</td><td class="n">${tk(r.total)}</td><td>${esc(r.receiptNo || '')}${r.trx ? '<div class="sub">' + esc(r.trx) + '</div>' : ''}${r.via ? '<div class="sub">' + (r.via === 'auto' ? 'অটো যাচাই' : 'হাতে যাচাই') + '</div>' : ''}</td><td><span class="badge b-${c}">${t}</span>${r.ext ? '<div class="sub">সময় বাড়ানো: ' + bn(r.ext) + ' বার</div>' : ''}</td>
+  <td>${r.status === 'pending' || r.status === 'review' ? `<div class="row"><button class="btn sm ok" data-act="payv" data-id="${r.id}">যাচাই করে পেইড</button><button class="btn sm bad" data-act="payr" data-id="${r.id}">বাতিল</button></div>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="12" class="empty"><b>কোনো পেমেন্ট পাওয়া যায়নি</b>ফিল্টার বদলে দেখুন।</td></tr>'}</table>`;
 }
 const adminPayRefresh = () => { const l = $('#payList'); if (me && me.isAdmin && !ctx && l) l.innerHTML = payListHtml(); };
 setInterval(adminPayRefresh, 5000);
@@ -1393,7 +1419,7 @@ function ledModal(uid, type) {
   const accts = Object.entries(banksAll[uid] || {}).map(([id, b]) => ({ id, ...b })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   const bankPart = type !== 'paid' ? '' : accts.length
     ? sel('যে অ্যাকাউন্টে পরিশোধ করছেন *', 'bank', [['', '— প্রতিষ্ঠানের অ্যাকাউন্ট বেছে নিন —'], ...accts.map(a => [a.id, bankLbl(a)])], '', true)
-    : '<div class="w"><div class="note">এই প্রতিষ্ঠান এখনো কোনো ব্যাংক অ্যাকাউন্ট যোগ করেনি। প্রতিষ্ঠানের প্রোফাইল পেজে অ্যাকাউন্ট যোগ হলে এখান থেকে বেছে নেওয়া যাবে।</div></div>';
+    : '<div class="w"><div class="note">এই প্রতিষ্ঠান এখনো কোনো ব্যাংক অ্যাকাউন্ট যোগ করেনি। প্রতিষ্ঠানের ‘পেমেন্ট গ্রহণের অ্যাকাউন্ট’ পেজে অ্যাকাউন্ট যোগ হলে এখান থেকে বেছে নেওয়া যাবে।</div></div>';
   modal((type === 'paid' ? 'প্রতিষ্ঠানকে পরিশোধ — ' : 'মেইনটেন্স চার্জ — ') + nm,
     `<div class="w"><div class="sub">বর্তমানে এডমিনের নিকট জমা: <b>${tk(c.held)}</b></div></div>` + bankPart + inp('টাকা (৳) *', 'amount', '', 'number', 'min="0.01" step="0.01" required') + inp('তারিখ *', 'date', today(), 'date', 'required') +
     `<div class="w">${inp(type === 'paid' ? 'নোট (যেমন: ট্রান্সফার রেফারেন্স)' : 'কিসের জন্য (যেমন: ওয়েবসাইট মেইনটেন্স)', 'note', '', 'text', 'maxlength="120"')}</div>`,
@@ -1503,11 +1529,24 @@ function renderAdmin() {
       <div class="kpi"><span>প্রতিষ্ঠানগুলোর প্রাপ্য (মূল টাকা)</span><b>${tk(T.due)}</b></div>
       <div class="kpi du"><span>এডমিনের নিকট জমা</span><b>${tk(T.held)}</b></div>
     </div>
-    <div class="panel flush"><h3 style="padding:14px 16px 0;margin:0">প্রতিষ্ঠানভিত্তিক হিসাব</h3><div class="sub" style="padding:2px 16px 10px">এডমিনের নিকট জমা = মূল টাকা − এডমিন কর্তৃক পরিশোধিত − মেইনটেন্স চার্জ</div><div class="tw"><table>
+    <div class="panel flush"><h3 style="padding:14px 16px 0;margin:0">প্রতিষ্ঠানভিত্তিক হিসাব</h3><div class="sub" style="padding:2px 16px 10px">এডমিনের নিকট জমা = মূল টাকা − এডমিন কর্তৃক পরিশোধিত − মেইনটেন্স চার্জ</div><div style="padding:0 16px 10px"><button type="button" class="btn sm ghost" data-act="bkcsv">⬇ হিসাব বিবরণী Export (Excel CSV)</button></div><div class="tw"><table>
       <tr><th>প্রতিষ্ঠান</th><th class="n">ভেরিফাইড মোট</th><th class="n">সার্ভিস চার্জ</th><th class="n">প্রাপ্য মূল টাকা</th><th class="n">পরিশোধিত</th><th class="n">মেইনটেন্স</th><th class="n">এডমিনের নিকট জমা</th><th></th></tr>
       ${rows.map(r => `<tr><td><b>${esc(r.name)}</b><div class="sub">${bn(r.c.n)} টি পেমেন্ট</div></td><td class="n">${tk(r.c.total)}</td><td class="n">${tk(r.c.charge)}</td><td class="n">${tk(r.c.due)}</td><td class="n">${tk(r.c.paid)}</td><td class="n">${tk(r.c.maint)}</td><td class="n"><b>${tk(r.c.held)}</b></td><td><div class="row"><button class="btn sm ok" data-act="ledpay" data-id="${esc(r.id)}">পরিশোধ</button><button class="btn sm warn" data-act="ledmaint" data-id="${esc(r.id)}">মেইনটেন্স</button><button class="btn sm ghost" data-act="ledhist" data-id="${esc(r.id)}">ইতিহাস</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এখনো কোনো হিসাব নেই</b>অনলাইন পেমেন্ট ভেরিফাই হলে এখানে দেখা যাবে।</td></tr>'}
       ${rows.length ? `<tr class="ledt sum"><td><b>সর্বমোট</b></td><td class="n">${tk(T.total)}</td><td class="n">${tk(T.charge)}</td><td class="n">${tk(T.due)}</td><td class="n">${tk(T.paid)}</td><td class="n">${tk(T.maint)}</td><td class="n">${tk(T.held)}</td><td></td></tr>` : ''}
     </table></div></div>`;
+    return;
+  }
+  if (ap === 'backup') {
+    shell({ nav: ANAV, active: 'backup', act: 'adminnav', title: 'ব্যাকআপ', sub: 'এডমিনের হিসাব ও প্রতিষ্ঠানের সব ডেটা এক ক্লিকে Export / Import', who: 'অ্যাডমিন' });
+    $('#main').innerHTML = `<div class="panel bkp" style="max-width:760px"><h3 style="margin-top:0">Export (ডাউনলোড)</h3>
+      <p class="sub" style="margin-top:0">এক ক্লিকে সব প্রতিষ্ঠানের প্রোফাইল, শিক্ষার্থী, আয়-ব্যয়, বিল, নোটিশ, পরীক্ষা-ফলাফল, ছুটি, অনলাইন পেমেন্ট ও এডমিনের হিসাব একটি JSON ফাইলে নামবে। এই ফাইল দিয়েই পরে Import করা যাবে।</p>
+      <div class="row"><button type="button" class="btn" data-act="bkexport">⬇ সব ডেটা Export (JSON ব্যাকআপ)</button><button type="button" class="btn ghost" data-act="bkcsv">⬇ এডমিনের হিসাব বিবরণী (Excel CSV)</button></div>
+      <div class="hint" style="margin-top:8px">গোপন কী (SMS Key), কাঁচা SMS ইনবক্স ও ফরওয়ার্ডার তালিকা ব্যাকআপে রাখা হয় না — ফাইল হারালেও এগুলো নিরাপদ থাকে।</div>
+      <div id="bkSt">${esc(bkStat)}</div></div>
+    <div class="panel bkp" style="max-width:760px"><h3 style="margin-top:0">Import (ফাইল থেকে ফিরিয়ে আনা)</h3>
+      <p class="sub" style="margin-top:0">আগে Export করা ব্যাকআপ ফাইল (.json) বেছে নিন। ফাইলে থাকা তথ্য সাইটে লেখা হবে; ব্যাকআপে নেই এমন কিছু মোছা হবে না। Import-এর আগে এডমিন পাসওয়ার্ড লাগবে।</p>
+      <input type="file" id="bkFile" accept=".json,application/json">
+      <div id="bkPrev">${bkPrevHtml()}</div></div>`;
     return;
   }
   if (ap === 'site') {
@@ -1589,7 +1628,7 @@ function renderInst() {
     `<button class="btn ok" data-act="addpay" data-t="income">+ টাকা গ্রহণ</button><button class="btn bad" data-act="addpay" data-t="expense">− টাকা প্রদান</button>`;
   shell({ nav: NAV, active: page, act: 'nav', title: TITLES[page], sub: esc(ctxProfile.name) + (me.isAdmin ? ' • অ্যাডমিন ভিউ' : ''), actions: acts, brand: brandSch(ctx, ctxProfile.name) });
   listFn = null;
-  ({ dash: pDash, stu: pStu, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, head: pHead, pro: pPro })[page]();
+  ({ dash: pDash, stu: pStu, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, head: pHead, pro: pPro, hpro: pHpro, bnk: pBnk, slg: pSlg })[page]();
 }
 
 const payArr = () => Object.entries(P).map(([id, v]) => ({ id, ...v }));
@@ -1627,7 +1666,7 @@ function pDash() {
     <div class="kpi du"><span>এডমিনের নিকট জমা</span><b>${tk(lg.held)}</b></div>
   </div>
   <div class="panel"><h3>এডমিনের নিকট জমা</h3>
-    ${Object.keys(BK).length ? '' : '<div class="note" style="margin:0 0 12px">টাকা পেতে প্রোফাইল পেজে আপনার ব্যাংক অ্যাকাউন্ট যোগ করুন — অ্যাডমিন সেই অ্যাকাউন্টেই পরিশোধ করবেন।</div>'}
+    ${Object.keys(BK).length ? '' : '<div class="note" style="margin:0 0 12px">টাকা পেতে ‘পেমেন্ট গ্রহণের অ্যাকাউন্ট’ পেজে আপনার ব্যাংক অ্যাকাউন্ট যোগ করুন — অ্যাডমিন সেই অ্যাকাউন্টেই পরিশোধ করবেন।</div>'}
     <div class="tw"><table class="ledt">
       <tr class="sum"><td>ভেরিফাইড অনলাইন পেমেন্ট (${bn(lg.n)} টি) — প্রতিষ্ঠানের প্রাপ্য মূল টাকা</td><td class="n">${tk(lg.due)}</td></tr>
       <tr><td>− এডমিন কর্তৃক পরিশোধিত</td><td class="n">${tk(lg.paid)}</td></tr>
@@ -1706,11 +1745,21 @@ function dueList() {
   </table></div>`;
 }
 
+/* ---------- ব্যাংক তালিকা (লোগো অনলাইন থেকে লোড হয়) ---------- */
+const BD_BANKS = [["Sonali Bank", "sonalibank.com.bd"], ["Janata Bank", "janatabank-bd.com"], ["Agrani Bank", "agranibank.org"], ["Rupali Bank", "rupalibank.org"], ["Bangladesh Krishi Bank", "krishibank.org.bd"], ["Rajshahi Krishi Unnayan Bank", "rakub.org.bd"], ["Bangladesh Development Bank", "bdbl.com.bd"], ["Basic Bank", "basicbanklimited.com"], ["Bangladesh Commerce Bank", "bcblbd.com"], ["Probashi Kallyan Bank", "pkb.gov.bd"], ["Ansar VDP Unnayan Bank", "avub.gov.bd"], ["Grameen Bank", "grameenbank.org.bd"], ["Islami Bank Bangladesh", "islamibankbd.com"], ["Dutch-Bangla Bank", "dutchbanglabank.com"], ["BRAC Bank", "bracbank.com"], ["Eastern Bank", "ebl.com.bd"], ["City Bank", "thecitybank.com"], ["Pubali Bank", "pubalibangla.com"], ["Uttara Bank", "uttarabank-bd.com"], ["Mutual Trust Bank", "mutualtrustbank.com"], ["Prime Bank", "primebank.com.bd"], ["Southeast Bank", "southeastbank.com.bd"], ["Social Islami Bank", "siblbd.com"], ["Al-Arafah Islami Bank", "alarafahbank.com"], ["EXIM Bank", "eximbankbd.com"], ["First Security Islami Bank", "fsiblbd.com"], ["Shahjalal Islami Bank", "shahjalalbank.com.bd"], ["United Commercial Bank", "ucb.com.bd"], ["Standard Bank", "standardbankbd.com"], ["ONE Bank", "onebank.com.bd"], ["NCC Bank", "nccbank.com.bd"], ["Bank Asia", "bankasia-bd.com"], ["Jamuna Bank", "jamunabankbd.com"], ["Trust Bank", "tblbd.com"], ["Midland Bank", "midlandbankbd.com"], ["Modhumoti Bank", "modhumotibank.com"], ["Meghna Bank", "meghnabank.com.bd"], ["Community Bank Bangladesh", "cbbl.com.bd"], ["Union Bank", "unionbank.com.bd"], ["NRB Bank", "nrbbankbd.com"], ["NRB Commercial Bank", "nrbcommercialbank.com"], ["Dhaka Bank", "dhakabankltd.com"], ["IFIC Bank", "ificbank.com.bd"], ["AB Bank", "abbl.com"], ["Premier Bank", "premierbankltd.com"], ["Mercantile Bank", "mblbd.com"], ["National Bank", "nblbd.com"], ["South Bangla Agriculture & Commerce Bank", "sbacbank.com"], ["Padma Bank", "padmabankbd.com"], ["Standard Chartered Bank", "sc.com"], ["HSBC", "hsbc.com.bd"], ["Citibank N.A.", "citibank.com"], ["Commercial Bank of Ceylon", "combank.net"], ["State Bank of India", "sbi.co.in"], ["Habib Bank", "hbl.com"], ["Woori Bank", "wooribank.com"], ["Bank Alfalah", "bankalfalah.com"]];
+const BD_DIST = ["বাগেরহাট", "বান্দরবান", "বরগুনা", "বরিশাল", "ভোলা", "বগুড়া", "ব্রাহ্মণবাড়িয়া", "চাঁদপুর", "চট্টগ্রাম", "চুয়াডাঙ্গা", "কুমিল্লা", "কক্সবাজার", "ঢাকা", "দিনাজপুর", "ফরিদপুর", "ফেনী", "গাইবান্ধা", "গাজীপুর", "গোপালগঞ্জ", "হবিগঞ্জ", "জামালপুর", "যশোর", "ঝালকাঠি", "ঝিনাইদহ", "জয়পুরহাট", "খাগড়াছড়ি", "খুলনা", "কিশোরগঞ্জ", "কুড়িগ্রাম", "কুষ্টিয়া", "লক্ষ্মীপুর", "লালমনিরহাট", "মাদারীপুর", "মাগুরা", "মানিকগঞ্জ", "মেহেরপুর", "মৌলভীবাজার", "মুন্সীগঞ্জ", "ময়মনসিংহ", "নওগাঁ", "নড়াইল", "নারায়ণগঞ্জ", "নরসিংদী", "নাটোর", "নেত্রকোণা", "নীলফামারী", "নোয়াখালী", "পাবনা", "পঞ্চগড়", "পটুয়াখালী", "পিরোজপুর", "রাজবাড়ী", "রাজশাহী", "রাঙ্গামাটি", "রংপুর", "সাতক্ষীরা", "শরীয়তপুর", "শেরপুর", "সিরাজগঞ্জ", "সুনামগঞ্জ", "সিলেট", "টাঙ্গাইল", "ঠাকুরগাঁও", "চাঁপাইনবাবগঞ্জ"];
+const bankDom = n => { const b = BD_BANKS.find(x => x[0] === n); return b ? b[1] : ''; };
+const bankLogo = (n, z = 40) => { const d = bankDom(n), ch = esc((n || 'ব্যাং').trim().charAt(0).toUpperCase());
+  return `<span class="bklogo" style="width:${z}px;height:${z}px">${d ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=64" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><i style="display:none">${ch}</i>` : `<i>${ch}</i>`}</span>`; };
+const bankPickHtml = cur => `<div class="w" data-bankbox><label>ব্যাংক বাছুন *</label><input type="hidden" name="bank" value="${esc(cur || '')}">
+  <button type="button" class="bkbtn" data-act="bkopen"><span data-bkcur>${cur ? bankLogo(cur, 28) + '<b>' + esc(cur) + '</b>' : '<span class="sub">— ব্যাংকের নাম বেছে নিন —</span>'}</span><span class="sub">▾</span></button>
+  <div class="bklist" hidden><input type="search" class="bksr" placeholder="ব্যাংকের নাম খুঁজুন…" autocomplete="off"><div class="bkrows">${BD_BANKS.map(([n]) => `<button type="button" class="bkrow" data-act="bkset" data-n="${esc(n)}">${bankLogo(n, 28)}<span>${esc(n)}</span></button>`).join('')}<button type="button" class="bkrow" data-act="bkset" data-n="__other"><span class="bklogo" style="width:28px;height:28px"><i>+</i></span><span>তালিকায় নেই — নিজে লিখব</span></button></div></div>
+  <input type="text" name="bankOther" maxlength="80" placeholder="ব্যাংকের নাম লিখুন" style="display:none;margin-top:8px"></div>`;
 function bankPanelHtml() {
   const rows = Object.entries(BK).map(([id, b]) => ({ id, ...b })).sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
   return `<div class="panel" style="max-width:600px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">পেমেন্ট গ্রহণের অ্যাকাউন্ট</h3><button type="button" class="btn sm" data-act="addbank">+ অ্যাকাউন্ট যোগ</button></div>
   <p class="sub" style="margin:6px 0 10px">অনলাইনে জমা হওয়া টাকা অ্যাডমিন এই অ্যাকাউন্টগুলোর যেকোনোটিতে পরিশোধ করবেন। একাধিক অ্যাকাউন্ট যোগ করা যায়। তথ্য শুধু আপনি ও অ্যাডমিন দেখতে পান।</p>
-  ${rows.map(b => `<div class="inst"><div class="who"><div class="av">${esc((BANK_T[b.type] || 'ব্যাং').charAt(0))}</div><div><b>${esc(BANK_T[b.type] || 'ব্যাংক')}${b.bank ? ' — ' + esc(b.bank) : ''}</b><small>${esc(b.holder)} • ${esc(b.number)}</small>${b.branch ? `<small>শাখা: ${esc(b.branch)}</small>` : ''}</div></div><div class="row"><button type="button" class="btn sm ghost" data-act="editbank" data-id="${esc(b.id)}">সম্পাদনা</button><button type="button" class="btn sm ghost" data-act="delbank" data-id="${esc(b.id)}">মুছুন</button></div></div>`).join('') || '<div class="empty"><b>এখনো কোনো অ্যাকাউন্ট যোগ করা হয়নি</b>"অ্যাকাউন্ট যোগ" চেপে শুরু করুন।</div>'}</div>`;
+  ${rows.map(b => `<div class="inst"><div class="who">${b.type === 'bank' ? bankLogo(b.bank, 44) : `<div class="av">${esc((BANK_T[b.type] || 'ব্যাং').charAt(0))}</div>`}<div><b>${esc(BANK_T[b.type] || 'ব্যাংক')}${b.bank ? ' — ' + esc(b.bank) : ''}</b><small>${esc(b.holder)} • ${esc(b.number)}</small>${b.branch ? `<small>শাখা: ${esc(b.branch)}</small>` : ''}</div></div><div class="row"><button type="button" class="btn sm ghost" data-act="editbank" data-id="${esc(b.id)}">সম্পাদনা</button><button type="button" class="btn sm ghost" data-act="delbank" data-id="${esc(b.id)}">মুছুন</button></div></div>`).join('') || '<div class="empty"><b>এখনো কোনো অ্যাকাউন্ট যোগ করা হয়নি</b>"অ্যাকাউন্ট যোগ" চেপে শুরু করুন।</div>'}</div>`;
 }
 function pPro() {
   const p = ctxProfile;
@@ -1720,8 +1769,12 @@ function pPro() {
   <div class="logoprev"><span class="logo ${(pendingInst !== undefined ? pendingInst : instLogo) ? 'has' : ''}" id="instLogoBox">${(pendingInst !== undefined ? pendingInst : instLogo) ? `<img src="${esc(pendingInst !== undefined ? pendingInst : instLogo)}" alt="">` : ic('book')}</span>
   <div><input type="file" id="instLogoFile" accept="image/*"><div class="hint">PNG বা JPG, বর্গাকার হলে ভালো। সংরক্ষণ বাটনে চাপ দিলে লোগো সেভ হবে।</div>
   <button type="button" class="btn sm ghost" style="margin-top:8px" data-act="rminst">লোগো সরান</button></div></div>
-  <button class="btn full" style="margin-top:14px">সংরক্ষণ করুন</button></form></div>
-  ${headPanelHtml(p)}${bankPanelHtml()}<div class="panel" style="max-width:600px"><h3>শিক্ষার্থী লগইন</h3>
+  ${needGate('profile') ? '<div class="note" style="margin:12px 0 0">জমা দিলে প্রধানের অনুমোদনের পর পরিবর্তন সংরক্ষিত হবে।</div>' : ''}<button class="btn full" style="margin-top:14px">${needGate('profile') ? 'অনুমোদনের জন্য জমা দিন' : 'সংরক্ষণ করুন'}</button></form></div>`;
+}
+function pHpro() { $('#main').innerHTML = headPanelHtml(ctxProfile); }
+function pBnk() { $('#main').innerHTML = bankPanelHtml(); }
+function pSlg() {
+  $('#main').innerHTML = `<div class="panel" style="max-width:600px"><h3>শিক্ষার্থী লগইন</h3>
   <p style="margin:0 0 12px;color:var(--mut)">শিক্ষার্থীরা স্কুলের নাম, শ্রেণি, রোল ও ফোন নম্বর দিয়ে লগইন করে। শিক্ষার্থীর তথ্য সংরক্ষণের সময় এটি নিজে থেকেই হালনাগাদ হয়। আগে যোগ করা শিক্ষার্থীদের জন্য একবার নিচের বাটনটি চাপুন।</p>
   <button class="btn ghost" data-act="syncall">সব শিক্ষার্থীর লগইন তথ্য হালনাগাদ করুন</button></div>`;
 }
@@ -1731,10 +1784,15 @@ const inp = (l, n, v = '', t = 'text', x = '', w = false) => `<div class="${w ? 
 const sel = (l, n, o, v = '', w = false, x = '') => `<div class="${w ? 'w' : ''}"><label>${l}</label><select name="${n}" ${x}>${o.map(([k, t]) => `<option value="${esc(k)}" ${k === v ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></div>`;
 function modal(title, body, onSave) {
   const d = $('#dlg'), gk = curGate;
-  d.innerHTML = `<form id="mf"><h3>${title}</h3><div class="fg">${body}</div><div class="row end"><button type="button" class="btn ghost" data-act="close">বাতিল</button><button class="btn">সংরক্ষণ করুন</button></div></form>`;
+  d.innerHTML = `<form id="mf"><h3>${title}</h3><div class="fg">${body}</div>${gk ? '<div class="note" style="margin:12px 0 0">কাজটি সম্পন্ন করে জমা দিন — প্রতিষ্ঠান প্রধান অনুমোদন দিলে তবেই এটি সফলভাবে সংরক্ষিত হবে।</div>' : ''}<div class="row end"><button type="button" class="btn ghost" data-act="close">বাতিল</button><button class="btn">${gk ? 'অনুমোদনের জন্য জমা দিন' : 'সংরক্ষণ করুন'}</button></div></form>`;
   $('#mf').onsubmit = async e => {
     e.preventDefault(); const b = e.submitter; if (b) b.disabled = true;
-    try { await onSave(Object.fromEntries(new FormData(e.target))); if (gk) useGrant(gk); d.close(); }
+    try {
+      const fd = Object.fromEntries(new FormData(e.target));
+      if (gk) { const detail = formDetail(e.target), cap = await withCap(() => onSave(fd)); if (cap.ops.length) await submitCap(gk.key, gk.t, gk.tl, cap.ops, detail); else cap.toasts.forEach(m => toast(m)); }
+      else await onSave(fd);
+      d.close();
+    }
     catch (err) { toast(errMsg(err)); }
     finally { if (b) b.disabled = false; }
   };
@@ -1855,6 +1913,33 @@ async function studentLogin(f, restoreSp) {
 }
 
 /* ---------- ইভেন্ট ---------- */
+/* ---------- বিলের ইতিহাস ও ডুপ্লিকেট যাচাই ---------- */
+const sameCat = (a, b) => a === b || (isMonthly(a) && isMonthly(b));
+const paidSame = (sid, title, month) => !!month && payArr().some(x => x.type === 'income' && x.studentId === sid && sameCat(x.category, title) && (x.month || '') === month);
+const logBy = () => String((me && me.email) || '').slice(0, 120);
+const billLogRow = (b, action) => { const l = { title: b.title, amount: Number(b.amount) || 0, action, at: Date.now(), by: logBy() }; if (b.month) l.month = b.month; return l; };
+const dFmt = t => { const d = t ? new Date(t) : null; return d && !isNaN(d) ? d.toLocaleDateString('bn-BD') : '—'; };
+function billHistoryHtml(sid, lg, ex) {
+  const rows = [], pays = payArr().filter(x => x.type === 'income' && x.studentId === sid);
+  Object.values(lg || {}).forEach(l => rows.push({ at: l.at || 0, kind: l.action === 'delete' ? 'del' : 'add', title: l.title, month: l.month || '', amount: l.amount, note: l.by || '' }));
+  pays.forEach(x => rows.push({ at: x.createdAt || Date.parse(x.date) || 0, kind: 'pay', title: x.category, month: x.month || '', amount: x.amount, note: [x.method, x.receiptNo].filter(Boolean).join(' • ') }));
+  rows.sort((a, b) => b.at - a.at);
+  const addN = {}, delN = {}, payN = {}, unpN = {};
+  rows.forEach(r => { const k = r.title + '|' + r.month; if (!r.month) return; if (r.kind === 'add') addN[k] = (addN[k] || 0) + 1; else if (r.kind === 'del') delN[k] = (delN[k] || 0) + 1; else payN[k] = (payN[k] || 0) + 1; });
+  ex.forEach(b => { if (b.month) { const k = b.title + '|' + b.month; unpN[k] = (unpN[k] || 0) + 1; } });
+  const nm = k => { const [t, m] = k.split('|'); return `“${esc(t)}” (${bnMonth(m)})`; }, warn = [];
+  Object.keys(unpN).forEach(k => { if (unpN[k] > 1) warn.push(`${nm(k)} বিল ${bn(unpN[k])}টি বকেয়া আছে — একটি মুছে দিন`); });
+  Object.keys(addN).forEach(k => { const net = addN[k] - (delN[k] || 0); if (net > 1) warn.push(`${nm(k)} বিল ${bn(addN[k])} বার যোগ হয়েছে${delN[k] ? ' (মুছেছে ' + bn(delN[k]) + ' বার)' : ''}`); });
+  Object.keys(payN).forEach(k => { if (payN[k] > 1) warn.push(`${nm(k)} খাতে টাকা ${bn(payN[k])} বার নেওয়া হয়েছে`); });
+  const added = rows.filter(r => r.kind === 'add').reduce((t, r) => t + (Number(r.amount) || 0), 0), got = pays.reduce((t, x) => t + (Number(x.amount) || 0), 0);
+  const bd = { add: ['বিল যোগ', 'pending'], del: ['বিল মুছা', 'rejected'], pay: ['টাকা গ্রহণ', 'approved'] };
+  return `<div class="w bsec"><h4>এই শিক্ষার্থীর সকল বিলের তথ্য</h4>
+  <div class="hd-chips" style="margin:0 0 8px"><span>মোট বিল যোগ: ${tk(added)}</span><span>মোট টাকা গ্রহণ: ${tk(got)}</span><span>বর্তমান বকেয়া: ${tk(billSum(ex))}</span></div>
+  ${warn.length ? `<div class="note" style="margin:0 0 8px;border-color:#f0b429"><b>⚠ সম্ভাব্য ডুপ্লিকেট:</b><br>${warn.join('<br>')}</div>` : '<div class="sub" style="margin:0 0 8px">✔ একই নাম ও মাসের ডুপ্লিকেট বিল পাওয়া যায়নি।</div>'}
+  <div class="tw" style="max-height:260px;overflow:auto"><table class="ledt"><tr><th>তারিখ</th><th>ঘটনা</th><th>বিল / খাত</th><th>মাস</th><th class="n">টাকা</th><th>মন্তব্য</th></tr>
+  ${rows.map(r => `<tr><td>${dFmt(r.at)}</td><td><span class="badge b-${bd[r.kind][1]}">${bd[r.kind][0]}</span></td><td>${esc(r.title)}</td><td>${r.month ? bnMonth(r.month) : '—'}</td><td class="n">${tk(r.amount)}</td><td class="sub">${esc(r.note)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty"><b>এখনো কোনো বিলের ইতিহাস নেই</b></td></tr>'}</table></div>
+  <div class="hint">নতুন বিল যোগ ও মোছা এখন থেকে এখানে লেখা থাকবে। আগের যে বিল এই তালিকা চালুর আগে যোগ হয়েছিল তার যোগের রেকর্ড নেই — শুধু বকেয়া ও টাকা গ্রহণের তথ্য আসবে।</div></div>`;
+}
 const A = {
   go: d => show(d.v),
   bulkbill: () => {
@@ -1870,34 +1955,35 @@ const A = {
           <div class="blist">${list.map(s => `<label class="brow" data-q="${esc((s.name + ' ' + (s.roll || '') + ' ' + s.class).toLowerCase())}"><input type="checkbox" name="stu" value="${esc(s.id)}" data-c="${esc(s.class)}"><b>${esc(s.name)}</b><span class="sub">${esc(s.class)}${s.roll ? ' • রোল ' + esc(s.roll) : ''}</span>${billsOf(s).length ? '<span class="btag">' + bn(billsOf(s).length) + ' টি বিল বাকি</span>' : ''}</label>`).join('')}</div>
           <div class="bsel-f" id="bCnt">০ জন বাছাই করা হয়েছে</div>
         </div></div>
-      <div class="w"><div class="hint">শিক্ষার্থীর আগের বিল থাকলেও নতুন বিল আলাদাভাবে যোগ হবে। একই নাম ও মাসের বিল আগে থেকে থাকলে সেই শিক্ষার্থী বাদ যাবে।</div></div>`,
+      <div class="w"><div class="hint">শিক্ষার্থীর আগের বিল থাকলেও নতুন বিল আলাদাভাবে যোগ হবে। একই নাম ও মাসের বিল আগে থেকে থাকলে (বা সেই মাসের টাকা আগেই নেওয়া হয়ে থাকলে) সেই শিক্ষার্থী বাদ যাবে।</div></div>`,
       async f => {
         const ids = [...$('#mf').querySelectorAll('input[name=stu]:checked')].map(i => i.value);
         if (!ids.length) throw new Error('অন্তত একজন শিক্ষার্থী বাছাই করুন');
         const amt = Number(f.amount) || 0; if (!(amt > 0)) throw new Error('টাকার পরিমাণ দিন');
         const bill = { title: billTitle(f), amount: amt, createdAt: Date.now() }; if (f.month) bill.month = normMonth(f.month);
         let skipped = 0, n = 0, failed = 0, lastErr = null;
-        const targets = ids.map(id => S[id] && { id, ...S[id] }).filter(Boolean).filter(x => { if (billsOf(x).some(b => b.title === bill.title && (b.month || '') === (bill.month || ''))) { skipped++; return false; } return true; });
+        const targets = ids.map(id => S[id] && { id, ...S[id] }).filter(Boolean).filter(x => { if (billsOf(x).some(b => b.title === bill.title && (b.month || '') === (bill.month || '')) || paidSame(x.id, bill.title, bill.month)) { skipped++; return false; } return true; });
         for (let i = 0; i < targets.length; i += 20) {
           const chunk = targets.slice(i, i + 20), upd = {};
-          chunk.forEach(x => { const bid = push(ref(db, `${base()}/students/${x.id}/bills`)).key; upd[`${base()}/students/${x.id}/bills/${bid}`] = bill; const k = portalKey(ctx, x.class, x.roll, x.phone); if (k) upd[`studentPortal/${k}`] = buildPortal(x.id, { ...x, bills: { ...(x.bills || {}), [bid]: bill } }); });
+          chunk.forEach(x => { const bid = push(ref(db, `${base()}/students/${x.id}/bills`)).key; upd[`${base()}/students/${x.id}/bills/${bid}`] = bill; upd[`${base()}/billLog/${x.id}/${push(ref(db, `${base()}/billLog/${x.id}`)).key}`] = billLogRow(bill, 'add'); const k = portalKey(ctx, x.class, x.roll, x.phone); if (k) upd[`studentPortal/${k}`] = buildPortal(x.id, { ...x, bills: { ...(x.bills || {}), [bid]: bill } }); });
           try { await update(root(), upd); n += chunk.length; } catch (e) { failed += chunk.length; lastErr = e; }
         }
         if (!n && failed) throw lastErr;
         toast(bn(n) + ' জনের বিল যুক্ত হয়েছে' + (skipped ? ' • ' + bn(skipped) + ' জন বাদ (একই বিল আগে থেকে আছে)' : '') + (failed ? ' • ' + bn(failed) + ' জনের ব্যর্থ' : ''));
       });
   },
-  setbill: d => {
+  setbill: async d => {
     const s = S[d.id]; if (!s) return;
-    const ex = billsOf(s);
+    const ex = billsOf(s); let lg = {}; try { lg = (await get(ref(db, `${base()}/billLog/${d.id}`))).val() || {}; } catch (e) {}
     modal('বিল — ' + s.name,
-      `<div class="w bsec"><h4>বিদ্যমান অপরিশোধিত বিল (${bn(ex.length)} টি)</h4>${ex.length ? `<div class="tw"><table class="ledt"><tr><th>বিল</th><th>মাস</th><th class="n">টাকা</th><th></th></tr>${ex.map(b => `<tr><td>${esc(b.title)}</td><td>${b.month ? bnMonth(b.month) : '—'}</td><td class="n">${tk(b.amount)}</td><td><button type="button" class="btn sm ghost" data-act="delbill" data-sid="${esc(d.id)}" data-bid="${esc(b.id)}">মুছুন</button></td></tr>`).join('')}<tr class="sum"><td colspan="2">মোট</td><td class="n">${tk(billSum(ex))}</td><td></td></tr></table></div>` : '<div class="sub">এখন কোনো অপরিশোধিত বিল নেই।</div>'}</div>` +
+      `<div class="w bsec"><h4>বিদ্যমান অপরিশোধিত বিল (${bn(ex.length)} টি)</h4>${ex.length ? `<div class="tw"><table class="ledt"><tr><th>বিল</th><th>মাস</th><th class="n">টাকা</th><th></th></tr>${ex.map(b => `<tr><td>${esc(b.title)}</td><td>${b.month ? bnMonth(b.month) : '—'}</td><td class="n">${tk(b.amount)}</td><td><button type="button" class="btn sm ghost" data-act="delbill" data-sid="${esc(d.id)}" data-bid="${esc(b.id)}">মুছুন</button></td></tr>`).join('')}<tr class="sum"><td colspan="2">মোট</td><td class="n">${tk(billSum(ex))}</td><td></td></tr></table></div>` : '<div class="sub">এখন কোনো অপরিশোধিত বিল নেই।</div>'}</div>` + billHistoryHtml(d.id, lg, ex) +
       `<div class="w bsec"><h4>নতুন বিল যোগ করুন (ঐচ্ছিক)</h4></div>` + billFields('মাসিক বেতন') + inp('পরিশোধযোগ্য টাকা (৳)', 'amount', '', 'number', 'min="0" step="0.01"') + inp('মাস (ঐচ্ছিক)', 'month', '', 'month'),
       async f => {
         const amt = Number(f.amount) || 0; if (!(amt > 0)) throw new Error('নতুন বিল যোগ করতে টাকার পরিমাণ দিন (আগের বিল মুছতে "মুছুন" চাপুন)');
         const bill = { title: billTitle(f), amount: amt, createdAt: Date.now() }; if (f.month) bill.month = normMonth(f.month);
         if (ex.some(b => b.title === bill.title && (b.month || '') === (bill.month || ''))) throw new Error('এই নাম ও মাসের একটি বিল আগে থেকেই আছে');
-        const bid = push(ref(db, `${base()}/students/${d.id}/bills`)).key, upd = { [`${base()}/students/${d.id}/bills/${bid}`]: bill }, k = portalKey(ctx, s.class, s.roll, s.phone);
+        if (paidSame(d.id, bill.title, bill.month) && !confirm('এই নাম ও মাসের টাকা এই শিক্ষার্থীর কাছ থেকে আগেই নেওয়া হয়েছে।\nতবুও নতুন বিল যোগ করবেন?')) throw new Error('বিল যোগ করা হয়নি');
+        const bid = push(ref(db, `${base()}/students/${d.id}/bills`)).key, upd = { [`${base()}/students/${d.id}/bills/${bid}`]: bill, [`${base()}/billLog/${d.id}/${push(ref(db, `${base()}/billLog/${d.id}`)).key}`]: billLogRow(bill, 'add') }, k = portalKey(ctx, s.class, s.roll, s.phone);
         if (k) {
           const exists = (await get(ref(db, 'studentPortal/' + k))).exists();
           if (exists) upd[`studentPortal/${k}/bills/${bid}`] = bill;
@@ -1908,7 +1994,8 @@ const A = {
   },
   delbill: async d => {
     const s = S[d.sid]; if (!s || !confirm('এই বিলটি মুছবেন?')) return;
-    const bp = d.bid === 'legacy' ? '/bill' : `/bills/${d.bid}`, upd = { [`${base()}/students/${d.sid}${bp}`]: null }, k = portalKey(ctx, s.class, s.roll, s.phone);
+    const bp = d.bid === 'legacy' ? '/bill' : `/bills/${d.bid}`, upd = { [`${base()}/students/${d.sid}${bp}`]: null }, k = portalKey(ctx, s.class, s.roll, s.phone), gb = billsOf(s).find(b => b.id === d.bid);
+    if (gb) upd[`${base()}/billLog/${d.sid}/${push(ref(db, `${base()}/billLog/${d.sid}`)).key}`] = billLogRow(gb, 'delete');
     try {
       if (k && (await get(ref(db, 'studentPortal/' + k))).exists()) upd[`studentPortal/${k}${bp}`] = null;
       await update(root(), upd); $('#dlg').close(); toast('বিল মুছে ফেলা হয়েছে');
@@ -2297,7 +2384,7 @@ document.addEventListener('submit', async e => {
     }
     else if (id === 'headF') await saveHead(f);
     else if (id === 'proF') {
-      const g = await gateReq('profile', '', 'প্রতিষ্ঠানের প্রোফাইল'); if (!g.ok) return;
+      const gated = needGate('profile');
       const upd = {}, n = { name: f.name.trim(), eiin: f.eiin.trim(), phone: fullPhone(f.phone), address: f.address.trim() };
       Object.entries(n).forEach(([k, v]) => upd[`institutionProfiles/${ctx}/${k}`] = v);
       if (ctxProfile.status === 'approved') {
@@ -2305,7 +2392,8 @@ document.addEventListener('submit', async e => {
         if (n.name !== ctxProfile.name) stuArr().forEach(s => { const k = portalKey(ctx, s.class, s.roll, s.phone); if (k) upd[`studentPortal/${k}`] = buildPortal(s.id, s, {}, null, n.name); });
       }
       if (pendingInst !== undefined) upd[`schoolLogos/${ctx}`] = pendingInst ? { logo: pendingInst } : null;
-      await update(root(), upd); if (pendingInst !== undefined) { instLogo = pendingInst || ''; pendingInst = undefined; } toast('প্রোফাইল সংরক্ষিত হয়েছে'); if (g.grant) useGrant(g.grant);
+      if (gated) { await submitCap('profile', '', 'প্রতিষ্ঠানের প্রোফাইল', Object.entries(upd), formDetail(document.getElementById('proF'))); pendingInst = undefined; }
+      else { await update(root(), upd); if (pendingInst !== undefined) { instLogo = pendingInst || ''; pendingInst = undefined; } toast('প্রোফাইল সংরক্ষিত হয়েছে'); }
     }
     else {
       registering = true;
@@ -2349,27 +2437,38 @@ function adminPw(msg) {
 
 /* ---------- হেডারে প্রধানের প্রোফাইল ---------- */
 function headChipHtml() {
-  const p = ctxProfile || {}, h = p.head, n = Object.values(AP).filter(a => a.status === 'pending').length;
+  const p = ctxProfile || {}, h = p.head, n = Object.values(AP).filter(a => a.status === 'pending' || (a.status === 'approved' && a.ops)).length;
   const av = h && h.photo ? `<img src="${esc(h.photo)}" alt="">` : esc(((h && h.name) || 'প্র').trim().charAt(0));
   return `<button type="button" class="hchip" id="headChip" data-act="headchip" title="প্রতিষ্ঠান প্রধানের প্রোফাইল"><span class="av">${av}</span><span class="hc-t"><b>${h ? esc(h.name) : 'প্রধানের প্রোফাইল'}</b><small>${h ? esc(h.designation || 'প্রতিষ্ঠান প্রধান') : 'তৈরি করুন'}</small></span>${n ? `<i class="hc-n">${bn(n)}</i>` : ''}</button>`;
 }
 function updChip() { const c = $('#headChip'); if (c) c.outerHTML = headChipHtml(); }
 
-/* ---------- কর্মীর দিক: অনুমোদনের অনুরোধ ---------- */
-async function gateReq(key, target = '', tlabel = '') {
-  if (!me || me.isAdmin || headIn || !ctxProfile) return { ok: true };
-  const h = ctxProfile.head;
-  if (!h || !h.pwHash || !(h.req && h.req[key])) return { ok: true };
-  const same = a => a.key === key && (a.target || '') === target;
-  const g = Object.entries(AP).find(([, a]) => same(a) && a.status === 'approved' && nowSrv() - (a.decidedAt || 0) < 86400000);
-  if (g) return { ok: true, grant: g[0] };
-  if (Object.values(AP).some(a => same(a) && a.status === 'pending')) { toast('এই কাজের অনুরোধ আগেই প্রধানের কাছে পাঠানো আছে — অনুমোদনের অপেক্ষায়'); return { ok: false }; }
-  if (!confirm(`"${apvLbl(key)}"${tlabel ? ' — ' + tlabel : ''} কাজটির জন্য প্রতিষ্ঠান প্রধানের অনুমোদন লাগবে।\nঅনুমোদনের অনুরোধ পাঠাবেন?`)) return { ok: false };
-  try {
-    await set(push(ref(db, `institutionData/${ctx}/approvals`)), { key, label: apvLbl(key), target, tlabel: String(tlabel || '').slice(0, 120), status: 'pending', createdAt: { '.sv': 'timestamp' }, by: String(me.email || '').slice(0, 120) });
-    toast('অনুরোধ প্রধানের প্রোফাইলে পাঠানো হয়েছে। অনুমোদন পেলে কাজটি আবার করুন।');
-  } catch (e) { toast(errMsg(e)); }
-  return { ok: false };
+/* ---------- কর্মীর দিক: কাজ সম্পন্ন করে প্রধানের অনুমোদনের জন্য জমা ---------- */
+const needGate = key => { const h = ctxProfile && ctxProfile.head; return !!(me && !me.isAdmin && !headIn && h && h.pwHash && h.req && h.req[key]); };
+async function withCap(fn) { CAP = []; CAPT = []; try { await fn(); return { ops: CAP, toasts: CAPT }; } finally { CAP = null; } }
+function formDetail(form) {
+  const out = [];
+  form.querySelectorAll('input[name],select[name],textarea[name]').forEach(el => {
+    if (['hidden', 'password', 'file', 'checkbox', 'radio', 'search'].includes(el.type) || el.offsetParent === null) return;
+    const v = ((el.tagName === 'SELECT' ? (el.options[el.selectedIndex] || {}).text : el.value) || '').trim(); if (!v) return;
+    const lb = el.closest('div') && el.closest('div').querySelector('label'), l = (lb ? lb.textContent : el.name).replace(/\*/g, '').trim();
+    out.push(l + ': ' + v.slice(0, 60));
+  });
+  const n = form.querySelectorAll('input[name=stu]:checked').length; if (n) out.push('নির্বাচিত শিক্ষার্থী: ' + bn(n) + ' জন');
+  return out.join(' • ').slice(0, 780);
+}
+async function submitCap(key, target, tlabel, ops, detail = '') {
+  const json = JSON.stringify(ops);
+  if (json.length > 900000) throw new Error('একসাথে অনেক বেশি তথ্য — কম সংখ্যক শিক্ষার্থী বা আইটেম নিয়ে আবার চেষ্টা করুন');
+  await fbSet(push(ref(db, `institutionData/${ctx}/approvals`)), { key, label: apvLbl(key), target: String(target || '').slice(0, 60), tlabel: String(tlabel || '').slice(0, 120), detail: String(detail || '').slice(0, 800), ops: json, status: 'pending', createdAt: { '.sv': 'timestamp' }, by: String(me.email || '').slice(0, 120) });
+  toast('প্রধানের অনুমোদনের জন্য জমা হয়েছে — অনুমোদন পেলে সফলভাবে সংরক্ষিত হবে');
+}
+/* অনুমোদনের পর জমা থাকা লেখাগুলো একসাথে প্রয়োগ */
+async function applyApproval(id, a) {
+  const ops = JSON.parse(a.ops), b = `institutionData/${ctx}/approvals/${id}`, paths = ops.map(o => o[0]);
+  const overlap = paths.some((p, i) => paths.some((q, j) => i !== j && (q === p || q.startsWith(p + '/'))));
+  if (!overlap) { const m = {}; ops.forEach(([p, v]) => m[p] = v); m[b + '/status'] = 'used'; m[b + '/ops'] = null; await fbUpdate(root(), m); }
+  else { for (const [p, v] of ops) await fbUpdate(root(), { [p]: v }); await fbUpdate(root(), { [b + '/status']: 'used', [b + '/ops']: null }); }
 }
 async function useGrant(id) { try { await update(ref(db, `institutionData/${ctx}/approvals/${id}`), { status: 'used' }); } catch (e) {} }
 
@@ -2387,22 +2486,22 @@ async function hashPw(salt, pw) {
 
 /* ---------- প্রধানের প্যানেল (পাসওয়ার্ড দিয়ে ঢুকতে হয়) ---------- */
 function pHead() {
-  const h = ctxProfile.head || {}, all = apList(), pend = all.filter(a => a.status === 'pending');
+  const h = ctxProfile.head || {}, all = apList(), pend = all.filter(a => a.status === 'pending' || (a.status === 'approved' && a.ops));
   const tabs = [['req', 'অনুরোধ' + (pend.length ? ' (' + bn(pend.length) + ')' : '')], ['hist', 'ইতিহাস'], ['prof', 'প্রোফাইল ও শর্ত']];
   const top = `<div class="panel"><div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:12px"><div class="logoprev" style="margin:0"><span class="logo ${h.photo ? 'has' : ''}" style="width:60px;height:60px">${h.photo ? `<img src="${esc(h.photo)}" alt="" style="object-fit:cover">` : ic('stu')}</span><div><b style="font-size:17px">${esc(h.name || '')}</b><div class="sub">${esc(h.designation || 'প্রতিষ্ঠান প্রধান')}</div></div></div><button type="button" class="btn ghost" data-act="hlock">লক করে বের হোন</button></div>
   <div class="chips" style="margin-top:12px">${tabs.map(([k, l]) => `<button class="${hp === k ? 'on' : ''}" data-act="htab" data-t="${k}">${l}</button>`).join('')}</div></div>`;
   let body = '';
   if (hp === 'prof') body = headPanelHtml(ctxProfile, true);
   else if (hp === 'hist') {
-    const rows = all.filter(a => a.status !== 'pending');
+    const rows = all.filter(a => !(a.status === 'pending' || (a.status === 'approved' && a.ops)));
     body = `<div class="panel flush"><div class="tw"><table><tr><th>অনুরোধের সময়</th><th>কাজ</th><th>অনুরোধকারী</th><th>অবস্থা</th><th>সিদ্ধান্তের সময়</th></tr>
-    ${rows.map(a => { const [l, c] = apSt(a.status); return `<tr><td>${fmtT(a.createdAt)}</td><td><b>${esc(a.label)}</b><div class="sub">${esc(a.tlabel || '')}</div></td><td>${esc(a.by || '')}</td><td><span class="badge b-${c}">${l}</span>${a.reason ? `<div class="sub">${esc(a.reason)}</div>` : ''}</td><td>${fmtT(a.decidedAt)}</td></tr>`; }).join('') || '<tr><td colspan="5" class="empty"><b>এখনো কোনো সিদ্ধান্ত নেই</b></td></tr>'}</table></div></div>`;
+    ${rows.map(a => { const [l, c] = apSt(a.status); return `<tr><td>${fmtT(a.createdAt)}</td><td><b>${esc(a.label)}</b><div class="sub">${esc(a.tlabel || '')}</div>${a.detail && a.detail !== a.tlabel ? `<div class="sub">${esc(a.detail)}</div>` : ''}</td><td>${esc(a.by || '')}</td><td><span class="badge b-${c}">${l}</span>${a.reason ? `<div class="sub">${esc(a.reason)}</div>` : ''}</td><td>${fmtT(a.decidedAt)}</td></tr>`; }).join('') || '<tr><td colspan="5" class="empty"><b>এখনো কোনো সিদ্ধান্ত নেই</b></td></tr>'}</table></div></div>`;
   } else {
-    const ok = all.filter(a => a.status === 'approved').length;
-    body = `<div class="kpis"><div class="kpi du"><span>অনুমোদনের অপেক্ষায়</span><b>${bn(pend.length)}</b></div><div class="kpi in"><span>অনুমোদিত (কাজ বাকি)</span><b>${bn(ok)}</b></div><div class="kpi"><span>মোট অনুরোধ</span><b>${bn(all.length)}</b></div></div>
-    <div class="panel">${pend.map(a => `<div class="inst"><div class="who"><div class="av">!</div><div><b>${esc(a.label)}</b> <span class="badge b-pending">অপেক্ষমাণ</span>
-      <small>${esc(a.tlabel || '')}</small><small>অনুরোধকারী: ${esc(a.by || '')} • ${fmtT(a.createdAt)}</small></div></div>
-      <div class="row"><button class="btn sm ok" data-act="hdecide" data-id="${esc(a.id)}" data-s="approved">অনুমোদন দিন</button><button class="btn sm bad" data-act="hdecide" data-id="${esc(a.id)}" data-s="rejected">প্রত্যাখ্যান</button></div></div>`).join('') || '<div class="empty"><b>কোনো অপেক্ষমাণ অনুরোধ নেই</b>নতুন অনুরোধ এলে এখানে দেখা যাবে।</div>'}</div>`;
+    const ok = all.filter(a => a.status === 'approved' && a.ops).length;
+    body = `<div class="kpis"><div class="kpi du"><span>অনুমোদনের অপেক্ষায়</span><b>${bn(pend.length)}</b></div><div class="kpi in"><span>অনুমোদিত (সংরক্ষণ বাকি)</span><b>${bn(ok)}</b></div><div class="kpi"><span>মোট অনুরোধ</span><b>${bn(all.length)}</b></div></div>
+    <div class="panel">${pend.map(a => `<div class="inst"><div class="who"><div class="av">!</div><div><b>${esc(a.label)}</b> <span class="badge b-${a.status === 'approved' ? 'approved' : 'pending'}">${a.status === 'approved' ? 'অনুমোদিত — সংরক্ষণ বাকি' : 'অপেক্ষমাণ'}</span>
+      <small>${esc(a.tlabel || '')}</small>${a.detail && a.detail !== a.tlabel ? `<small>${esc(a.detail)}</small>` : ''}<small>অনুরোধকারী: ${esc(a.by || '')} • ${fmtT(a.createdAt)}</small></div></div>
+      <div class="row">${a.status === 'approved' ? `<button class="btn sm ok" data-act="happly" data-id="${esc(a.id)}">সংরক্ষণ সম্পন্ন করুন</button>` : `<button class="btn sm ok" data-act="hdecide" data-id="${esc(a.id)}" data-s="approved">অনুমোদন দিন</button><button class="btn sm bad" data-act="hdecide" data-id="${esc(a.id)}" data-s="rejected">প্রত্যাখ্যান</button>`}</div></div>`).join('') || '<div class="empty"><b>কোনো অপেক্ষমাণ অনুরোধ নেই</b>নতুন অনুরোধ এলে এখানে দেখা যাবে।</div>'}</div>`;
   }
   $('#main').innerHTML = top + body;
 }
@@ -2410,7 +2509,7 @@ function pHead() {
 function apStatusHtml() {
   const rows = apList().slice(0, 10);
   return `<h4 class="hsec">পাঠানো অনুরোধের অবস্থা</h4><div class="tw"><table class="ledt"><tr><th>কাজ</th><th>অবস্থা</th><th></th></tr>
-  ${rows.map(a => { const [l, c] = apSt(a.status); return `<tr><td><b>${esc(a.label)}</b><div class="sub">${esc(a.tlabel || '')}</div><div class="sub">${fmtT(a.createdAt)}</div></td><td><span class="badge b-${c}">${l}</span>${a.reason ? `<div class="sub">${esc(a.reason)}</div>` : ''}${a.status === 'approved' ? '<div class="sub">কাজটি এখন করা যাবে</div>' : ''}</td><td>${a.status === 'pending' ? `<button type="button" class="btn sm ghost" data-act="apcancel" data-id="${esc(a.id)}">বাতিল</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="3" class="empty"><b>কোনো অনুরোধ নেই</b></td></tr>'}</table></div>`;
+  ${rows.map(a => { const [l, c] = apSt(a.status); return `<tr><td><b>${esc(a.label)}</b><div class="sub">${esc(a.tlabel || '')}</div><div class="sub">${fmtT(a.createdAt)}</div></td><td><span class="badge b-${c}">${l}</span>${a.reason ? `<div class="sub">${esc(a.reason)}</div>` : ''}${a.status === 'pending' ? '<div class="sub">অনুমোদন পেলে নিজে থেকেই সংরক্ষিত হবে</div>' : ''}${a.status === 'approved' && a.ops ? '<div class="sub">অনুমোদিত — প্রধানের প্যানেল থেকে সংরক্ষণ সম্পন্ন হবে</div>' : ''}</td><td>${a.status === 'pending' ? `<button type="button" class="btn sm ghost" data-act="apcancel" data-id="${esc(a.id)}">বাতিল</button>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="3" class="empty"><b>কোনো অনুরোধ নেই</b></td></tr>'}</table></div>`;
 }
 
 /* ---------- প্রধানের প্রোফাইল ফর্ম ---------- */
@@ -2419,7 +2518,7 @@ function headPanelHtml(p, inHead) {
   const hpic = pendingHead !== undefined ? pendingHead : (h.photo || '');
   const sum = h.name ? `<div class="hd-chips" style="margin:0 0 8px">${Object.keys(req).map(k => `<span>${esc(apvLbl(k))}</span>`).join('') || '<span style="background:#f2f4f7;color:var(--mut)">কোনো কাজে অনুমোদন লাগে না</span>'}</div>` : '';
   return `<div class="panel" style="max-width:600px"><h3>${inHead ? 'আমার প্রোফাইল ও অনুমোদনের শর্ত' : 'প্রতিষ্ঠান প্রধানের প্রোফাইল'}</h3>
-  <p class="sub" style="margin:0 0 6px">${inHead ? 'এখানে প্রধান নিজের তথ্য, পাসওয়ার্ড ও অনুমোদনের শর্ত বদলাতে পারবেন।' : 'প্রধানের তথ্য ও পাসওয়ার্ড দিন। প্রধানের প্রোফাইল উপরের হেডারে থাকবে, বাছাই করা সব কাজের অনুরোধ সেখানে যাবে এবং প্রধান পাসওয়ার্ড দিয়ে ঢুকে অনুমোদন দেবেন।'}</p>${sum}
+  <p class="sub" style="margin:0 0 6px">${inHead ? 'এখানে প্রধান নিজের তথ্য, পাসওয়ার্ড ও অনুমোদনের শর্ত বদলাতে পারবেন।' : 'প্রধানের তথ্য ও পাসওয়ার্ড দিন। বাছাই করা কাজগুলো কর্মী সম্পন্ন করে জমা দিলে প্রতিটি আলাদা আলাদাভাবে প্রধানের প্রোফাইলে আসবে; প্রধান পাসওয়ার্ড দিয়ে ঢুকে অনুমোদন দিলে তবেই কাজটি সংরক্ষিত হবে।'}</p>${sum}
   <form id="headF">
   <label>প্রধানের ছবি</label>
   <div class="logoprev"><span class="logo ${hpic ? 'has' : ''}" id="headPhotoBox">${hpic ? `<img src="${esc(hpic)}" alt="" style="object-fit:cover">` : ic('stu')}</span>
@@ -2480,11 +2579,16 @@ Object.assign(A, {
     let reason = '';
     if (d.s === 'rejected') { const r = prompt('প্রত্যাখ্যানের কারণ (ঐচ্ছিক)'); if (r === null) return; reason = r.trim().slice(0, 200); }
     else if (!confirm('এই কাজটির অনুমোদন দেবেন?')) return;
-    const b = `institutionData/${ctx}/approvals/${d.id}`, u = { [b + '/status']: d.s, [b + '/decidedAt']: { '.sv': 'timestamp' } };
+    const a = AP[d.id] || {}, b = `institutionData/${ctx}/approvals/${d.id}`, u = { [b + '/status']: d.s, [b + '/decidedAt']: { '.sv': 'timestamp' } };
     if (reason) u[b + '/reason'] = reason;
-    try { await update(root(), u); toast(d.s === 'approved' ? 'অনুমোদন দেওয়া হয়েছে' : 'অনুরোধ প্রত্যাখ্যান করা হয়েছে'); } catch (e) { toast(errMsg(e)); }
+    if (d.s === 'rejected' && a.ops) u[b + '/ops'] = null;
+    try { await update(root(), u); } catch (e) { return toast(errMsg(e)); }
+    if (d.s !== 'approved') return toast('অনুরোধ প্রত্যাখ্যান করা হয়েছে — কিছুই সংরক্ষিত হয়নি');
+    if (!a.ops) return toast('অনুমোদন দেওয়া হয়েছে');
+    try { await applyApproval(d.id, a); toast('অনুমোদন দেওয়া হয়েছে — কাজটি সফলভাবে সংরক্ষিত হয়েছে'); } catch (e) { toast('অনুমোদিত হয়েছে, কিন্তু সংরক্ষণ হয়নি: ' + errMsg(e) + ' — তালিকা থেকে "সংরক্ষণ সম্পন্ন করুন" চাপুন'); }
   },
-  apcancel: async d => { try { await update(ref(db, `institutionData/${ctx}/approvals/${d.id}`), { status: 'cancelled' }); } catch (e) { toast(errMsg(e)); } },
+  happly: async d => { const a = AP[d.id]; if (!a || !a.ops) return; try { await applyApproval(d.id, a); toast('কাজটি সফলভাবে সংরক্ষিত হয়েছে'); } catch (e) { toast(errMsg(e)); } },
+  apcancel: async d => { try { await update(ref(db, `institutionData/${ctx}/approvals/${d.id}`), { status: 'cancelled', ops: null }); } catch (e) { toast(errMsg(e)); } },
   rmhead: () => { pendingHead = ''; const b = $('#headPhotoBox'); if (b) { b.innerHTML = ic('stu'); b.classList.remove('has'); } const i = $('#headPhotoFile'); if (i) i.value = ''; },
   resethead: async d => {
     try { await update(root(), { [`institutionProfiles/${d.id}/head/pwHash`]: null, [`institutionProfiles/${d.id}/head/pwSalt`]: null, [`institutionProfiles/${d.id}/head/req`]: null }); toast('প্রধানের পাসওয়ার্ড ও অনুমোদনের শর্ত মুছে ফেলা হয়েছে'); }
@@ -2504,18 +2608,41 @@ Object.assign(A, {
 function bankForm(id) {
   const o = id ? BK[id] : { type: 'bank' };
   if (!id && Object.keys(BK).length >= 10) return toast('সর্বোচ্চ ১০টি অ্যাকাউন্ট যোগ করা যাবে');
+  const known = o.bank && BD_BANKS.some(x => x[0] === o.bank), curBank = known ? o.bank : '';
+  let bd = '', bn0 = o.branch || ''; const m = bn0.match(/^(.*),\s*([^,]+)$/); if (m && BD_DIST.includes(m[2].trim())) { bn0 = m[1].trim(); bd = m[2].trim(); }
+  const isBank = (o.type || 'bank') === 'bank';
   modal(id ? 'অ্যাকাউন্ট সম্পাদনা' : 'নতুন অ্যাকাউন্ট',
-    sel('ধরন', 'type', Object.entries(BANK_T), o.type || 'bank', true) + inp('ব্যাংকের নাম (ব্যাংক হলে আবশ্যক)', 'bank', o.bank || '', 'text', 'maxlength="80"', true) + inp('শাখা', 'branch', o.branch || '', 'text', 'maxlength="80"', true) +
+    sel('ধরন', 'type', Object.entries(BANK_T), o.type || 'bank', true) +
+    `<div class="w" data-bankwrap ${isBank ? '' : 'style="display:none"'}>${bankPickHtml(curBank)}` +
+    `<div style="margin-top:10px"><label>জেলা (শাখা বাছাইয়ের জন্য)</label><select name="bdist"><option value="">— জেলা বেছে নিন —</option>${BD_DIST.map(d => `<option ${d === bd ? 'selected' : ''}>${d}</option>`).join('')}</select></div>` +
+    `<div style="margin-top:10px"><label>শাখার নাম</label><input type="text" name="branch" value="${esc(bn0)}" maxlength="60" placeholder="যেমন: মতিঝিল শাখা"></div></div>` +
     inp('অ্যাকাউন্টধারীর নাম *', 'holder', o.holder || '', 'text', 'required maxlength="100"', true) + inp('অ্যাকাউন্ট / মোবাইল নম্বর *', 'number', o.number || '', 'text', 'required minlength="3" maxlength="40"', true),
     async f => {
-      const type = BANK_T[f.type] ? f.type : 'bank', bank = (f.bank || '').trim();
-      if (type === 'bank' && !bank) throw new Error('ব্যাংকের নাম লিখুন');
+      const type = BANK_T[f.type] ? f.type : 'bank';
+      let bank = '', branch = '';
+      if (type === 'bank') {
+        bank = (f.bank === '__other' ? (f.bankOther || '') : (f.bank || '')).trim();
+        if (!bank) throw new Error('ব্যাংক বেছে নিন');
+        branch = [(f.branch || '').trim(), (f.bdist || '').trim()].filter(Boolean).join(', ');
+        if (branch.length > 80) throw new Error('শাখার নাম ও জেলা মিলিয়ে ৮০ অক্ষরের মধ্যে হতে হবে');
+      }
       const d = { type, holder: f.holder.trim(), number: f.number.trim(), createdAt: o.createdAt || Date.now() };
-      if (bank) d.bank = bank; if ((f.branch || '').trim()) d.branch = f.branch.trim();
-      if (Object.values(BK).some((b, i) => b !== o && b.type === d.type && b.number === d.number && (b.bank || '') === (d.bank || ''))) throw new Error('এই অ্যাকাউন্ট আগে থেকেই যোগ করা আছে');
+      if (bank) d.bank = bank; if (branch) d.branch = branch;
+      if (Object.values(BK).some(b => b !== o && b.type === d.type && b.number === d.number && (b.bank || '') === (d.bank || ''))) throw new Error('এই অ্যাকাউন্ট আগে থেকেই যোগ করা আছে');
       await set(ref(db, `instBanks/${ctx}/${id || push(ref(db, `instBanks/${ctx}`)).key}`), d); toast('অ্যাকাউন্ট সংরক্ষিত হয়েছে');
     });
 }
+Object.assign(A, {
+  bkopen: (d, el) => { const l = el.closest('[data-bankbox]').querySelector('.bklist'); l.hidden = !l.hidden; if (!l.hidden) { const q = l.querySelector('.bksr'); q.value = ''; q.dispatchEvent(new Event('input', { bubbles: true })); q.focus(); } },
+  bkset: (d, el) => {
+    const bx = el.closest('[data-bankbox]'), v = d.n, oth = bx.querySelector('[name=bankOther]');
+    bx.querySelector('[name=bank]').value = v; bx.querySelector('.bklist').hidden = true;
+    oth.style.display = v === '__other' ? '' : 'none'; if (v === '__other') oth.focus();
+    bx.querySelector('[data-bkcur]').innerHTML = v === '__other' ? '<b>অন্য ব্যাংক</b>' : bankLogo(v, 28) + '<b>' + esc(v) + '</b>';
+  }
+});
+document.addEventListener('input', e => { if (!e.target.classList || !e.target.classList.contains('bksr')) return; const q = e.target.value.trim().toLowerCase(); e.target.closest('.bklist').querySelectorAll('.bkrow').forEach(r => r.style.display = !q || r.textContent.toLowerCase().includes(q) ? '' : 'none'); });
+document.addEventListener('change', e => { const el = e.target; if (el.name !== 'type' || !el.closest('#mf')) return; const w = el.closest('#mf').querySelector('[data-bankwrap]'); if (w) w.style.display = el.value === 'bank' ? '' : 'none'; });
 /* কোন কাজে প্রধানের অনুমোদন লাগে: modal = ফর্ম খোলার আগে, now = কাজের আগে */
 const sNm = id => (S[id] || {}).name || '';
 const GATE = {
@@ -2532,15 +2659,161 @@ const GATE = {
 Object.entries(GATE).forEach(([act, [k, mode, tg]]) => {
   const o = A[act];
   A[act] = async (d, el) => {
-    const key = typeof k === 'function' ? k(d) : k, hh = ctxProfile && ctxProfile.head;
-    if (!me || me.isAdmin || headIn || !hh || !hh.pwHash || !(hh.req && hh.req[key])) return o(d, el);
-    const [t, tl] = tg(d), g = await gateReq(key, t, tl);
-    if (!g.ok) return;
-    if (mode === 'modal') { curGate = g.grant || null; try { return o(d, el); } finally { curGate = null; } }
-    let cancelled = false; const oc = window.confirm; window.confirm = m => { const r = oc.call(window, m); if (!r) cancelled = true; return r; };
-    let pr; try { pr = o(d, el); } finally { window.confirm = oc; }
-    await pr; if (g.grant && !cancelled) useGrant(g.grant);
+    const key = typeof k === 'function' ? k(d) : k;
+    if (!needGate(key)) return o(d, el);
+    const [t, tl] = tg(d);
+    if (mode === 'modal') { curGate = { key, t, tl }; try { return await o(d, el); } finally { curGate = null; } }
+    let cap; try { cap = await withCap(() => o(d, el)); } catch (e) { return toast(errMsg(e)); }
+    if (cap.ops.length) { try { await submitCap(key, t, tl, cap.ops, tl); } catch (e) { toast(errMsg(e)); } } else cap.toasts.forEach(m => toast(m));
   };
+});
+/* ================= এডমিন: ব্যাকআপ Export / Import ও পেমেন্ট মাল্টি-ডিলিট ================= */
+let bkBusy = false, bkStat = '', bkPending = null;
+const bkMsg = s => { bkStat = s; const e = $('#bkSt'); if (e) e.textContent = s; };
+const BK_ROOT = ['siteSettings', 'paySettings', 'publicSchools', 'schoolLogos', 'institutionProfiles', 'instLedger', 'instBanks', 'payReq', 'bkashPayments'];
+const BK_SEC = { institutionProfiles: 'প্রতিষ্ঠানের প্রোফাইল', institutionData: 'শিক্ষার্থী, আয়-ব্যয় ও বিল', instLedger: 'এডমিনের হিসাব (জমা/পরিশোধ/মেইনটেন্স)', instBanks: 'প্রতিষ্ঠানের পেমেন্ট অ্যাকাউন্ট', payReq: 'অনলাইন পেমেন্ট তালিকা', bkashPayments: 'বিকাশ/রকেট পেমেন্ট রেকর্ড', studentPortal: 'শিক্ষার্থী পোর্টালের তথ্য', studentResults: 'প্রকাশিত ফলাফল', notices: 'নোটিশ', noticeFiles: 'নোটিশের ফাইল', exams: 'পরীক্ষা', holidays: 'ছুটি', publicSchools: 'পাবলিক স্কুল তালিকা', schoolLogos: 'প্রতিষ্ঠানের লোগো', siteSettings: 'সাইট সেটিং', paySettings: 'পেমেন্ট সেটিং' };
+const BK_DEPTH = { siteSettings: 0, paySettings: 0, institutionData: 3, instLedger: 3, instBanks: 2, notices: 2, noticeFiles: 2, exams: 2, holidays: 2 }; /* কত স্তর পর্যন্ত রেকর্ড আলাদা করে লেখা হবে; বাকিটা রেকর্ডসহ বদলায় */
+function bkSave(name, text, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+}
+async function bkPool(items, n, fn) { let i = 0; await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const x = items[i++]; await fn(x); } })); }
+async function bkExport() {
+  if (bkBusy || !me || !me.isAdmin) return; bkBusy = true;
+  const data = {}, skipped = [], skip = k => { if (!skipped.includes(k)) skipped.push(k); };
+  try {
+    for (const k of BK_ROOT) { bkMsg('পড়া হচ্ছে: ' + BK_SEC[k] + '…'); try { const v = (await get(ref(db, k))).val(); if (v != null) data[k] = v; } catch (e) { skip(k); } }
+    const uids = [...new Set([...Object.keys(data.institutionProfiles || {}), ...Object.keys(data.instLedger || {}), ...Object.keys(data.instBanks || {})])];
+    let n = 0;
+    await bkPool(uids, 6, async uid => {
+      for (const sec of ['institutionData', 'notices', 'exams', 'holidays']) { try { const v = (await get(ref(db, sec + '/' + uid))).val(); if (v != null) (data[sec] = data[sec] || {})[uid] = v; } catch (e) { skip(sec); } }
+      bkMsg('প্রতিষ্ঠানের ডেটা পড়া হচ্ছে: ' + bn(++n) + '/' + bn(uids.length));
+    });
+    const jobs = [], seen = new Set();
+    Object.entries(data.notices || {}).forEach(([uid, o]) => Object.keys(o || {}).forEach(nid => jobs.push(['noticeFiles', uid, nid])));
+    Object.entries(data.institutionData || {}).forEach(([uid, d]) => Object.values((d && d.students) || {}).forEach(s => {
+      const k = s && portalKey(uid, s.class, s.roll, s.phone); if (!k || seen.has(k)) return; seen.add(k); jobs.push(['studentPortal', k]); jobs.push(['studentResults', k]);
+    }));
+    let done = 0;
+    await bkPool(jobs, 15, async j => {
+      try {
+        const v = (await get(ref(db, j.join('/')))).val();
+        if (v != null) { const s = (data[j[0]] = data[j[0]] || {}); if (j[0] === 'noticeFiles') (s[j[1]] = s[j[1]] || {})[j[2]] = v; else s[j[1]] = v; }
+      } catch (e) { skip(j[0]); }
+      if (++done % 10 === 0 || done === jobs.length) bkMsg('শিক্ষার্থী ও ফাইলের ডেটা পড়া হচ্ছে: ' + bn(done) + '/' + bn(jobs.length));
+    });
+    const txt = JSON.stringify({ format: 'smp-backup', version: 1, app: site.name, createdAt: Date.now(), createdAtText: new Date().toLocaleString('bn-BD'), by: me.email, skipped, data });
+    bkSave('SMP-backup-' + today() + '.json', txt, 'application/json');
+    bkMsg('✅ Export সম্পন্ন — ফাইলের আকার ' + bn(Math.round(txt.length / 1024)) + ' কেবি' + (skipped.length ? ' • পড়া যায়নি: ' + skipped.map(k => BK_SEC[k] || k).join(', ') + ' (Rules পরীক্ষা করুন)' : ''));
+  } catch (e) { bkMsg('❌ ' + errMsg(e)); }
+  bkBusy = false;
+}
+function bkStatementCsv() {
+  if (!me || !me.isAdmin) return;
+  const q = v => { v = v == null ? '' : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const nm = id => (adminList[id] || {}).name || '(মুছে ফেলা প্রতিষ্ঠান)';
+  const rows = Object.keys({ ...adminList, ...ledgerAll }).map(id => ({ id, name: nm(id), st: (adminList[id] || {}).status, c: ledCalc(ledgerAll[id]) })).filter(r => r.st === 'approved' || r.c.n || r.c.settle.length).sort((a, b) => b.c.held - a.c.held);
+  const T = rows.reduce((t, r) => { ['n', 'total', 'charge', 'due', 'paid', 'maint', 'held'].forEach(k => t[k] += r.c[k]); return t; }, { n: 0, total: 0, charge: 0, due: 0, paid: 0, maint: 0, held: 0 });
+  const r2 = n => Math.round(n * 100) / 100;
+  const set = rows.flatMap(r => r.c.settle.map(x => [x.date || ymd(x.createdAt || 0), r.name, x.type === 'paid' ? 'প্রতিষ্ঠানকে পরিশোধ' : 'মেইনটেন্স চার্জ', x.amount, x.vno || '', x.bank ? [BANK_T[x.bank.type] || x.bank.type, x.bank.bank, x.bank.holder, x.bank.number].filter(Boolean).join(' / ') : '', x.note || ''])).sort((a, b) => String(b[0]).localeCompare(String(a[0])));
+  const vp = Object.entries(payReqs).map(([id, r]) => ({ id, ...r })).filter(r => r.status === 'verified').sort((a, b) => (b.verifiedAt || b.createdAt || 0) - (a.verifiedAt || a.createdAt || 0));
+  const sm = k => r2(vp.reduce((t, r) => t + (Number(r[k]) || 0), 0));
+  const L = [[site.name], ['এডমিন হিসাব বিবরণী'], ['তৈরির তারিখ', today()], [],
+    ['১। প্রতিষ্ঠানভিত্তিক হিসাব'], ['প্রতিষ্ঠান', 'ভেরিফাইড পেমেন্ট (টি)', 'ভেরিফাইড মোট', 'সার্ভিস চার্জ', 'প্রাপ্য মূল টাকা', 'পরিশোধিত', 'মেইনটেন্স', 'এডমিনের নিকট জমা'],
+    ...rows.map(r => [r.name, r.c.n, r.c.total, r.c.charge, r.c.due, r.c.paid, r.c.maint, r.c.held]),
+    ['সর্বমোট', T.n, r2(T.total), r2(T.charge), r2(T.due), r2(T.paid), r2(T.maint), r2(T.held)], [],
+    ['২। পরিশোধ ও মেইনটেন্স এন্ট্রি'], ['তারিখ', 'প্রতিষ্ঠান', 'ধরন', 'টাকা', 'ভাউচার নং', 'অ্যাকাউন্ট', 'নোট'], ...set, [],
+    ['৩। ভেরিফাইড অনলাইন পেমেন্ট'], ['তারিখ', 'প্রতিষ্ঠান', 'শিক্ষার্থী', 'শ্রেণি', 'রোল', 'বিষয়', 'মাস', 'মাধ্যম', 'TrxID', 'রসিদ নং', 'বিল (মূল টাকা)', 'সার্ভিস চার্জ', 'মোট গৃহীত'],
+    ...vp.map(r => [ymd(r.verifiedAt || r.createdAt || 0), r.school || '', r.name || '', r.class || '', r.roll || '', r.title || '', r.month || '', r.method === 'rocket' ? 'রকেট' : 'বিকাশ', r.trx || '', r.receiptNo || '', r.amount, r.charge, r.total]),
+    ['সর্বমোট', '', '', '', '', '', '', '', '', '', sm('amount'), sm('charge'), sm('total')]];
+  bkSave('admin-hisab-' + today() + '.csv', '\ufeff' + L.map(l => l.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+  toast('হিসাব বিবরণী ডাউনলোড হচ্ছে');
+}
+const bkKeysOk = v => { if (v && typeof v === 'object') return Object.entries(v).every(([k, x]) => /^[^.#$\[\]\/]+$/.test(k) && bkKeysOk(x)); return true; };
+const bkCounts = d => {
+  const o = x => Object.keys(x || {}).length; let stu = 0, tx = 0, le = 0;
+  Object.values(d.institutionData || {}).forEach(i => { stu += o(i && i.students); tx += o(i && i.payments); });
+  Object.values(d.instLedger || {}).forEach(l => { le += o(l && l.online) + o(l && l.settle); });
+  return [['প্রতিষ্ঠান', o(d.institutionProfiles)], ['শিক্ষার্থী', stu], ['আয়-ব্যয় লেনদেন', tx], ['অনলাইন পেমেন্ট', o(d.payReq)], ['হিসাবের এন্ট্রি', le]];
+};
+function bkPrevHtml() {
+  if (!bkPending) return '';
+  const p = bkPending;
+  return `<div class="panel" style="margin:14px 0 0;background:#fafaff"><b>${esc(p.name)}</b><div class="sub">তৈরি: ${esc(p.at || '—')}${p.by ? ' • ' + esc(p.by) : ''}</div>
+    <div class="bkcnt">${bkCounts(p.data).map(([l, v]) => `<div><b>${bn(v)}</b>${l}</div>`).join('')}</div>
+    <div class="sub">যা যা Import হবে (বাদ দিতে টিক তুলে দিন):</div>
+    <div class="bksec">${Object.keys(BK_SEC).filter(k => p.data[k]).map(k => `<label><input type="checkbox" data-bks="${k}" ${p.sel.has(k) ? 'checked' : ''}> ${BK_SEC[k]}</label>`).join('')}</div>
+    <div class="hint" style="margin-bottom:10px">একই আইডির বিদ্যমান রেকর্ড ব্যাকআপের তথ্য দিয়ে বদলে যাবে। ব্যাকআপে নেই এমন কিছু মোছা হবে না।</div>
+    <div class="row"><button type="button" class="btn bad" data-act="bkimport">Import করুন</button><button type="button" class="btn ghost" data-act="bkclear">বাতিল</button></div></div>`;
+}
+document.addEventListener('change', async e => {
+  const t = e.target; if (!t || !me || !me.isAdmin) return;
+  if (t.dataset && t.dataset.bks && bkPending) { if (t.checked) bkPending.sel.add(t.dataset.bks); else bkPending.sel.delete(t.dataset.bks); return; }
+  if (t.id !== 'bkFile') return;
+  const f = t.files && t.files[0]; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (!j || j.format !== 'smp-backup' || !j.data || typeof j.data !== 'object') throw new Error('এটি এই সাইটের ব্যাকআপ ফাইল নয়');
+    const data = {}; Object.keys(BK_SEC).forEach(k => { if (j.data[k] && typeof j.data[k] === 'object') data[k] = j.data[k]; });
+    if (!Object.keys(data).length) throw new Error('ফাইলে Import করার মতো কোনো তথ্য নেই');
+    if (!bkKeysOk(data)) throw new Error('ফাইলে অনুমোদিত নয় এমন কী (key) আছে — ফাইলটি নষ্ট বা পরিবর্তিত');
+    bkPending = { name: f.name, at: j.createdAtText || '', by: j.by || '', data, sel: new Set(Object.keys(data)) };
+    bkMsg(''); const pv = $('#bkPrev'); if (pv) pv.innerHTML = bkPrevHtml();
+  } catch (x) { bkPending = null; t.value = ''; const pv = $('#bkPrev'); if (pv) pv.innerHTML = ''; bkMsg('❌ ' + (x instanceof SyntaxError ? 'ফাইলটি পড়া যায়নি (সঠিক JSON নয়)' : x.message)); }
+});
+async function bkRunImport() {
+  if (!bkPending || bkBusy || !me || !me.isAdmin) return;
+  const p = bkPending, secs = [...p.sel].filter(k => p.data[k]);
+  if (!secs.length) return toast('Import-এর জন্য অন্তত একটি অংশ বেছে নিন');
+  bkBusy = true;
+  try {
+    const items = [];
+    const walk = (path, v, depth) => {
+      const isO = v && typeof v === 'object';
+      if (isO && depth > 0) { Object.entries(v).forEach(([k, x]) => walk(path + '/' + k, x, depth - 1)); return; }
+      const s = JSON.stringify(v);
+      if (isO && s.length > 600000) { Object.entries(v).forEach(([k, x]) => walk(path + '/' + k, x, 0)); return; }
+      items.push([path, v, s.length]);
+    };
+    secs.forEach(sec => walk(sec, p.data[sec], BK_DEPTH[sec] == null ? 1 : BK_DEPTH[sec]));
+    let batch = {}, bs = 0, nb = 0, done = 0, fail = 0, err = '';
+    const flush = async () => {
+      if (!nb) return; const ent = Object.entries(batch), b = batch; batch = {}; bs = 0; nb = 0;
+      try { await update(root(), b); }
+      catch (e) { for (const [k, v] of ent) { try { await update(root(), { [k]: v }); } catch (x) { fail++; err = err || errMsg(x); } } }
+      done += ent.length; bkMsg('লেখা হচ্ছে: ' + bn(done) + '/' + bn(items.length));
+    };
+    for (const [path, v, sz] of items) { if (nb && (bs + sz > 2500000 || nb >= 200)) await flush(); batch[path] = v; bs += sz; nb++; }
+    await flush();
+    if (fail) bkMsg('⚠️ Import আংশিক সম্পন্ন — ' + bn(items.length - fail) + ' টি লেখা হয়েছে, ' + bn(fail) + ' টি হয়নি (' + err + ')');
+    else { bkMsg('✅ Import সম্পন্ন — ' + bn(items.length) + ' টি অংশ লেখা হয়েছে'); bkPending = null; const pv = $('#bkPrev'); if (pv) pv.innerHTML = ''; const fi = $('#bkFile'); if (fi) fi.value = ''; }
+  } catch (e) { bkMsg('❌ ' + errMsg(e)); }
+  bkBusy = false;
+}
+Object.assign(A, {
+  paysel: (d, el) => { if (el.checked) paySel.add(d.id); else paySel.delete(d.id); adminPayRefresh(); },
+  pasela: (d, el) => { payRowsFiltered().filter(r => r.status !== 'verified').forEach(r => { if (el.checked) paySel.add(r.id); else paySel.delete(r.id); }); adminPayRefresh(); },
+  paydelsel: async () => {
+    const ids = [...paySel]; if (!ids.length) return;
+    try {
+      const cur = (await get(ref(db, 'payReq'))).val() || {}; /* সর্বশেষ অবস্থা: ইতিমধ্যে ভেরিফাইড হয়ে গেলে মোছা হবে না */
+      const ok = ids.filter(id => cur[id] && cur[id].status !== 'verified'), skipped = ids.length - ok.length;
+      if (!ok.length) { paySel.clear(); adminPayRefresh(); return toast('মোছার মতো পেমেন্ট নেই (ভেরিফাইড পেমেন্ট মোছা যায় না)'); }
+      const upd = {};
+      await Promise.all(ok.map(async id => {
+        upd['payReq/' + id] = null; const k = cur[id].key;
+        if (k) { try { if ((await get(ref(db, 'payBlock/' + k))).val() === id) upd['payBlock/' + k] = null; } catch (e) { /* ব্লক না থাকলে সমস্যা নেই */ } }
+      }));
+      const ks = Object.keys(upd);
+      for (let i = 0; i < ks.length; i += 100) { const part = {}; ks.slice(i, i + 100).forEach(k => part[k] = upd[k]); await update(root(), part); }
+      ok.forEach(id => paySel.delete(id)); adminPayRefresh();
+      toast(bn(ok.length) + ' টি পেমেন্ট ডিলিট হয়েছে' + (skipped ? ' • ' + bn(skipped) + ' টি ভেরিফাইড হওয়ায় বাদ' : ''));
+    } catch (e) { toast(errMsg(e)); }
+  },
+  bkexport: () => bkExport(),
+  bkcsv: () => bkStatementCsv(),
+  bkimport: () => bkRunImport(),
+  bkclear: () => { bkPending = null; bkStat = ''; renderAdmin(); }
 });
 /* এডমিন প্যানেল থেকে কিছু মুছতে হলে এডমিন পাসওয়ার্ড লাগবে */
 const ADMIN_DEL = {
@@ -2551,7 +2824,9 @@ const ADMIN_DEL = {
   delnotice: () => 'এই নোটিশ ও ফাইলটি মুছে যাবে।',
   delexam: () => 'এই পরীক্ষা ও এর সব ফলাফল মুছে যাবে।',
   delhol: () => 'এই ছুটিটি মুছে যাবে।',
-  resethead: () => 'প্রতিষ্ঠান প্রধানের পাসওয়ার্ড ও অনুমোদনের শর্ত মুছে যাবে।'
+  resethead: () => 'প্রতিষ্ঠান প্রধানের পাসওয়ার্ড ও অনুমোদনের শর্ত মুছে যাবে।',
+  paydelsel: () => { const n = paySel.size, w = [...paySel].filter(id => payReqs[id] && payKeyOf(payReqs[id]) === 'pending').length; return 'নির্বাচিত ' + bn(n) + ' টি পেমেন্ট স্থায়ীভাবে মুছে যাবে (ভেরিফাইড পেমেন্ট মুছবে না)।' + (w ? ' এর মধ্যে ' + bn(w) + ' টি এখনো অপেক্ষমাণ — শিক্ষার্থী পেমেন্ট করে থাকলে তা আর মেলানো যাবে না।' : ''); },
+  bkimport: () => 'ব্যাকআপ ফাইল থেকে ডেটা Import হবে — একই আইডির বিদ্যমান তথ্য ব্যাকআপের তথ্য দিয়ে বদলে যাবে।'
 };
 Object.entries(ADMIN_DEL).forEach(([act, msg]) => {
   const o = A[act];
