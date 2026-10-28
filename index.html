@@ -187,6 +187,7 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .facts div{font-size:13px;color:var(--mut)}.facts b{display:block;font-size:19px;color:var(--tx)}
 
 /* ---------- অ্যাডমিন ---------- */
+.lhua{font-size:12px;color:var(--mut);white-space:normal;max-width:340px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
 .chips button{border:1px solid #d0d5dd;background:#fff;border-radius:99px;padding:5px 15px;color:var(--tx)}
 .chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -797,7 +798,7 @@ th.pc,td.pc{width:42px;text-align:center;padding-left:10px;padding-right:6px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, reauthenticateWithCredential, EmailAuthProvider, setPersistence, inMemoryPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 import { getDatabase, ref, get, set as fbSet, update as fbUpdate, push, onValue, onDisconnect, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-database.js";
 
 /* ---- অনুমোদনের জন্য জমা: কর্মীর কাজের ডাটাবেস-লেখা ধরে রাখার স্তর ----
@@ -846,7 +847,7 @@ const ERR = {
   'auth/invalid-email':'ইমেইল সঠিক নয়','auth/email-already-in-use':'এই ইমেইল দিয়ে ইতোমধ্যে অ্যাকাউন্ট আছে','auth/weak-password':'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে',
   'auth/too-many-requests':'অনেকবার চেষ্টা হয়েছে, একটু পরে আবার চেষ্টা করুন','auth/network-request-failed':'ইন্টারনেট সংযোগ পরীক্ষা করুন'
 };
-const errMsg = e => ERR[e.code] || (e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message) ? 'অনুমতি নেই (Rules পরীক্ষা করুন)' : e.message);
+const errMsg = e => ({'auth/operation-not-allowed':'Firebase Console-এ Email link (passwordless) চালু করা নেই','auth/unauthorized-continue-uri':'সাইটের ডোমেইন Authorized domains-এ যোগ করা নেই (' + location.hostname + ')','auth/invalid-continue-uri':'সাইট http/https ঠিকানায় খুলতে হবে (file:// নয়)','auth/missing-continue-uri':'সাইট http/https ঠিকানায় খুলতে হবে','auth/too-many-requests':'অনেকবার চেষ্টা হয়েছে, কিছুক্ষণ পরে আবার চেষ্টা করুন','auth/quota-exceeded':'আজকের ইমেইল লিংক পাঠানোর সীমা শেষ'})[e.code] || ERR[e.code] || (e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message) ? 'অনুমতি নেই (Rules পরীক্ষা করুন)' : e.message);
 
 const ICO = {
   dash:'<path d="M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z"/>',
@@ -868,7 +869,7 @@ const ICO = {
 const ic = k => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 
 const STATUS = {pending:'অপেক্ষমাণ', approved:'অনুমোদিত', rejected:'প্রত্যাখ্যাত', suspended:'স্থগিত'};
-const INC = ['মাসিক ফি','ভর্তি ফি','পরীক্ষা ফি','সেশন ফি','অন্যান্য আয়'];
+const INC = ['কমিটির টাকা','অনুদান / দান','সরকারি বরাদ্দ','অন্যান্য আয়']; /* শিক্ষার্থীর ফি এখানে নেই — তা শুধু শিক্ষার্থীর প্রোফাইল থেকে পেমেন্টে জমা হয় */
 const EXP = ['শিক্ষক-কর্মচারী বেতন','ভাড়া','বিদ্যুৎ/পানি/ইন্টারনেট','শিক্ষা উপকরণ','মেরামত','অন্যান্য খরচ'];
 const METHODS = ['নগদ','বিকাশ','নগদ (Nagad)','রকেট','ব্যাংক','চেক'].map(x => [x, x]);
 const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['pro','প্রতিষ্ঠানের প্রোফাইল','pro'],['hpro','প্রধানের প্রোফাইল','stu'],['bnk','পেমেন্ট গ্রহণের অ্যাকাউন্ট','pay'],['slg','শিক্ষার্থী লগইন','card']];
@@ -1030,13 +1031,15 @@ function initReveal() {
 
 /* ---------- স্টেট ---------- */
 let instLogo = '', pendingInst, LG = {}, ledgerAll = {}, BK = {}, banksAll = {}, lastSettle = null;
+const ADMIN_EMAIL = 'mydrive.edu.bd@gmail.com';
+let logNext = false, AL = {}, lhDays = 3, lhEv = '';
 let me = null, ctx = null, ctxProfile = null, S = {}, P = {}, adminList = {}, page = 'dash', ui = {}, listFn = null, registering = false;
 let baseUns = [], dataUns = [], stuUns = [], stuRec = null;
 let N = {}, EX = {}, HO = {}, RS = {}, SN = {}, SE = {}, SH = {}, SR = {}, sp = 'home';
 const unAll = a => { a.forEach(f => f()); a.length = 0; };
 const base = () => `institutionData/${ctx}`;
 let curGate = null, pendingHead, AP = {}, hp = 'req', headIn = false;
-const APV = [['stuSave','শিক্ষার্থী যোগ / সম্পাদনা'],['stuDel','শিক্ষার্থী মোছা'],['bill','বিল নির্ধারণ (একক ও একসাথে)'],['payIn','টাকা গ্রহণ'],['payOut','টাকা প্রদান'],['payDel','লেনদেন মোছা'],['notice','নোটিশ (যোগ / সম্পাদনা / মোছা)'],['exam','পরীক্ষা (যোগ / সম্পাদনা / মোছা)'],['result','ফলাফল সংরক্ষণ'],['hol','ছুটি (যোগ / মোছা)'],['profile','প্রতিষ্ঠানের প্রোফাইল পরিবর্তন']];
+const APV = [['stuSave','শিক্ষার্থী যোগ / সম্পাদনা'],['stuDel','শিক্ষার্থী মোছা'],['bill','বিল নির্ধারণ (একক ও একসাথে)'],['payIn','টাকা গ্রহণ (কমিটি/অন্য উৎস)'],['payOut','টাকা প্রদান'],['payDel','লেনদেন মোছা'],['notice','নোটিশ (যোগ / সম্পাদনা / মোছা)'],['exam','পরীক্ষা (যোগ / সম্পাদনা / মোছা)'],['result','ফলাফল সংরক্ষণ'],['hol','ছুটি (যোগ / মোছা)'],['profile','প্রতিষ্ঠানের প্রোফাইল পরিবর্তন']];
 const apvLbl = k => (APV.find(x => x[0] === k) || [, k])[1];
 
 /* ---------- শিক্ষার্থী পোর্টালের চাবি ---------- */
@@ -1093,6 +1096,8 @@ async function init(u) {
     baseUns.push(onValue(ref(db, 'institutionProfiles'), s => { adminList = s.val() || {}; if (!ctx) { const rc = REST && REST.ctx; if (rc && adminList[rc]) openWorkspace(rc, adminList[rc]); else { REST = null; show('v-app'); renderAdmin(); } } else if (adminList[ctx]) { ctxProfile = adminList[ctx]; if (!$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('form'))) render(); } syncPublic(); }, e => toast(errMsg(e))));
     baseUns.push(onValue(ref(db, 'payReq'), s => { payReqs = s.val() || {}; reqLoaded = true; ledAuto(); adminPayRefresh(); matchAll(); }, () => {}));
     baseUns.push(onValue(ref(db, 'instLedger'), s => { ledgerAll = s.val() || {}; ledLoaded = true; ledAuto(); if (me && me.isAdmin && !ctx && ui.ap === 'ledger' && !$('#dlg').open) renderAdmin(); }, () => {}));
+    if (logNext) { logNext = false; fbSet(push(ref(db, 'adminLogins')), logRow('login')).catch(e => toast('লগইন হিস্ট্রি লেখা যায়নি: ' + errMsg(e) + ' — নতুন Rules publish করেছেন?')); }
+    baseUns.push(onValue(query(ref(db, 'adminLogins'), orderByChild('at'), startAt(Date.now() - 30 * 864e5)), s => { AL = s.val() || {}; if (me && me.isAdmin && !ctx && ui.ap === 'lh' && !$('#dlg').open) renderAdmin(); }, () => {}));
     baseUns.push(onValue(ref(db, 'instBanks'), s => { banksAll = s.val() || {}; }, () => {}));
     baseUns.push(onValue(query(ref(db, 'bkashPayments'), orderByChild('time'), limitToLast(300)), s => { smsList = s.val() || {}; matchAll(); }, () => {}));
     return;
@@ -1141,14 +1146,14 @@ function shell({ nav, active, act, title, sub, actions = '', who = 'প্রত
   </aside>
   <div class="content">
     <header class="topbar"><div><h1>${title}</h1><p>${sub}</p></div>
-      <div class="row">${me.isAdmin ? '<span class="live adm" data-live></span>' : ''}${actions}<button class="btn ghost" data-act="logout" aria-label="লগআউট">${ic('out')}<span class="lbl">লগআউট</span></button></div></header>
+      <div class="row">${me.isAdmin ? '<span class="live adm" data-live></span>' : ''}${me.isAdmin && act === 'adminnav' ? '<button class="btn" data-act="adminrep">' + ic('receipt') + '<span class="lbl">রিপোর্ট</span></button>' : ''}${actions}<button class="btn ghost" data-act="logout" aria-label="লগআউট">${ic('out')}<span class="lbl">লগআউট</span></button></div></header>
     <main id="main"></main>
   </div></div>`;
   updLive();
 }
 
 /* ---------- অ্যাডমিন প্যানেল ---------- */
-const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set'], ['backup', 'ব্যাকআপ', 'db']];
+const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set'], ['backup', 'ব্যাকআপ', 'db'], ['lh', 'লগইন হিস্ট্রি', 'due']];
 let payReqs = {}, smsList = {}, paySet = {}, payKey = '', pendingQr, matching = false;
 let pf = { st: 'all', m: 'all', sc: 'all', from: '', to: '', q: '' };
 const paySel = new Set(); /* মোছার জন্য বাছা পেমেন্টের আইডি (ভেরিফাইড কখনো এতে আসে না) */
@@ -1395,8 +1400,8 @@ const ymd = ts => { const d = new Date(ts); return d.getFullYear() + '-' + Strin
 const ledCalc = l => {
   l = l || {}; const on = Object.entries(l.online || {}).filter(([id]) => !(me && me.isAdmin) || !payReqs[id] || payReqs[id].status === 'verified').map(e => e[1]), se = Object.entries(l.settle || {}).map(([id, x]) => ({ id, ...x })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
   const sm = (a, k) => a.reduce((t, x) => t + (Number(x[k]) || 0), 0), r2 = n => Math.round(n * 100) / 100;
-  const due = r2(sm(on, 'amount')), paid = r2(sm(se.filter(x => x.type === 'paid'), 'amount')), maint = r2(sm(se.filter(x => x.type === 'maint'), 'amount'));
-  return { n: on.length, total: r2(sm(on, 'total')), charge: r2(sm(on, 'charge')), due, paid, maint, held: r2(due - paid - maint), settle: se };
+  const due = r2(sm(on, 'amount')), paid = r2(sm(se.filter(x => x.type === 'paid'), 'amount')), maint = r2(sm(se.filter(x => x.type === 'maint' && x.status !== 'due'), 'amount')), maintDue = r2(sm(se.filter(x => x.type === 'maint' && x.status === 'due'), 'amount'));
+  return { n: on.length, total: r2(sm(on, 'total')), charge: r2(sm(on, 'charge')), due, paid, maint, maintDue, held: r2(due - paid - maint), settle: se };
 };
 let ledBusy = false, ledFailed = false, ledLoaded = false, reqLoaded = false;
 async function ledSyncAll(auto) {
@@ -1422,20 +1427,25 @@ function ledModal(uid, type) {
     : '<div class="w"><div class="note">এই প্রতিষ্ঠান এখনো কোনো ব্যাংক অ্যাকাউন্ট যোগ করেনি। প্রতিষ্ঠানের ‘পেমেন্ট গ্রহণের অ্যাকাউন্ট’ পেজে অ্যাকাউন্ট যোগ হলে এখান থেকে বেছে নেওয়া যাবে।</div></div>';
   modal((type === 'paid' ? 'প্রতিষ্ঠানকে পরিশোধ — ' : 'মেইনটেন্স চার্জ — ') + nm,
     `<div class="w"><div class="sub">বর্তমানে এডমিনের নিকট জমা: <b>${tk(c.held)}</b></div></div>` + bankPart + inp('টাকা (৳) *', 'amount', '', 'number', 'min="0.01" step="0.01" required') + inp('তারিখ *', 'date', today(), 'date', 'required') +
-    `<div class="w">${inp(type === 'paid' ? 'নোট (যেমন: ট্রান্সফার রেফারেন্স)' : 'কিসের জন্য (যেমন: ওয়েবসাইট মেইনটেন্স)', 'note', '', 'text', 'maxlength="120"')}</div>`,
+    `<div class="w">${inp(type === 'paid' ? 'নোট (যেমন: ট্রান্সফার রেফারেন্স)' : 'কিসের জন্য (যেমন: ওয়েবসাইট মেইনটেন্স)', 'note', '', 'text', 'maxlength="120"' + (type === 'maint' ? ' required' : ''))}</div>` + (type === 'maint' ? sel('অবস্থা', 'mstatus', [['paid', 'জমা থেকে কর্তন করা হয়েছে (পরিশোধিত)'], ['due', 'বকেয়া — এখনো কাটা হয়নি']], 'paid', true) : ''),
     async f => {
       const amt = Math.round((Number(f.amount) || 0) * 100) / 100; if (!(amt > 0)) throw new Error('টাকার পরিমাণ দিন');
       const acct = type === 'paid' && accts.length ? accts.find(a => a.id === f.bank) : null;
       if (type === 'paid' && accts.length && !acct) throw new Error('যে অ্যাকাউন্টে পরিশোধ করছেন তা বেছে নিন');
-      if (amt > c.held + 0.001 && !confirm(`এই পরিমাণ (${tk(amt)}) বর্তমান জমার (${tk(c.held)}) চেয়ে বেশি। তবুও যোগ করবেন?`)) throw new Error('বাতিল করা হয়েছে');
+      if ((type === 'paid' || f.mstatus !== 'due') && amt > c.held + 0.001 && !confirm(`এই পরিমাণ (${tk(amt)}) বর্তমান জমার (${tk(c.held)}) চেয়ে বেশি। তবুও যোগ করবেন?`)) throw new Error('বাতিল করা হয়েছে');
       const id = push(ref(db, `instLedger/${uid}/settle`)).key, date = f.date || today();
       const x = { type, amount: amt, date, note: (f.note || '').trim(), createdAt: Date.now() };
+      if (type === 'maint') {
+        if (!x.note) throw new Error('কিসের জন্য চার্জ তা লিখুন');
+        x.vno = 'MC-' + date.slice(2).replace(/-/g, '') + '-' + id.slice(-5).toUpperCase(); x.status = f.mstatus === 'due' ? 'due' : 'paid';
+        if (x.status === 'paid') { x.paidDate = date; x.after = Math.round((c.held - amt) * 100) / 100; }
+      }
       if (type === 'paid') {
         x.vno = 'SV-' + date.slice(2).replace(/-/g, '') + '-' + id.slice(-5).toUpperCase(); x.after = Math.round((c.held - amt) * 100) / 100;
         if (acct) x.bank = { type: acct.type || 'bank', bank: acct.bank || '', branch: acct.branch || '', holder: acct.holder, number: acct.number };
       }
       await set(ref(db, `instLedger/${uid}/settle/${id}`), x);
-      toast(type === 'paid' ? 'পরিশোধ যোগ হয়েছে' : 'মেইনটেন্স চার্জ যোগ হয়েছে');
+      toast(type === 'paid' ? 'পরিশোধ যোগ হয়েছে' : x.status === 'due' ? 'মেইনটেন্স চার্জ বকেয়া হিসেবে যোগ হয়েছে' : 'মেইনটেন্স চার্জ যোগ হয়েছে — রসিদ তৈরি হয়েছে');
       if (type === 'paid') { lastSettle = { uid, id, x }; setTimeout(() => showSettleDone(uid, id, x), 60); }
     });
 }
@@ -1448,7 +1458,7 @@ function showSettleDone(uid, id, x) {
 }
 function printSettleVoucher(inst, x, id) {
   const w = window.open('', '_blank'); if (!w) return toast('বিল খুলতে পপ-আপের অনুমতি দিন');
-  const vno = x.vno || ('SV-' + String(id || '').slice(-6).toUpperCase()), b = x.bank, amt = Number(x.amount) || 0, logo = (site && site.logo) || '';
+  const mt = x.type === 'maint', dueM = mt && x.status === 'due', vno = x.vno || ((mt ? 'MC-' : 'SV-') + String(id || '').slice(-6).toUpperCase()), b = x.bank, amt = Number(x.amount) || 0, logo = (site && site.logo) || '';
   const f2 = n => Number(n).toLocaleString('bn-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const k = (a, v) => v ? `<div class="k">${a}</div><div class="v">${esc(v)}</div>` : '';
   const printed = new Date().toLocaleString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -1468,14 +1478,14 @@ function printSettleVoucher(inst, x, id) {
   .sig{display:flex;justify-content:space-around;gap:30px;margin-top:46px;font-size:12.5px;text-align:center}.sig div{flex:1}.sig i{display:block;border-top:1px solid #1b2540;margin-bottom:4px}
   .ft{margin:12px 0 0;text-align:center;font-size:10px;color:#8b93a3}
   @media print{html,body{background:#fff}.page{border:0}}@media screen{.page{box-shadow:0 6px 24px rgba(0,0,0,.18);margin:12px auto}}
-  </style></head><body><div class="page"><div class="paid"><b>পরিশোধিত</b><span>PAID</span></div>
-  <div class="top"><div class="brand">${logo ? `<img class="lg" src="${esc(logo)}" alt="">` : ''}<h1>${esc((site && site.name) || '')}</h1></div><div class="ttl"><b>পেমেন্ট ভাউচার (বিল)</b><span class="tag">প্রতিষ্ঠানকে পরিশোধ</span></div></div>
-  <h3>প্রতিষ্ঠান</h3><div class="info">${k('প্রতিষ্ঠান', inst.name)}${k('ভাউচার নং', vno)}${k('EIIN', inst.eiin)}${k('তারিখ', bnDate(x.date))}${k('মোবাইল', inst.phone)}${k('ঠিকানা', inst.address)}</div>
+  </style></head><body><div class="page"><div class="paid"${dueM ? ' style="border-color:#b42318;color:#b42318"' : ''}><b>${dueM ? 'বকেয়া' : 'পরিশোধিত'}</b><span>${dueM ? 'DUE' : 'PAID'}</span></div>
+  <div class="top"><div class="brand">${logo ? `<img class="lg" src="${esc(logo)}" alt="">` : ''}<h1>${esc((site && site.name) || '')}</h1></div><div class="ttl"><b>${mt ? 'মেইনটেন্স চার্জ রসিদ' : 'পেমেন্ট ভাউচার (বিল)'}</b><span class="tag">${mt ? 'ওয়েবসাইট মেইনটেন্স' : 'প্রতিষ্ঠানকে পরিশোধ'}</span></div></div>
+  <h3>প্রতিষ্ঠান</h3><div class="info">${k('প্রতিষ্ঠান', inst.name)}${k(mt ? 'রসিদ নং' : 'ভাউচার নং', vno)}${k('EIIN', inst.eiin)}${k('তারিখ', bnDate(x.date))}${mt ? k('অবস্থা', dueM ? 'বকেয়া (এখনো কাটা হয়নি)' : 'পরিশোধিত (জমা থেকে কর্তন)') + (dueM ? '' : k('কর্তনের তারিখ', bnDate(x.paidDate || x.date))) : ''}${k('মোবাইল', inst.phone)}${k('ঠিকানা', inst.address)}</div>
   ${b ? `<h3>যে অ্যাকাউন্টে পরিশোধ করা হয়েছে</h3><div class="info">${k('ধরন', BANK_T[b.type] || 'ব্যাংক')}${k('ব্যাংকের নাম', b.bank)}${k('শাখা', b.branch)}${k('অ্যাকাউন্টধারী', b.holder)}${k('অ্যাকাউন্ট / মোবাইল নম্বর', b.number)}</div>` : ''}
   <table><thead><tr><th>বিবরণ</th><th class="r">টাকা</th></tr></thead><tbody>
-  <tr><td>অনলাইন পেমেন্ট বাবদ প্রতিষ্ঠানের প্রাপ্য টাকা পরিশোধ${x.note ? ' — ' + esc(x.note) : ''}</td><td class="r">${f2(amt)}</td></tr>
-  <tr class="tot"><td class="r">সর্বমোট পরিশোধিত (টাকা)</td><td class="r">${f2(amt)}</td></tr>
-  ${x.after != null ? `<tr><td class="r">এই পরিশোধের পর এডমিনের নিকট অবশিষ্ট জমা</td><td class="r">${f2(x.after)}</td></tr>` : ''}</tbody></table>
+  <tr><td>${mt ? 'মেইনটেন্স চার্জ' : 'অনলাইন পেমেন্ট বাবদ প্রতিষ্ঠানের প্রাপ্য টাকা পরিশোধ'}${x.note ? ' — ' + esc(x.note) : ''}</td><td class="r">${f2(amt)}</td></tr>
+  <tr class="tot"><td class="r">${mt ? (dueM ? 'মোট বকেয়া চার্জ (টাকা)' : 'সর্বমোট কর্তিত চার্জ (টাকা)') : 'সর্বমোট পরিশোধিত (টাকা)'}</td><td class="r">${f2(amt)}</td></tr>
+  ${x.after != null ? `<tr><td class="r">${mt ? 'এই কর্তনের পর' : 'এই পরিশোধের পর'} এডমিনের নিকট অবশিষ্ট জমা</td><td class="r">${f2(x.after)}</td></tr>` : ''}</tbody></table>
   <p class="words"><b>কথায়:</b> ${bnWords(amt)} টাকা মাত্র</p>
   <div class="sig"><div><i></i>অ্যাডমিন</div><div><i></i>প্রতিষ্ঠানের প্রতিনিধি</div></div>
   <p class="ft">প্রিন্টের সময়: ${printed}</p></div>
@@ -1487,7 +1497,7 @@ function ledHist(uid) {
   const on = Object.entries((ledgerAll[uid] || {}).online || {}).map(([id, x]) => ({ id, ...x })).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 15);
   d.innerHTML = `<h3>${esc(nm)} — হিসাবের ইতিহাস</h3>
     <div class="ledh"><h4>পরিশোধ ও মেইনটেন্স</h4><div class="tw"><table class="ledt"><tr><th>তারিখ</th><th>ধরন</th><th>নোট</th><th class="n">টাকা</th><th></th></tr>
-    ${c.settle.map(x => `<tr><td>${bnDate(x.date)}</td><td><span class="badge ${x.type === 'paid' ? 'b-income' : 'b-expense'}">${x.type === 'paid' ? 'পরিশোধ' : 'মেইনটেন্স'}</span></td><td>${esc(x.note || '')}</td><td class="n">${tk(x.amount)}</td><td><div class="row">${x.type === 'paid' ? `<button type="button" class="btn sm" data-act="svprint" data-u="${esc(uid)}" data-id="${esc(x.id)}">বিল</button>` : ''}<button type="button" class="btn sm ghost" data-act="leddel" data-u="${esc(uid)}" data-id="${esc(x.id)}">মুছুন</button></div></td></tr>`).join('') || '<tr><td colspan="5" class="empty"><b>কোনো এন্ট্রি নেই</b></td></tr>'}</table></div></div>
+    ${c.settle.map(x => `<tr><td>${bnDate(x.date)}</td><td><span class="badge ${x.type === 'paid' ? 'b-income' : 'b-expense'}">${x.type === 'paid' ? 'পরিশোধ' : x.status === 'due' ? 'মেইনটেন্স (বকেয়া)' : 'মেইনটেন্স'}</span></td><td>${esc(x.note || '')}${x.vno ? `<div class="sub">${esc(x.vno)}</div>` : ''}</td><td class="n">${tk(x.amount)}</td><td><div class="row">${x.type === 'maint' && x.status === 'due' ? `<button type="button" class="btn sm ok" data-act="ledmpay" data-u="${esc(uid)}" data-id="${esc(x.id)}">কর্তন করুন</button>` : ''}<button type="button" class="btn sm" data-act="svprint" data-u="${esc(uid)}" data-id="${esc(x.id)}">${x.type === 'paid' ? 'বিল' : 'রসিদ'}</button><button type="button" class="btn sm ghost" data-act="leddel" data-u="${esc(uid)}" data-id="${esc(x.id)}">মুছুন</button></div></td></tr>`).join('') || '<tr><td colspan="5" class="empty"><b>কোনো এন্ট্রি নেই</b></td></tr>'}</table></div></div>
     <div class="ledh"><h4>সর্বশেষ ভেরিফাইড পেমেন্ট (${bn(c.n)} টির মধ্যে ${bn(on.length)} টি)</h4><div class="tw"><table class="ledt"><tr><th>তারিখ</th><th>শিক্ষার্থী</th><th class="n">মূল টাকা</th><th class="n">চার্জ</th></tr>
     ${on.map(x => `<tr><td>${bnDate(x.date)}</td><td>${esc(x.name || '')}<div class="sub">${esc(x.title || '')}</div></td><td class="n">${tk(x.amount)}</td><td class="n">${tk(x.charge)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty"><b>কোনো পেমেন্ট নেই</b></td></tr>'}</table></div></div>
     <div class="row end" style="margin-top:14px"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`;
@@ -1496,6 +1506,8 @@ function ledHist(uid) {
 function renderAdmin() {
   const ap = ui.ap || 'inst';
   saveNav({ ap, ctx: null });
+  if (ap === 'arep') return renderAdminRep();
+  if (ap === 'lh') return renderLoginHist();
   if (ap === 'pay') {
     shell({ nav: ANAV, active: 'pay', act: 'adminnav', title: 'পেমেন্ট', sub: 'শিক্ষার্থীর সব অনলাইন পেমেন্টের তথ্য', who: 'অ্যাডমিন' });
     const tpl = `Database URL: ${firebaseConfig.databaseURL}\nWeb API Key: ${firebaseConfig.apiKey}\nডাটা যায়: bkashPayments/{TrxID} (trxId, number, amount, time, used; Others SMS-এ medium, via, source)`;
@@ -1517,11 +1529,12 @@ function renderAdmin() {
   }
   if (ap === 'ledger') {
     shell({ nav: ANAV, active: 'ledger', act: 'adminnav', title: 'হিসাব', sub: 'প্রতিষ্ঠানভিত্তিক জমা, পরিশোধ ও মেইনটেন্স চার্জ', who: 'অ্যাডমিন' });
+    if (ui.lv === 'profit') return renderProfit();
     const rows = Object.keys({ ...adminList, ...ledgerAll }).map(id => ({ id, name: (adminList[id] || {}).name || '(মুছে ফেলা প্রতিষ্ঠান)', st: (adminList[id] || {}).status, c: ledCalc(ledgerAll[id]) }))
       .filter(r => r.st === 'approved' || r.c.n || r.c.settle.length).sort((a, b) => b.c.held - a.c.held);
     const T = rows.reduce((t, r) => { ['total', 'charge', 'due', 'paid', 'maint', 'held'].forEach(k => t[k] += r.c[k]); return t; }, { total: 0, charge: 0, due: 0, paid: 0, maint: 0, held: 0 });
     const miss = ledMissing().length;
-    $('#main').innerHTML = `
+    $('#main').innerHTML = ledTabs() + `
     ${miss ? `<div class="panel" style="border-color:#f5c26b;background:#fffaf0"><b>${bn(miss)} টি ভেরিফাইড পেমেন্ট হিসাবে যোগ হয়নি।</b><div class="sub" style="margin:4px 0 10px">আগের পেমেন্টগুলো একবার হিসাবে তুলে নিন। এরপর থেকে নতুন পেমেন্ট নিজে থেকেই যোগ হবে।</div><button class="btn sm" data-act="ledsync">হিসাবে তুলে নিন</button></div>` : ''}
     <div class="kpis">
       <div class="kpi in"><span>মোট ভেরিফাইড পেমেন্ট</span><b>${tk(T.total)}</b></div>
@@ -1531,7 +1544,7 @@ function renderAdmin() {
     </div>
     <div class="panel flush"><h3 style="padding:14px 16px 0;margin:0">প্রতিষ্ঠানভিত্তিক হিসাব</h3><div class="sub" style="padding:2px 16px 10px">এডমিনের নিকট জমা = মূল টাকা − এডমিন কর্তৃক পরিশোধিত − মেইনটেন্স চার্জ</div><div style="padding:0 16px 10px"><button type="button" class="btn sm ghost" data-act="bkcsv">⬇ হিসাব বিবরণী Export (Excel CSV)</button></div><div class="tw"><table>
       <tr><th>প্রতিষ্ঠান</th><th class="n">ভেরিফাইড মোট</th><th class="n">সার্ভিস চার্জ</th><th class="n">প্রাপ্য মূল টাকা</th><th class="n">পরিশোধিত</th><th class="n">মেইনটেন্স</th><th class="n">এডমিনের নিকট জমা</th><th></th></tr>
-      ${rows.map(r => `<tr><td><b>${esc(r.name)}</b><div class="sub">${bn(r.c.n)} টি পেমেন্ট</div></td><td class="n">${tk(r.c.total)}</td><td class="n">${tk(r.c.charge)}</td><td class="n">${tk(r.c.due)}</td><td class="n">${tk(r.c.paid)}</td><td class="n">${tk(r.c.maint)}</td><td class="n"><b>${tk(r.c.held)}</b></td><td><div class="row"><button class="btn sm ok" data-act="ledpay" data-id="${esc(r.id)}">পরিশোধ</button><button class="btn sm warn" data-act="ledmaint" data-id="${esc(r.id)}">মেইনটেন্স</button><button class="btn sm ghost" data-act="ledhist" data-id="${esc(r.id)}">ইতিহাস</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এখনো কোনো হিসাব নেই</b>অনলাইন পেমেন্ট ভেরিফাই হলে এখানে দেখা যাবে।</td></tr>'}
+      ${rows.map(r => `<tr><td><b>${esc(r.name)}</b><div class="sub">${bn(r.c.n)} টি পেমেন্ট</div></td><td class="n">${tk(r.c.total)}</td><td class="n">${tk(r.c.charge)}</td><td class="n">${tk(r.c.due)}</td><td class="n">${tk(r.c.paid)}</td><td class="n">${tk(r.c.maint)}${r.c.maintDue ? `<div class="sub" style="color:var(--out)">বকেয়া ${tk(r.c.maintDue)}</div>` : ''}</td><td class="n"><b>${tk(r.c.held)}</b></td><td><div class="row"><button class="btn sm ok" data-act="ledpay" data-id="${esc(r.id)}">পরিশোধ</button><button class="btn sm warn" data-act="ledmaint" data-id="${esc(r.id)}">মেইনটেন্স</button><button class="btn sm ghost" data-act="ledhist" data-id="${esc(r.id)}">ইতিহাস</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এখনো কোনো হিসাব নেই</b>অনলাইন পেমেন্ট ভেরিফাই হলে এখানে দেখা যাবে।</td></tr>'}
       ${rows.length ? `<tr class="ledt sum"><td><b>সর্বমোট</b></td><td class="n">${tk(T.total)}</td><td class="n">${tk(T.charge)}</td><td class="n">${tk(T.due)}</td><td class="n">${tk(T.paid)}</td><td class="n">${tk(T.maint)}</td><td class="n">${tk(T.held)}</td><td></td></tr>` : ''}
     </table></div></div>`;
     return;
@@ -1625,7 +1638,7 @@ function renderInst() {
   if (page === 'head' && !(headIn || me.isAdmin)) page = 'dash';
   saveNav({ ctx, page: page === 'head' ? 'dash' : page });
   const acts = headChipHtml() + (me.isAdmin ? `<button class="btn ghost" data-act="back">← সব প্রতিষ্ঠান</button>` : '') +
-    `<button class="btn ok" data-act="addpay" data-t="income">+ টাকা গ্রহণ</button><button class="btn bad" data-act="addpay" data-t="expense">− টাকা প্রদান</button>`;
+    `<button class="btn ok" data-act="addpay" data-t="income" title="কমিটি বা অন্য উৎসের টাকা">+ টাকা গ্রহণ (কমিটি/অন্য উৎস)</button><button class="btn bad" data-act="addpay" data-t="expense">− টাকা প্রদান</button>`;
   shell({ nav: NAV, active: page, act: 'nav', title: TITLES[page], sub: esc(ctxProfile.name) + (me.isAdmin ? ' • অ্যাডমিন ভিউ' : ''), actions: acts, brand: brandSch(ctx, ctxProfile.name) });
   listFn = null;
   ({ dash: pDash, stu: pStu, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, head: pHead, pro: pPro, hpro: pHpro, bnk: pBnk, slg: pSlg })[page]();
@@ -1671,9 +1684,13 @@ function pDash() {
       <tr class="sum"><td>ভেরিফাইড অনলাইন পেমেন্ট (${bn(lg.n)} টি) — প্রতিষ্ঠানের প্রাপ্য মূল টাকা</td><td class="n">${tk(lg.due)}</td></tr>
       <tr><td>− এডমিন কর্তৃক পরিশোধিত</td><td class="n">${tk(lg.paid)}</td></tr>
       <tr><td>− মেইনটেন্স চার্জ <span class="sub">(ওয়েবসাইট মেইনটেন্স ইত্যাদি)</span></td><td class="n">${tk(lg.maint)}</td></tr>
+      ${lg.maintDue > 0 ? `<tr><td><span class="sub">মেইনটেন্স চার্জ বকেয়া (এখনো কাটা হয়নি, হিসাবে ধরা হয়নি)</span></td><td class="n"><span class="sub">${tk(lg.maintDue)}</span></td></tr>` : ''}
       <tr class="big"><td>এডমিনের নিকট জমা (বর্তমান)</td><td class="n">${tk(lg.held)}</td></tr>
     </table></div>
-    ${lg.settle.length ? `<div class="ledh"><h4>পরিশোধ ও মেইনটেন্সের হিসাব</h4><div class="tw"><table class="ledt"><tr><th>তারিখ</th><th>ধরন</th><th>নোট</th><th class="n">টাকা</th><th></th></tr>${lg.settle.slice(0, 8).map(x => `<tr><td>${bnDate(x.date)}</td><td><span class="badge ${x.type === 'paid' ? 'b-income' : 'b-expense'}">${x.type === 'paid' ? 'পরিশোধ' : 'মেইনটেন্স'}</span></td><td>${esc(x.note || '')}${x.bank ? `<div class="sub">${esc(bankLbl(x.bank))}</div>` : ''}</td><td class="n">${tk(x.amount)}</td><td>${x.type === 'paid' ? `<button type="button" class="btn sm ghost" data-act="svprint" data-id="${esc(x.id)}">বিল</button>` : ''}</td></tr>`).join('')}</table></div></div>` : ''}
+    ${lg.settle.some(x => x.type === 'maint') ? `<div class="ledh"><h4>মেইনটেন্স চার্জের বিবরণ</h4>
+      <div class="hd-chips" style="margin:0 0 8px"><span>মোট চার্জ: ${tk(lg.maint + lg.maintDue)}</span><span>পরিশোধিত: ${tk(lg.maint)}</span><span>বকেয়া: ${tk(lg.maintDue)}</span></div>
+      <div class="tw"><table class="ledt"><tr><th>তারিখ</th><th>কিসের জন্য চার্জ</th><th>রসিদ নং</th><th>অবস্থা</th><th class="n">টাকা</th><th></th></tr>${lg.settle.filter(x => x.type === 'maint').map(x => `<tr><td>${bnDate(x.date)}</td><td>${esc(x.note || '—')}${x.status === 'due' ? '' : `<div class="sub">কর্তন: ${bnDate(x.paidDate || x.date)}</div>`}</td><td>${esc(x.vno || ('MC-' + String(x.id || '').slice(-6).toUpperCase()))}</td><td><span class="badge ${x.status === 'due' ? 'b-expense' : 'b-income'}">${x.status === 'due' ? 'বকেয়া' : 'পরিশোধিত'}</span></td><td class="n">${tk(x.amount)}</td><td><button type="button" class="btn sm ghost" data-act="svprint" data-id="${esc(x.id)}">রসিদ</button></td></tr>`).join('')}</table></div></div>` : ''}
+    ${lg.settle.length ? `<div class="ledh"><h4>পরিশোধ ও মেইনটেন্সের হিসাব</h4><div class="tw"><table class="ledt"><tr><th>তারিখ</th><th>ধরন</th><th>নোট</th><th class="n">টাকা</th><th></th></tr>${lg.settle.slice(0, 8).map(x => `<tr><td>${bnDate(x.date)}</td><td><span class="badge ${x.type === 'paid' ? 'b-income' : 'b-expense'}">${x.type === 'paid' ? 'পরিশোধ' : 'মেইনটেন্স'}</span></td><td>${esc(x.note || '')}${x.bank ? `<div class="sub">${esc(bankLbl(x.bank))}</div>` : ''}</td><td class="n">${tk(x.amount)}</td><td><button type="button" class="btn sm ghost" data-act="svprint" data-id="${esc(x.id)}">${x.type === 'paid' ? 'বিল' : 'রসিদ'}</button></td></tr>`).join('')}</table></div></div>` : ''}
   </div>
   <div class="grid2">
     <div class="panel flush"><h3>সাম্প্রতিক লেনদেন</h3><div class="tw"><table>
@@ -1705,7 +1722,7 @@ function stuList() {
   return `<div class="tw"><table><tr><th>নাম</th><th>শ্রেণি</th><th>রোল</th><th>অভিভাবক</th><th>মোবাইল</th><th class="n">মাসিক ফি</th><th>অবস্থা</th><th></th></tr>
   ${rows.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.class)}${s.section ? ' <span class="sub">(' + esc(s.section) + ')</span>' : ''}</td><td>${esc(s.roll) || '—'}</td><td>${esc(s.guardian) || '—'}</td><td>${esc(s.phone) || '—'}</td><td class="n">${tk(s.monthlyFee)}</td>
   <td><span class="badge b-${s.status}">${s.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
-  <td><div class="row"><button class="btn sm" data-act="setbill" data-id="${s.id}">বিল${billsOf(s).length ? ' (' + bn(billsOf(s).length) + ')' : ''}</button><button class="btn sm ghost" data-act="editstu" data-id="${s.id}">সম্পাদনা</button><button class="btn sm ghost" data-act="delstu" data-id="${s.id}">মুছুন</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>কোনো শিক্ষার্থী পাওয়া যায়নি</b>"নতুন শিক্ষার্থী" চেপে প্রথম শিক্ষার্থী যোগ করুন।</td></tr>'}
+  <td><div class="row"><button class="btn sm" data-act="setbill" data-id="${s.id}">বিল${billsOf(s).length ? ' (' + bn(billsOf(s).length) + ')' : ''}</button><button class="btn sm ghost" data-act="editstu" data-id="${s.id}">সম্পাদনা</button><button class="btn sm ghost" data-act="delstu" data-id="${s.id}">মুছুন</button><button class="btn sm ok" data-act="stuprof" data-id="${s.id}">প্রোফাইল</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>কোনো শিক্ষার্থী পাওয়া যায়নি</b>"নতুন শিক্ষার্থী" চেপে প্রথম শিক্ষার্থী যোগ করুন।</td></tr>'}
   </table></div><div class="sub" style="padding:10px 16px;border-top:1px solid var(--line)">মোট ${bn(rows.length)} জন</div>`;
 }
 
@@ -1852,27 +1869,20 @@ function openStu(id) {
 
 function openPay(pre = {}) {
   const type = pre.type || 'income';
-  const so = [['', '— শিক্ষার্থী বেছে নিন —'], ...stuArr().sort((a, b) => (a.class || '').localeCompare(b.class || '', 'bn') || (Number(a.roll) || 0) - (Number(b.roll) || 0)).map(s => [s.id, `${s.name} — ${s.class}${s.roll ? ' / রোল ' + s.roll : ''}`])];
-  modal(type === 'income' ? 'টাকা গ্রহণ' : 'টাকা প্রদান',
+  modal(type === 'income' ? 'টাকা গ্রহণ (কমিটি / অন্য উৎস)' : 'টাকা প্রদান',
     `<input type="hidden" name="type" value="${type}">` +
-    (type === 'income' ? sel('শিক্ষার্থী', 'studentId', so, pre.studentId || '', true) : '') +
+    (type === 'income' ? '<div class="w"><div class="note">এখানে শুধু কমিটি, অনুদান বা অন্য কোনো উৎসের টাকা নেওয়া যায়। শিক্ষার্থীর ফি এখান থেকে নেওয়া যায় না — শিক্ষার্থী নিজের প্রোফাইল থেকে পেমেন্ট করলেই তা জমা হয়।</div></div>' + inp('উৎস / প্রদানকারীর নাম *', 'source', '', 'text', 'required maxlength="100" placeholder="যেমন: স্কুল পরিচালনা কমিটি"', true) : '') +
     sel('খাত', 'category', (type === 'income' ? INC : EXP).map(x => [x, x]), pre.category || '') +
-    (type === 'income' ? inp('মাস (মাসিক ফি-র জন্য)', 'month', pre.month || today().slice(0, 7), 'month') : '') +
     inp('টাকার পরিমাণ *', 'amount', pre.amount || '', 'number', 'min="1" step="0.01" required') + sel('পদ্ধতি', 'method', METHODS, 'নগদ') +
-    inp('তারিখ *', 'date', today(), 'date', 'required') + inp('মন্তব্য', 'note', '', 'text', 'maxlength="300"', true),
+    inp('তারিখ *', 'date', today(), 'date', 'required') + inp('মন্তব্য', 'note', '', 'text', 'maxlength="150"', true),
     async f => {
       const amount = Number(f.amount); if (!(amount > 0)) throw new Error('সঠিক টাকার পরিমাণ দিন');
-      if (type === 'income' && !f.studentId && ['মাসিক ফি', 'ভর্তি ফি', 'পরীক্ষা ফি', 'সেশন ফি'].includes(f.category)) throw new Error('শিক্ষার্থী বেছে নিন');
-      const s = S[f.studentId];
-      const d = { type, category: f.category, amount, method: f.method, date: f.date, month: type === 'income' && f.category === 'মাসিক ফি' ? normMonth(f.month || '') : '', studentId: f.studentId || '', studentName: s ? s.name : '', studentClass: s ? s.class : '', note: (f.note || '').trim(),
+      const src = (f.source || '').trim(); if (type === 'income' && !src) throw new Error('টাকার উৎস / প্রদানকারীর নাম লিখুন');
+      const note = (type === 'income' ? 'উৎস: ' + src + ((f.note || '').trim() ? ' • ' + (f.note || '').trim() : '') : (f.note || '').trim()).slice(0, 300);
+      const d = { type, category: f.category, amount, method: f.method, date: f.date, month: '', studentId: '', studentName: '', studentClass: '', note,
         receiptNo: (type === 'income' ? 'RC' : 'PV') + '-' + f.date.replace(/-/g, '').slice(2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(), createdAt: Date.now(), createdBy: me.uid };
       const pid = push(ref(db, `${base()}/payments`)).key;
-      const upd = { [`${base()}/payments/${pid}`]: d };
-      if (type === 'income' && s) {
-        const k = portalKey(ctx, s.class, s.roll, s.phone);
-        if (k) upd[`studentPortal/${k}`] = buildPortal(f.studentId, s, { [pid]: { date: d.date, category: d.category, month: d.month, amount: d.amount, method: d.method, receiptNo: d.receiptNo } });
-      }
-      await update(root(), upd);
+      await update(root(), { [`${base()}/payments/${pid}`]: d });
       toast(type === 'income' ? 'টাকা গ্রহণ সংরক্ষিত হয়েছে' : 'টাকা প্রদান সংরক্ষিত হয়েছে');
     });
 }
@@ -2034,7 +2044,7 @@ const A = {
   regpage: () => { show('v-auth'); A.tab({ t: 'reg' }); },
   scroll: d => document.getElementById(d.to)?.scrollIntoView({ behavior: 'smooth' }),
   tab: d => { document.querySelectorAll('.seg button').forEach(b => b.classList.toggle('on', b.dataset.t === d.t)); $('#loginF').style.display = d.t === 'login' ? '' : 'none'; $('#regF').style.display = d.t === 'reg' ? '' : 'none'; },
-  logout: () => { clearNav(); signOut(auth); },
+  logout: async () => { if (me && me.isAdmin) { try { await fbSet(push(ref(db, 'adminLogins')), logRow('logout')); } catch (e) {} } clearNav(); signOut(auth); },
   stuout: () => { unAll(stuUns); stuRec = null; $('#sF').reset(); pickSchool(''); $('#sClass').innerHTML = classOpts(''); clearNav(); show('v-home'); },
   reset: async () => { const em = $('#loginF [name=email]').value.trim(); if (!em) return toast('আগে ইমেইল লিখুন'); try { await sendPasswordResetEmail(auth, em); toast('পাসওয়ার্ড রিসেটের লিংক ইমেইলে পাঠানো হয়েছে'); } catch (e) { toast(errMsg(e)); } },
   close: () => $('#dlg').close(),
@@ -2375,7 +2385,14 @@ document.addEventListener('submit', async e => {
     if ((id === 'loginF' || id === 'regF') && !EMAIL_RE.test(f.email.trim())) throw new Error('সঠিক ইমেইল ঠিকানা দিন');
     if (id === 'regF' && !validPhone10(tenDigits(f.phone))) throw new Error('মোবাইল নম্বর +880 এর পরে সঠিক ১০ সংখ্যার হতে হবে');
     if (id === 'sF' && !validPhone10(tenDigits(f.phone))) throw new Error('ফোন নম্বর +880 এর পরে সঠিক ১০ সংখ্যার হতে হবে');
-    if (id === 'loginF') await signInWithEmailAndPassword(auth, f.email.trim(), f.pw);
+    if (id === 'loginF' && f.email.trim().toLowerCase() === ADMIN_EMAIL) {
+      if (!window._pa) { window._pa = getAuth(initializeApp(firebaseConfig, 'pw')); await setPersistence(window._pa, inMemoryPersistence); } const pa = window._pa;
+      try { await signInWithEmailAndPassword(pa, ADMIN_EMAIL, f.pw); } finally { try { await signOut(pa); } catch (x) {} }
+      await sendSignInLinkToEmail(auth, ADMIN_EMAIL, { url: location.origin + location.pathname, handleCodeInApp: true });
+      try { localStorage.setItem('sm_adm_em', ADMIN_EMAIL); } catch (e) {}
+      msg('📧', 'Gmail চেক করুন', 'পাসওয়ার্ড সঠিক। এখন ' + ADMIN_EMAIL + ' এ একটি ভেরিফিকেশন লিংক পাঠানো হয়েছে। Gmail খুলে লিংকে ক্লিক করুন — তাহলেই লগইন সম্পূর্ণ হবে। (মেইল না এলে Spam ফোল্ডার দেখুন।)');
+    }
+    else if (id === 'loginF') { logNext = true; try { await signInWithEmailAndPassword(auth, f.email.trim(), f.pw); } catch (er) { logNext = false; throw er; } }
     else if (id === 'sF') { if (!f.school) throw new Error('আগে তালিকা থেকে স্কুল বেছে নিন'); await studentLogin(f); }
     else if (id === 'siteF') {
       const logo = pendingLogo !== undefined ? pendingLogo : site.logo;
@@ -2715,7 +2732,7 @@ function bkStatementCsv() {
   const rows = Object.keys({ ...adminList, ...ledgerAll }).map(id => ({ id, name: nm(id), st: (adminList[id] || {}).status, c: ledCalc(ledgerAll[id]) })).filter(r => r.st === 'approved' || r.c.n || r.c.settle.length).sort((a, b) => b.c.held - a.c.held);
   const T = rows.reduce((t, r) => { ['n', 'total', 'charge', 'due', 'paid', 'maint', 'held'].forEach(k => t[k] += r.c[k]); return t; }, { n: 0, total: 0, charge: 0, due: 0, paid: 0, maint: 0, held: 0 });
   const r2 = n => Math.round(n * 100) / 100;
-  const set = rows.flatMap(r => r.c.settle.map(x => [x.date || ymd(x.createdAt || 0), r.name, x.type === 'paid' ? 'প্রতিষ্ঠানকে পরিশোধ' : 'মেইনটেন্স চার্জ', x.amount, x.vno || '', x.bank ? [BANK_T[x.bank.type] || x.bank.type, x.bank.bank, x.bank.holder, x.bank.number].filter(Boolean).join(' / ') : '', x.note || ''])).sort((a, b) => String(b[0]).localeCompare(String(a[0])));
+  const set = rows.flatMap(r => r.c.settle.map(x => [x.date || ymd(x.createdAt || 0), r.name, x.type === 'paid' ? 'প্রতিষ্ঠানকে পরিশোধ' : 'মেইনটেন্স চার্জ (' + (x.status === 'due' ? 'বকেয়া' : 'পরিশোধিত') + ')', x.amount, x.vno || '', x.bank ? [BANK_T[x.bank.type] || x.bank.type, x.bank.bank, x.bank.holder, x.bank.number].filter(Boolean).join(' / ') : '', x.note || ''])).sort((a, b) => String(b[0]).localeCompare(String(a[0])));
   const vp = Object.entries(payReqs).map(([id, r]) => ({ id, ...r })).filter(r => r.status === 'verified').sort((a, b) => (b.verifiedAt || b.createdAt || 0) - (a.verifiedAt || a.createdAt || 0));
   const sm = k => r2(vp.reduce((t, r) => t + (Number(r[k]) || 0), 0));
   const L = [[site.name], ['এডমিন হিসাব বিবরণী'], ['তৈরির তারিখ', today()], [],
@@ -2814,6 +2831,46 @@ Object.assign(A, {
   bkcsv: () => bkStatementCsv(),
   bkimport: () => bkRunImport(),
   bkclear: () => { bkPending = null; bkStat = ''; renderAdmin(); }
+});
+/* ================= শিক্ষার্থীর প্রোফাইল (এক নজরে), মেইনটেন্স কর্তন, শিক্ষার্থীর টাকা শুধু প্রোফাইল-পেমেন্টে ================= */
+$('#dlg').addEventListener('close', () => { $('#dlg').style.width = ''; });
+function stuProfile(id) {
+  const s = S[id]; if (!s) return toast('শিক্ষার্থী পাওয়া যায়নি');
+  const bills = billsOf(s), due = billSum(bills);
+  const pays = payArr().filter(x => x.type === 'income' && x.studentId === id).sort((a, b) => String(b.date).localeCompare(String(a.date)) || (b.createdAt || 0) - (a.createdAt || 0));
+  const paid = pays.reduce((t, x) => t + (Number(x.amount) || 0), 0);
+  const res = Object.entries(RS || {}).map(([eid, m]) => [eid, m && m[id]]).filter(([, r]) => r).map(([eid, r]) => ({ ...r, title: (EX[eid] || {}).title || 'পরীক্ষা', year: (EX[eid] || {}).year || '' }));
+  const f = (k, v) => v ? `<div style="color:var(--mut)">${k}</div><div style="font-weight:600;word-break:break-word">${esc(v)}</div>` : '';
+  const chip = (l, v, c) => `<div style="border:1px solid var(--line);border-radius:12px;padding:8px 12px;flex:1;min-width:118px"><div style="font-size:12px;color:var(--mut)">${l}</div><b style="font-size:17px;${c ? 'color:' + c : ''}">${v}</b></div>`;
+  const av = s.photo ? `<img src="${esc(s.photo)}" alt="" style="width:100%;height:100%;object-fit:cover">` : esc((s.name || '?').trim().charAt(0));
+  const d = $('#dlg'); d.style.width = 'min(700px,96vw)';
+  d.innerHTML = `<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <div style="width:84px;height:84px;border-radius:50%;overflow:hidden;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:34px;font-weight:800;flex:none">${av}</div>
+      <div style="flex:1;min-width:180px"><h3 style="margin:0">${esc(s.name)}</h3><div class="sub">${esc(s.class || '')}${s.section ? ' (' + esc(s.section) + ')' : ''}${s.roll ? ' • রোল ' + esc(s.roll) : ''}</div>
+      <span class="badge b-${s.status}" style="margin-top:6px">${s.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${chip('মোট পরিশোধ', tk(paid), 'var(--in)')}${chip('বর্তমান বকেয়া', tk(due), due > 0 ? 'var(--out)' : '')}${chip('মাসিক ফি', tk(s.monthlyFee))}${chip('পেমেন্ট সংখ্যা', bn(pays.length))}</div>
+    <h4 style="margin:0 0 6px">ব্যক্তিগত তথ্য</h4>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:14px;margin-bottom:14px">${f('লিঙ্গ', s.gender)}${f('অভিভাবক', s.guardian)}${f('মোবাইল', s.phone)}${f('ঠিকানা', s.address)}${f('ভর্তির তারিখ', s.admissionDate ? bnDate(s.admissionDate) : '')}</div>
+    <h4 style="margin:0 0 6px">বকেয়া বিল (${bn(bills.length)} টি)</h4>
+    <div class="tw" style="margin-bottom:14px"><table class="ledt"><tr><th>বিল</th><th>মাস</th><th class="n">টাকা</th></tr>${bills.map(b => `<tr><td>${esc(b.title || '')}</td><td>${b.month ? bnMonth(b.month) : '—'}</td><td class="n">${tk(b.amount)}</td></tr>`).join('') || '<tr><td colspan="3" class="empty"><b>কোনো বকেয়া নেই</b></td></tr>'}</table></div>
+    <h4 style="margin:0 0 6px">সর্বশেষ পেমেন্ট${pays.length > 10 ? ' (১০টি, মোট ' + bn(pays.length) + 'টি)' : ''}</h4>
+    <div class="tw" style="margin-bottom:14px"><table class="ledt"><tr><th>তারিখ</th><th>রসিদ</th><th>খাত</th><th class="n">টাকা</th></tr>${pays.slice(0, 10).map(x => `<tr><td>${bnDate(x.date)}</td><td>${esc(x.receiptNo || '')} <button type="button" class="btn sm ghost" data-act="receipt" data-id="${esc(x.id)}">রসিদ</button></td><td>${esc(x.category)}${x.month ? ' <span class="sub">' + bnMonth(x.month) + '</span>' : ''}</td><td class="n">${tk(x.amount)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty"><b>এখনো কোনো পেমেন্ট নেই</b></td></tr>'}</table></div>
+    ${res.length ? `<h4 style="margin:0 0 6px">পরীক্ষার ফলাফল</h4><div class="tw" style="margin-bottom:14px"><table class="ledt"><tr><th>পরীক্ষা</th><th class="n">মোট নম্বর</th><th class="n">GPA</th><th>গ্রেড</th><th>ফল</th><th class="n">মেধাক্রম</th></tr>${res.map(r => `<tr><td>${esc(r.title)} <span class="sub">${esc(r.year)}</span></td><td class="n">${bn(r.total)}</td><td class="n">${esc(r.gpa)}</td><td>${esc(r.grade)}</td><td>${r.pass === false ? 'অনুত্তীর্ণ' : 'উত্তীর্ণ'}</td><td class="n">${r.rank ? bn(r.rank) : '—'}</td></tr>`).join('')}</table></div>` : ''}
+    <div class="row end"><button type="button" class="btn ghost" data-act="editstu" data-id="${esc(id)}">সম্পাদনা</button><button type="button" class="btn" data-act="close">বন্ধ করুন</button></div>`;
+  if (!d.open) d.showModal();
+}
+Object.assign(A, {
+  stuprof: d => stuProfile(d.id),
+  stupay: () => toast('শিক্ষার্থীর টাকা শুধু শিক্ষার্থীর প্রোফাইল থেকে পেমেন্টের মাধ্যমে জমা হয়'),
+  duepay: () => toast('শিক্ষার্থীর টাকা শুধু শিক্ষার্থীর প্রোফাইল থেকে পেমেন্টের মাধ্যমে জমা হয়'),
+  ledmpay: async d => {
+    const l = ledgerAll[d.u] || {}, x = (l.settle || {})[d.id]; if (!x || x.type !== 'maint' || x.status !== 'due') return;
+    const c = ledCalc(l), amt = Number(x.amount) || 0;
+    if (!confirm(tk(amt) + ' মেইনটেন্স চার্জ এডমিনের নিকট জমা থেকে কেটে নিয়ে পরিশোধিত করবেন?')) return;
+    if (amt > c.held + 0.001 && !confirm('এই চার্জ বর্তমান জমার (' + tk(c.held) + ') চেয়ে বেশি। তবুও কর্তন করবেন?')) return;
+    const b = `instLedger/${d.u}/settle/${d.id}`;
+    try { await update(root(), { [b + '/status']: 'paid', [b + '/paidDate']: today(), [b + '/after']: Math.round((c.held - amt) * 100) / 100 }); $('#dlg').close(); toast('মেইনটেন্স চার্জ পরিশোধিত হয়েছে — রসিদ দেখা যাবে'); } catch (e) { toast(errMsg(e)); }
+  }
 });
 /* এডমিন প্যানেল থেকে কিছু মুছতে হলে এডমিন পাসওয়ার্ড লাগবে */
 const ADMIN_DEL = {
@@ -2956,6 +3013,180 @@ function runReport(k, mode) {
   } catch (e) { if (w) w.close(); toast(errMsg(e)); }
 }
 Object.assign(A, { rpdf: d => runReport(d.r, 'pdf'), rcsv: d => runReport(d.r, 'csv') });
+
+/* ================= এডমিন রিপোর্ট: সকল প্রতিষ্ঠানের লেনদেনের দিন / মাস / বছরভিত্তিক সারসংক্ষেপ ================= */
+const arp = { mode: 'day', from: '', to: '', inst: 'all', data: {}, loading: false, loaded: false, open: '', err: '' };
+const arpDefaults = m => { const d = new Date(); if (m === 'day') { const f = new Date(d.getTime() - 29 * 864e5); return [ymd(f.getTime()), today()]; } if (m === 'month') return [ymd(new Date(d.getFullYear(), d.getMonth() - 11, 1).getTime()), today()]; return ['', '']; };
+arp.from = arpDefaults('day')[0]; arp.to = arpDefaults('day')[1];
+const arpKey = (date, m) => m === 'year' ? date.slice(0, 4) : m === 'month' ? date.slice(0, 7) : date;
+const arpLbl = (k, m) => m === 'year' ? Number(k).toLocaleString('bn-BD', { useGrouping: false }) + ' সাল' : m === 'month' ? bnMonth(k) : bnDate(k);
+async function arpLoad() {
+  if (arp.loading || !me || !me.isAdmin) return; arp.loading = true; arp.err = ''; if (ui.ap === 'arep') renderAdminRep();
+  const ids = Object.keys(adminList), out = {}; let fail = 0;
+  try {
+    await bkPool(ids, 6, async id => { try { out[id] = (await get(ref(db, `institutionData/${id}/payments`))).val() || {}; } catch (e) { fail++; } });
+    arp.data = out; arp.loaded = true; if (fail) arp.err = bn(fail) + ' টি প্রতিষ্ঠানের তথ্য পড়া যায়নি';
+  } catch (e) { arp.err = errMsg(e); }
+  arp.loading = false; if (me && me.isAdmin && !ctx && ui.ap === 'arep') renderAdminRep();
+}
+function arpCalc() {
+  const rows = [], inst = {};
+  Object.entries(arp.data).forEach(([uid, pays]) => {
+    if (arp.inst !== 'all' && arp.inst !== uid) return;
+    Object.values(pays || {}).forEach(x => {
+      const d = x.date || ''; if (!d || (arp.from && d < arp.from) || (arp.to && d > arp.to)) return;
+      const a = Number(x.amount) || 0, inc = x.type === 'income';
+      rows.push({ uid, d, inc, a });
+    });
+  });
+  const per = {}, tot = { i: 0, e: 0, n: 0 };
+  rows.forEach(r => {
+    const k = arpKey(r.d, arp.mode), p = per[k] = per[k] || { i: 0, e: 0, n: 0, by: {} }, b = p.by[r.uid] = p.by[r.uid] || { i: 0, e: 0, n: 0 }, t = inst[r.uid] = inst[r.uid] || { i: 0, e: 0, n: 0 };
+    [p, b, t, tot].forEach(o => { o[r.inc ? 'i' : 'e'] += r.a; o.n++; });
+  });
+  return { per, inst, tot, keys: Object.keys(per).sort().reverse() };
+}
+function renderAdminRep() {
+  shell({ nav: ANAV, active: 'arep', act: 'adminnav', title: 'রিপোর্ট', sub: 'সকল প্রতিষ্ঠানের লেনদেনের সারসংক্ষেপ — দিন, মাস ও বছরভিত্তিক', who: 'অ্যাডমিন' });
+  if (!arp.loaded && !arp.loading) setTimeout(arpLoad, 0);
+  const nm = id => (adminList[id] || {}).name || '(মুছে ফেলা প্রতিষ্ঠান)', c = arp.loaded ? arpCalc() : null;
+  const net = (i, e) => `<span style="color:${i - e < 0 ? 'var(--out)' : 'var(--pri)'};font-weight:700">${tk(i - e)}</span>`;
+  const insts = Object.keys(adminList).sort((a, b) => nm(a).localeCompare(nm(b), 'bn'));
+  $('#main').innerHTML = `<div class="panel"><div class="chips" style="margin-bottom:10px">${[['day', 'দিনভিত্তিক'], ['month', 'মাসভিত্তিক'], ['year', 'বছরভিত্তিক']].map(([k, l]) => `<button class="${arp.mode === k ? 'on' : ''}" data-act="arpmode" data-m="${k}">${l}</button>`).join('')}</div>
+    <div class="toolbar" style="flex-wrap:wrap;gap:10px;align-items:end;padding:0;border:0">
+      <div><label>থেকে</label><input type="date" data-arp="from" value="${esc(arp.from)}"></div><div><label>পর্যন্ত</label><input type="date" data-arp="to" value="${esc(arp.to)}"></div>
+      <div><label>প্রতিষ্ঠান</label><select data-arp="inst"><option value="all">সব প্রতিষ্ঠান</option>${insts.map(id => `<option value="${esc(id)}" ${arp.inst === id ? 'selected' : ''}>${esc(nm(id))}</option>`).join('')}</select></div>
+      <button type="button" class="btn ghost" data-act="arpreload" ${arp.loading ? 'disabled' : ''}>${arp.loading ? 'লোড হচ্ছে…' : '↻ হালনাগাদ'}</button>
+      <button type="button" class="btn ghost" data-act="arpcsv" ${c ? '' : 'disabled'}>⬇ Excel (CSV)</button></div>
+    ${arp.err ? `<div class="note" style="border-color:#f0b429">${esc(arp.err)}</div>` : ''}</div>
+  ${!c ? '<div class="panel empty"><b>লেনদেনের তথ্য লোড হচ্ছে…</b>প্রতিষ্ঠানের সংখ্যা অনুযায়ী কিছু সময় লাগতে পারে।</div>' : `
+  <div class="kpis"><div class="kpi in"><span>মোট আয় / গ্রহণ</span><b>${tk(c.tot.i)}</b></div><div class="kpi ex"><span>মোট ব্যয় / প্রদান</span><b>${tk(c.tot.e)}</b></div><div class="kpi"><span>নিট উদ্বৃত্ত</span><b>${tk(c.tot.i - c.tot.e)}</b></div><div class="kpi du"><span>মোট লেনদেন</span><b>${bn(c.tot.n)}</b></div></div>
+  <div class="panel flush"><h3>${{ day: 'দৈনিক', month: 'মাসিক', year: 'বার্ষিক' }[arp.mode]} সারসংক্ষেপ</h3>${arp.inst === 'all' ? '<div class="sub" style="padding:2px 20px 8px">সারিতে চাপ দিলে সেই সময়ের প্রতিষ্ঠানভিত্তিক বিভাজন দেখা যাবে।</div>' : ''}<div class="tw"><table>
+    <tr><th>${{ day: 'তারিখ', month: 'মাস', year: 'বছর' }[arp.mode]}</th><th class="n">লেনদেন</th><th class="n">আয়</th><th class="n">ব্যয়</th><th class="n">নিট</th></tr>
+    ${c.keys.map(k => { const p = c.per[k], open = arp.open === k && arp.inst === 'all'; return `<tr ${arp.inst === 'all' ? `data-act="arpx" data-k="${esc(k)}" style="cursor:pointer"` : ''}><td><b>${arpLbl(k, arp.mode)}</b>${arp.inst === 'all' ? ` <span class="sub">${open ? '▲' : '▼'}</span>` : ''}</td><td class="n">${bn(p.n)}</td><td class="n">${tk(p.i)}</td><td class="n">${tk(p.e)}</td><td class="n">${net(p.i, p.e)}</td></tr>${open ? Object.entries(p.by).sort((a, b) => (b[1].i + b[1].e) - (a[1].i + a[1].e)).map(([u, b]) => `<tr style="background:#faf9ff"><td style="padding-left:30px" class="sub">↳ ${esc(nm(u))}</td><td class="n sub">${bn(b.n)}</td><td class="n sub">${tk(b.i)}</td><td class="n sub">${tk(b.e)}</td><td class="n sub">${tk(b.i - b.e)}</td></tr>`).join('') : ''}`; }).join('') || '<tr><td colspan="5" class="empty"><b>এই সময়সীমায় কোনো লেনদেন নেই</b>তারিখ বা প্রতিষ্ঠান বদলে দেখুন।</td></tr>'}
+    ${c.keys.length ? `<tr class="ledt sum"><td><b>সর্বমোট</b></td><td class="n">${bn(c.tot.n)}</td><td class="n">${tk(c.tot.i)}</td><td class="n">${tk(c.tot.e)}</td><td class="n">${tk(c.tot.i - c.tot.e)}</td></tr>` : ''}
+  </table></div></div>
+  <div class="panel flush"><h3>প্রতিষ্ঠানভিত্তিক সারসংক্ষেপ (নির্বাচিত সময়সীমা)</h3><div class="tw"><table>
+    <tr><th>প্রতিষ্ঠান</th><th class="n">লেনদেন</th><th class="n">আয়</th><th class="n">ব্যয়</th><th class="n">নিট</th></tr>
+    ${Object.entries(c.inst).sort((a, b) => b[1].i - a[1].i).map(([u, t]) => `<tr><td><b>${esc(nm(u))}</b></td><td class="n">${bn(t.n)}</td><td class="n">${tk(t.i)}</td><td class="n">${tk(t.e)}</td><td class="n">${net(t.i, t.e)}</td></tr>`).join('') || '<tr><td colspan="5" class="empty"><b>কোনো তথ্য নেই</b></td></tr>'}
+  </table></div></div>`}`;
+}
+function arpCsv() {
+  if (!arp.loaded) return; const c = arpCalc(), q = v => { v = v == null ? '' : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const nm = id => (adminList[id] || {}).name || '(মুছে ফেলা প্রতিষ্ঠান)', md = { day: 'দৈনিক', month: 'মাসিক', year: 'বার্ষিক' }[arp.mode];
+  const L = [[site.name], ['সকল প্রতিষ্ঠানের ' + md + ' লেনদেন সারসংক্ষেপ'], ['সময়সীমা', (arp.from || 'শুরু') + ' থেকে ' + (arp.to || 'আজ')], [],
+    [{ day: 'তারিখ', month: 'মাস', year: 'বছর' }[arp.mode], 'প্রতিষ্ঠান', 'লেনদেন', 'আয়', 'ব্যয়', 'নিট'],
+    ...c.keys.flatMap(k => Object.entries(c.per[k].by).map(([u, b]) => [k, nm(u), b.n, b.i, b.e, b.i - b.e])),
+    ['সর্বমোট', '', c.tot.n, c.tot.i, c.tot.e, c.tot.i - c.tot.e]];
+  bkSave('admin-report-' + arp.mode + '-' + today() + '.csv', '﻿' + L.map(l => l.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+}
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.arp; if (!k) return; arp[k] = e.target.value; arp.open = ''; renderAdminRep(); });
+Object.assign(A, {
+  adminrep: () => { ui.ap = 'arep'; renderAdmin(); },
+  arpmode: d => { arp.mode = d.m; const df = arpDefaults(d.m); arp.from = df[0]; arp.to = df[1]; arp.open = ''; renderAdminRep(); },
+  arpreload: () => arpLoad(),
+  arpx: d => { arp.open = arp.open === d.k ? '' : d.k; renderAdminRep(); },
+  arpcsv: () => arpCsv()
+});
+
+/* ================= এডমিনের হিসাব: প্রফিট (সার্ভিস চার্জ + কর্তিত মেইনটেন্স চার্জ), দিন / মাস / বছরভিত্তিক ================= */
+const prf = { mode: 'month', from: arpDefaults('month')[0], to: arpDefaults('month')[1], inst: 'all', open: '' };
+const ledTabs = () => `<div class="chips" style="margin-bottom:14px">${[['main', 'হিসাব'], ['profit', '📈 প্রফিট']].map(([k, l]) => `<button class="${(ui.lv || 'main') === k ? 'on' : ''}" data-act="lvtab" data-v="${k}">${l}</button>`).join('')}</div>`;
+function prfCalc() {
+  const rows = [];
+  Object.entries(ledgerAll).forEach(([uid, l]) => {
+    if (prf.inst !== 'all' && prf.inst !== uid) return;
+    Object.entries((l && l.online) || {}).forEach(([id, x]) => {
+      if (payReqs[id] && payReqs[id].status !== 'verified') return; /* ledCalc-এর মতোই: ভেরিফাইড নয় এমন বাদ */
+      const d = x.date || ''; rows.push({ uid, d, c: Number(x.charge) || 0, m: 0 });
+    });
+    Object.values((l && l.settle) || {}).forEach(x => {
+      if (x.type !== 'maint' || x.status === 'due') return;
+      rows.push({ uid, d: x.paidDate || x.date || '', c: 0, m: Number(x.amount) || 0 });
+    });
+  });
+  const per = {}, inst = {}, tot = { c: 0, m: 0, n: 0 };
+  rows.forEach(r => {
+    if (!r.d || (prf.from && r.d < prf.from) || (prf.to && r.d > prf.to)) return;
+    const k = arpKey(r.d, prf.mode), p = per[k] = per[k] || { c: 0, m: 0, n: 0, by: {} }, b = p.by[r.uid] = p.by[r.uid] || { c: 0, m: 0, n: 0 }, t = inst[r.uid] = inst[r.uid] || { c: 0, m: 0, n: 0 };
+    [p, b, t, tot].forEach(o => { o.c += r.c; o.m += r.m; if (r.c) o.n++; });
+  });
+  return { per, inst, tot, keys: Object.keys(per).sort().reverse() };
+}
+function renderProfit() {
+  const nm = id => (adminList[id] || {}).name || '(মুছে ফেলা প্রতিষ্ঠান)', c = prfCalc();
+  const insts = Object.keys({ ...adminList, ...ledgerAll }).sort((a, b) => nm(a).localeCompare(nm(b), 'bn'));
+  const dueM = Object.values(ledgerAll).reduce((t, l) => t + ledCalc(l).maintDue, 0), all = prf.inst === 'all';
+  $('#main').innerHTML = ledTabs() + `<div class="panel"><div class="chips" style="margin-bottom:10px">${[['day', 'দিনভিত্তিক'], ['month', 'মাসভিত্তিক'], ['year', 'বছরভিত্তিক']].map(([k, l]) => `<button class="${prf.mode === k ? 'on' : ''}" data-act="prfmode" data-m="${k}">${l}</button>`).join('')}</div>
+    <div class="toolbar" style="flex-wrap:wrap;gap:10px;align-items:end;padding:0;border:0">
+      <div><label>থেকে</label><input type="date" data-prf="from" value="${esc(prf.from)}"></div><div><label>পর্যন্ত</label><input type="date" data-prf="to" value="${esc(prf.to)}"></div>
+      <div><label>প্রতিষ্ঠান</label><select data-prf="inst"><option value="all">সব প্রতিষ্ঠান</option>${insts.map(id => `<option value="${esc(id)}" ${prf.inst === id ? 'selected' : ''}>${esc(nm(id))}</option>`).join('')}</select></div>
+      <button type="button" class="btn ghost" data-act="prfcsv">⬇ Excel (CSV)</button></div>
+    <div class="hint" style="margin-top:8px">প্রফিট = অনলাইন পেমেন্টের সার্ভিস চার্জ + জমা থেকে কর্তিত মেইনটেন্স চার্জ। প্রতিষ্ঠানকে পরিশোধ প্রফিট নয়। বকেয়া মেইনটেন্স চার্জ কাটা হলে তবেই (কর্তনের তারিখে) প্রফিটে ধরা হয়।${dueM > 0 ? ' বর্তমানে বকেয়া মেইনটেন্স: ' + tk(dueM) : ''}</div></div>
+  <div class="kpis"><div class="kpi in"><span>মোট প্রফিট</span><b>${tk(c.tot.c + c.tot.m)}</b></div><div class="kpi"><span>সার্ভিস চার্জ থেকে</span><b>${tk(c.tot.c)}</b></div><div class="kpi"><span>মেইনটেন্স চার্জ থেকে</span><b>${tk(c.tot.m)}</b></div><div class="kpi du"><span>পেমেন্ট সংখ্যা</span><b>${bn(c.tot.n)}</b></div></div>
+  <div class="panel flush"><h3>${{ day: 'দৈনিক', month: 'মাসিক', year: 'বার্ষিক' }[prf.mode]} প্রফিট</h3>${all ? '<div class="sub" style="padding:2px 20px 8px">সারিতে চাপ দিলে প্রতিষ্ঠানভিত্তিক বিভাজন দেখা যাবে।</div>' : ''}<div class="tw"><table>
+    <tr><th>${{ day: 'তারিখ', month: 'মাস', year: 'বছর' }[prf.mode]}</th><th class="n">পেমেন্ট</th><th class="n">সার্ভিস চার্জ</th><th class="n">মেইনটেন্স</th><th class="n">প্রফিট</th></tr>
+    ${c.keys.map(k => { const p = c.per[k], open = prf.open === k && all; return `<tr ${all ? `data-act="prfx" data-k="${esc(k)}" style="cursor:pointer"` : ''}><td><b>${arpLbl(k, prf.mode)}</b>${all ? ` <span class="sub">${open ? '▲' : '▼'}</span>` : ''}</td><td class="n">${bn(p.n)}</td><td class="n">${tk(p.c)}</td><td class="n">${tk(p.m)}</td><td class="n"><b style="color:var(--pri)">${tk(p.c + p.m)}</b></td></tr>${open ? Object.entries(p.by).sort((a, b) => (b[1].c + b[1].m) - (a[1].c + a[1].m)).map(([u, b]) => `<tr style="background:#faf9ff"><td style="padding-left:30px" class="sub">↳ ${esc(nm(u))}</td><td class="n sub">${bn(b.n)}</td><td class="n sub">${tk(b.c)}</td><td class="n sub">${tk(b.m)}</td><td class="n sub">${tk(b.c + b.m)}</td></tr>`).join('') : ''}`; }).join('') || '<tr><td colspan="5" class="empty"><b>এই সময়সীমায় কোনো প্রফিট নেই</b>তারিখ বা প্রতিষ্ঠান বদলে দেখুন।</td></tr>'}
+    ${c.keys.length ? `<tr class="ledt sum"><td><b>সর্বমোট</b></td><td class="n">${bn(c.tot.n)}</td><td class="n">${tk(c.tot.c)}</td><td class="n">${tk(c.tot.m)}</td><td class="n">${tk(c.tot.c + c.tot.m)}</td></tr>` : ''}
+  </table></div></div>
+  <div class="panel flush"><h3>প্রতিষ্ঠানভিত্তিক প্রফিট (নির্বাচিত সময়সীমা)</h3><div class="tw"><table>
+    <tr><th>প্রতিষ্ঠান</th><th class="n">পেমেন্ট</th><th class="n">সার্ভিস চার্জ</th><th class="n">মেইনটেন্স</th><th class="n">প্রফিট</th></tr>
+    ${Object.entries(c.inst).sort((a, b) => (b[1].c + b[1].m) - (a[1].c + a[1].m)).map(([u, t]) => `<tr><td><b>${esc(nm(u))}</b></td><td class="n">${bn(t.n)}</td><td class="n">${tk(t.c)}</td><td class="n">${tk(t.m)}</td><td class="n"><b>${tk(t.c + t.m)}</b></td></tr>`).join('') || '<tr><td colspan="5" class="empty"><b>কোনো তথ্য নেই</b></td></tr>'}
+  </table></div></div>`;
+}
+function prfCsv() {
+  const c = prfCalc(), q = v => { v = v == null ? '' : String(v); return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const nm = id => (adminList[id] || {}).name || '(মুছে ফেলা প্রতিষ্ঠান)', r2 = n => Math.round(n * 100) / 100;
+  const L = [[site.name], [{ day: 'দৈনিক', month: 'মাসিক', year: 'বার্ষিক' }[prf.mode] + ' প্রফিট হিসাব'], ['সময়সীমা', (prf.from || 'শুরু') + ' থেকে ' + (prf.to || 'আজ')], [],
+    [{ day: 'তারিখ', month: 'মাস', year: 'বছর' }[prf.mode], 'প্রতিষ্ঠান', 'পেমেন্ট', 'সার্ভিস চার্জ', 'মেইনটেন্স', 'প্রফিট'],
+    ...c.keys.flatMap(k => Object.entries(c.per[k].by).map(([u, b]) => [k, nm(u), b.n, r2(b.c), r2(b.m), r2(b.c + b.m)])),
+    ['সর্বমোট', '', c.tot.n, r2(c.tot.c), r2(c.tot.m), r2(c.tot.c + c.tot.m)]];
+  bkSave('admin-profit-' + prf.mode + '-' + today() + '.csv', '﻿' + L.map(l => l.map(q).join(',')).join('\r\n'), 'text/csv;charset=utf-8');
+}
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.prf; if (!k) return; prf[k] = e.target.value; prf.open = ''; renderAdmin(); });
+Object.assign(A, {
+  lvtab: d => { ui.lv = d.v; renderAdmin(); },
+  prfmode: d => { prf.mode = d.m; const df = arpDefaults(d.m); prf.from = df[0]; prf.to = df[1]; prf.open = ''; renderAdmin(); },
+  prfx: d => { prf.open = prf.open === d.k ? '' : d.k; renderAdmin(); },
+  prfcsv: () => prfCsv()
+});
+
+
+/* ===== এডমিন লগইন হিস্ট্রি ===== */
+function devInfo() {
+  const ua = navigator.userAgent || '';
+  const br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+  const os = /Android/.test(ua) ? 'Android' : /iPhone|iPad|iPod/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : 'Device';
+  return { name: br + ' • ' + os, platform: (br + ' / ' + os + ' • ' + screen.width + '×' + screen.height).slice(0, 80), ua: ua.slice(0, 300) };
+}
+function logRow(ev) { return Object.assign(devInfo(), { event: ev, email: ((me || {}).email || '').slice(0, 80), at: { '.sv': 'timestamp' } }); }
+const fT = t => t ? new Date(t).toLocaleString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
+function renderLoginHist() {
+  shell({ nav: ANAV, active: 'lh', act: 'adminnav', title: 'লগইন হিস্ট্রি', sub: 'এডমিন প্যানেলে লগইন ও লগআউটের তথ্য', who: 'অ্যাডমিন' });
+  const cut = Date.now() - lhDays * 864e5;
+  const all = Object.values(AL).filter(r => (r.at || 0) >= cut).sort((a, b) => (b.at || 0) - (a.at || 0));
+  const rows = all.filter(r => !lhEv || r.event === lhEv), last = all.find(r => r.event === 'login');
+  const devs = new Set(all.filter(r => r.event === 'login').map(r => r.platform)).size;
+  $('#main').innerHTML = `<div class="panel"><div class="chips">${[[3, 'শেষ ৩ দিন'], [7, '৭ দিন'], [30, '৩০ দিন']].map(([d, l]) => `<button class="${lhDays === d ? 'on' : ''}" data-act="lhd" data-d="${d}">${l}</button>`).join('')}</div>
+    <div class="chips" style="margin:0">${[['', 'সব'], ['login', 'লগইন'], ['logout', 'লগআউট']].map(([k, l]) => `<button class="${lhEv === k ? 'on' : ''}" data-act="lhe" data-e="${k}">${l}</button>`).join('')}</div>
+    <div class="hint" style="margin-top:8px">হিস্ট্রি ৩০ দিন জমা থাকে। অচেনা ডিভাইস বা অচেনা সময়ের লগইন দেখলে দ্রুত এডমিন পাসওয়ার্ড বদলান। (পাসওয়ার্ড ভুল দিয়ে ব্যর্থ চেষ্টা এখানে আসে না।)</div></div>
+  <div class="kpis"><div class="kpi"><span>লগইন</span><b>${bn(all.filter(r => r.event === 'login').length)}</b></div><div class="kpi"><span>আলাদা ডিভাইস/ব্রাউজার</span><b>${bn(devs)}</b></div><div class="kpi"><span>শেষ লগইন</span><b style="font-size:15px">${last ? fT(last.at) : '—'}</b></div></div>
+  <div class="panel flush"><h3>তালিকা (${bn(rows.length)})</h3><div class="tw"><table><tr><th>সময়</th><th>ঘটনা</th><th>ডিভাইস</th><th>বিবরণ</th></tr>
+  ${rows.map(r => `<tr><td>${fT(r.at)}</td><td><span class="badge ${r.event === 'login' ? 'b-approved' : 'b-pending'}">${r.event === 'login' ? 'লগইন' : 'লগআউট'}</span></td><td><b>${esc(r.name || '')}</b></td><td class="lhua">${esc(r.platform || '')}<br>${esc((r.ua || '').slice(0, 90))}</td></tr>`).join('') || '<tr><td colspan="4" class="empty"><b>এই সময়ে কোনো ঘটনা নেই</b></td></tr>'}</table></div></div>`;
+}
+Object.assign(A, { lhd: d => { lhDays = Number(d.d) || 3; renderAdmin(); }, lhe: d => { lhEv = d.e; renderAdmin(); } });
+
+
+/* ===== এডমিন লগইন: Gmail ভেরিফিকেশন লিংক ===== */
+(async () => {
+  const pe = $('#loginF [name=pw]'), em = $('#loginF [name=email]');
+  if (!isSignInWithEmailLink(auth, location.href)) return;
+  let e = ''; try { e = localStorage.getItem('sm_adm_em') || ''; } catch (x) {}
+  if (!e) e = (prompt('নিরাপত্তার জন্য এডমিন ইমেইল লিখুন') || '').trim();
+  try { logNext = true; await setPersistence(auth, browserSessionPersistence); await signInWithEmailLink(auth, e, location.href); try { localStorage.removeItem('sm_adm_em'); } catch (x) {} }
+  catch (er) { logNext = false; toast(er.code === 'auth/invalid-email' ? 'ইমেইল মেলেনি' : er.code === 'auth/invalid-action-code' ? 'লিংকটি মেয়াদোত্তীর্ণ বা আগেই ব্যবহৃত — আবার লগইন করে নতুন লিংক নিন' : errMsg(er)); }
+  history.replaceState(null, '', location.pathname);
+})();
 
 applySite();
 </script>
