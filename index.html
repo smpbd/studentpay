@@ -879,7 +879,7 @@ const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক�
 const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল', hpro:'প্রতিষ্ঠান প্রধানের প্রোফাইল', bnk:'পেমেন্ট গ্রহণের অ্যাকাউন্ট', slg:'শিক্ষার্থী লগইন'};
 
 /* ---------- সাইটের নাম ও লোগো ---------- */
-const DEF_SITE = { name: 'স্কুল ম্যানেজার', tagline: '', logo: '' };
+const DEF_SITE = { name: 'স্কুল ম্যানেজার', tagline: '', logo: '', chargePct: 1.25 };
 let site = { ...DEF_SITE }, schools = {}, pendingLogo;
 const logoIn = () => site.logo ? `<img src="${esc(site.logo)}" alt="">` : ic('book');
 function applySite() {
@@ -1282,7 +1282,8 @@ const MLOGO = { bkash: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAB4CA
 const mLogo = (m, h = 34) => `<img src="${MLOGO[m === 'rocket' ? 'rocket' : 'bkash']}" alt="${m === 'rocket' ? 'রকেট' : 'বিকাশ'}" style="height:${h}px;width:${Math.round(h * 2.5)}px;object-fit:contain;vertical-align:middle">`;
 let payUn = null, payTick = null, payCur = null, payMode = '', payM = 'bkash', payId = '';
 const money2 = n => Number(n).toLocaleString('bn-BD', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-const calcPay = a => { const c = Math.ceil(Math.round(a * CHG * 1e6) / 1e6 - 1e-9); return { charge: c, total: Math.round((a + c) * 100) / 100 }; }; /* সার্ভিস চার্জে পয়সা থাকলে পূর্ণ টাকায় উপরে ধরা হয় (১.২৫ → ২) */
+const chgRate = () => { const p = Number(site && site.chargePct); return (isFinite(p) && p >= 0 && p <= 100 ? p : CHG * 100) / 100; };
+const calcPay = a => { const c = Math.ceil(Math.round(a * chgRate() * 1e6) / 1e6 - 1e-9) || 0; return { charge: c, total: Math.round((a + c) * 100) / 100 }; }; /* অনলাইন চার্জ: শতকরা হার এডমিন সাইট সেটিং থেকে ঠিক করেন; পয়সা থাকলে সবসময় পূর্ণ টাকায় উপরে ধরা হয় (২.৫ → ৩, ৩.৩ → ৪) */
 function stopPay() { if (payUn) payUn(); payUn = null; clearInterval(payTick); payTick = null; payCur = null; payMode = ''; $('#dlg').removeAttribute('data-pm'); }
 $('#dlg').addEventListener('close', stopPay);
 let stuBid = '';
@@ -1308,7 +1309,7 @@ function openPayForm() {
   const b = stuRec && stuBill(); if (!b || !(b.amount > 0)) return;
   const { charge, total } = calcPay(b.amount), d = $('#dlg'); payM = 'bkash'; d.dataset.pm = 'bkash';
   d.innerHTML = `<h3>পেমেন্ট</h3>
-  <div class="paybox"><div class="sub"><b>${esc(billNo(b.id))}</b> • ${esc(b.title)}${b.month ? ' (' + bnMonth(b.month) + ')' : ''}</div><div class="rowb"><span>পরিশোধযোগ্য টাকা</span><b>${tk(b.amount)}</b></div><div class="rowb"><span>সার্ভিস চার্জ</span><b>${tk(charge)}</b></div><div class="totl"><span>মোট পরিশোধ</span><b>৳ ${money2(total)}</b></div></div>
+  <div class="paybox"><div class="sub"><b>${esc(billNo(b.id))}</b> • ${esc(b.title)}${b.month ? ' (' + bnMonth(b.month) + ')' : ''}</div><div class="rowb"><span>পরিশোধযোগ্য টাকা</span><b>${tk(b.amount)}</b></div><div class="rowb"><span>অনলাইন চার্জ (${money2(chgRate() * 100)}%)</span><b>${tk(charge)}</b></div><div class="totl"><span>মোট পরিশোধ</span><b>৳ ${money2(total)}</b></div></div>
   <form id="pf"><label>পেমেন্ট মাধ্যম</label><div class="seg mseg"><button type="button" class="on" data-act="pm" data-m="bkash" aria-label="বিকাশ">${mLogo('bkash', 40)}</button><button type="button" data-act="pm" data-m="rocket" aria-label="রকেট">${mLogo('rocket', 40)}</button></div>
   <label>যে নম্বর থেকে পেমেন্ট করবেন</label><div class="ph"><span>+880</span><input name="sender" required maxlength="10" inputmode="numeric" pattern="1[3-9][0-9]{8}" title="+880 এর পরে ১০ সংখ্যার মোবাইল নম্বর দিন" placeholder="১০ সংখ্যা"></div>
   ${paySet.qr ? '' : '<div class="hint" style="color:var(--out)">পেমেন্ট এখনো চালু হয়নি।</div>'}${fwOnline() ? '' : '<div class="hint" style="color:var(--out)">অটো ভেরিফিকেশন বন্ধ আছে, এখন পেমেন্ট করা যাবে না।</div>'}
@@ -1584,7 +1585,7 @@ function renderAdmin() {
     return;
   }
   if (ap === 'site') {
-    shell({ nav: ANAV, active: 'site', act: 'adminnav', title: 'সাইট সেটিং', sub: 'ওয়েবসাইটের নাম, লোগো, পেমেন্ট নির্দেশনা ও QR', who: 'অ্যাডমিন' });
+    shell({ nav: ANAV, active: 'site', act: 'adminnav', title: 'সাইট সেটিং', sub: 'ওয়েবসাইটের নাম, লোগো, অনলাইন চার্জ, পেমেন্ট নির্দেশনা ও QR', who: 'অ্যাডমিন' });
     const logo = pendingLogo !== undefined ? pendingLogo : site.logo;
     const qr = pendingQr !== undefined ? pendingQr : (paySet.qr || '');
     $('#main').innerHTML = `<div class="panel" style="max-width:620px"><form id="siteF">
@@ -1594,6 +1595,8 @@ function renderAdmin() {
       <div class="logoprev"><span class="logo ${logo ? 'has' : ''}" id="logoBox">${logo ? `<img src="${esc(logo)}" alt="">` : ic('book')}</span>
         <div><input type="file" id="logoFile" accept="image/*"><div class="hint">PNG বা JPG, বর্গাকার হলে ভালো। ছবি নিজে থেকে ছোট করা হবে।</div>
         <button type="button" class="btn sm ghost" style="margin-top:8px" data-act="rmlogo">লোগো সরান</button></div></div>
+      ${inp('অনলাইন চার্জ (শতকরা হার %) *', 'chargePct', site.chargePct, 'number', 'required min="0" max="100" step="0.01" inputmode="decimal"')}
+      <div class="hint">শিক্ষার্থী অনলাইনে পেমেন্ট করলে বিলের টাকার উপর এই হারে অনলাইন চার্জ যোগ হবে। চার্জের টাকা সবসময় পূর্ণ সংখ্যায় উপরে ধরা হয় — যেমন ২.৫ হলে ৩ টাকা, ৩.৩ হলে ৪ টাকা।</div>
       <button class="btn full">সংরক্ষণ করুন</button></form></div>
     <div class="panel" style="max-width:620px"><h3>পেমেন্ট সেটিং</h3><form id="payF">
       <label>পেমেন্ট নির্দেশনা (শিক্ষার্থী দেখবে)</label><textarea class="tarea" name="instructions" rows="4" maxlength="1500">${esc(paySet.instructions || '')}</textarea>
@@ -2490,7 +2493,8 @@ document.addEventListener('submit', async e => {
     else if (id === 'sF') { if (!f.school) throw new Error('আগে তালিকা থেকে স্কুল বেছে নিন'); await studentLogin(f); }
     else if (id === 'siteF') {
       const logo = pendingLogo !== undefined ? pendingLogo : site.logo;
-      await set(ref(db, 'siteSettings'), { name: f.name.trim(), tagline: f.tagline.trim(), logo, updatedAt: Date.now() });
+      const pct = Number(f.chargePct); if (!isFinite(pct) || pct < 0 || pct > 100) throw new Error('অনলাইন চার্জের শতকরা হার ০ থেকে ১০০ এর মধ্যে দিন');
+      await set(ref(db, 'siteSettings'), { name: f.name.trim(), tagline: f.tagline.trim(), logo, chargePct: Math.round(pct * 100) / 100, updatedAt: Date.now() });
       pendingLogo = undefined; toast('সাইট সেটিং সংরক্ষিত হয়েছে');
     }
     else if (id === 'headF') await saveHead(f);
