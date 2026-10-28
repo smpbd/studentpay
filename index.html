@@ -895,7 +895,7 @@ const DEF_SITE = { name: 'স্কুল ম্যানেজার', tagline:
 let site = { ...DEF_SITE }, schools = {}, pendingLogo;
 const logoIn = () => site.logo ? `<img src="${esc(site.logo)}" alt="">` : ic('book');
 function applySite() {
-  document.title = site.name + (site.tagline ? ' – ' + site.tagline : '');
+  document.title = 'Student Pay | ' + site.name + ' – SMP Portal Bangladesh';
   document.querySelectorAll('[data-brand-name]').forEach(e => e.textContent = site.name);
   document.querySelectorAll('[data-brand-logo]').forEach(e => { e.innerHTML = logoIn(); e.classList.toggle('has', !!site.logo); });
   const fav = $('#favicon'); if (site.logo) fav.href = site.logo; else fav.href = 'data:,';
