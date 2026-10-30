@@ -2385,7 +2385,46 @@ async function ledSyncAll(auto) {
   } catch (e) { ledFailed = true; toast(errMsg(e)); }
   ledBusy = false;
 }
-const ledAuto = () => { if (me && me.isAdmin && ledLoaded && reqLoaded && ledMissing().length) ledSyncAll(true); };
+const ledAuto = () => { if (me && me.isAdmin && ledLoaded && reqLoaded && ledMissing().length) ledSyncAll(true); subAuto(); };
+/* ===== প্রতিষ্ঠানভিত্তিক মাসিক সাবস্ক্রিপশন চার্জ: প্রতি মাসের ১ তারিখে মেইনটেন্স চার্জ হিসেবে স্বয়ংক্রিয় যোগ ===== */
+let subBusy = false, subFailed = false;
+const nextYM = m => { let [y, mo] = String(m).split('-').map(Number); mo++; if (mo > 12) { mo = 1; y++; } return y + '-' + String(mo).padStart(2, '0'); };
+async function subAuto() {
+  if (subBusy || subFailed || !me || !me.isAdmin || !ledLoaded || !reqLoaded) return;
+  const cur = today().slice(0, 7), upd = {};
+  Object.entries(ledgerAll).forEach(([uid, l]) => {
+    l = l || {}; const sb = l.sub || {}, amt = Math.round((Number(sb.amount) || 0) * 100) / 100;
+    if (!(amt > 0) || !/^\d{4}-\d{2}$/.test(sb.from || '')) return;
+    let m = sb.last && /^\d{4}-\d{2}$/.test(sb.last) ? nextYM(sb.last) : sb.from; if (m < sb.from) m = sb.from;
+    if (m > cur) return;
+    let held = ledCalc(l).held, lastM = '', n = 0;
+    for (; m <= cur && n < 36; m = nextYM(m), n++) {
+      const id = 'sub_' + m.replace('-', ''), date = (m === sb.from && /^\d{4}-\d{2}-\d{2}$/.test(sb.fromDate || '') && sb.fromDate.slice(0, 7) === m) ? sb.fromDate : m + '-01'; lastM = m;
+      if ((l.settle || {})[id]) continue;
+      const x = { type: 'maint', amount: amt, date, note: 'মাসিক সাবস্ক্রিপশন চার্জ — ' + bnMonth(m), createdAt: Date.now(), vno: 'MC-' + date.slice(2).replace(/-/g, '') + '-SUB', auto: true, month: m };
+      if (held + 0.001 >= amt) { held = Math.round((held - amt) * 100) / 100; x.status = 'paid'; x.paidDate = date; x.after = held; } else x.status = 'due';
+      upd[`instLedger/${uid}/settle/${id}`] = x;
+    }
+    if (lastM) upd[`instLedger/${uid}/sub/last`] = lastM;
+  });
+  if (!Object.keys(upd).length) return;
+  subBusy = true;
+  try { await update(root(), upd); toast('মাসিক সাবস্ক্রিপশন চার্জ হিসাবে যোগ হয়েছে'); } catch (e) { subFailed = true; console.warn('subAuto', e); } finally { subBusy = false; }
+}
+const subAmt = uid => { const sb = (ledgerAll[uid] || {}).sub || {}; return Number(sb.amount) > 0 ? Number(sb.amount) : 0; };
+function subModal(uid) {
+  const sb = (ledgerAll[uid] || {}).sub || {}, nm = (adminList[uid] || {}).name || '';
+  modal('মাসিক সাবস্ক্রিপশন চার্জ — ' + esc(nm),
+    `<div class="w"><div class="note">এই প্রতিষ্ঠানের জন্য মাসিক সাবস্ক্রিপশন চার্জ। এটি <b>মেইনটেন্স চার্জ</b> হিসেবে হিসাবে যোগ হবে — প্রথম মাসের চার্জ সেট করার দিনেই, এরপর প্রতি মাসের ১ তারিখে। জমা থেকে কাটার মতো টাকা থাকলে কেটে নেওয়া (সেটেল) হবে, না থাকলে ‘বকেয়া’ থাকবে। টাকা বদলালে পরের মাসগুলো থেকে নতুন টাকা প্রযোজ্য হবে। অ্যাডমিন প্যানেল খোলা হলে মিস হওয়া মাসগুলোও যোগ হয়ে যাবে। বন্ধ করতে টাকা ০ দিন।</div></div>` +
+    inp('মাসিক চার্জ (৳) *', 'amount', sb.amount || '', 'number', 'min="0" step="0.01" required inputmode="decimal"', true),
+    async f => {
+      const amt = Math.round((Number(f.amount) || 0) * 100) / 100; if (!(amt >= 0)) throw new Error('টাকার পরিমাণ সঠিক দিন');
+      const b = `instLedger/${uid}/sub`, u = { [b + '/amount']: amt, [b + '/updatedAt']: Date.now() };
+      if (amt > 0 && (!subAmt(uid) || !sb.from)) { u[b + '/from'] = today().slice(0, 7); u[b + '/fromDate'] = today(); } /* নতুন চালু হলে সেট করার দিনেই ওই মাসের চার্জ; এরপর প্রতি মাসের ১ তারিখে। আগে চালু থাকলে শুধু টাকা বদলায় */
+      await update(root(), u); subFailed = false;
+      toast(amt > 0 ? 'মাসিক সাবস্ক্রিপশন চার্জ সংরক্ষিত হয়েছে' : 'মাসিক সাবস্ক্রিপশন চার্জ বন্ধ করা হয়েছে');
+    });
+}
 const ledMissing = () => Object.entries(payReqs).filter(([id, r]) => r.status === 'verified' && r.uid && !(((ledgerAll[r.uid] || {}).online || {})[id]));
 const BANK_T = { bank: 'ব্যাংক', bkash: 'বিকাশ', nagad: 'নগদ', rocket: 'রকেট' };
 const bankLbl = b => `${BANK_T[b.type] || 'ব্যাংক'}${b.bank ? ' — ' + b.bank : ''}${b.branch ? ' (' + b.branch + ')' : ''} • ${b.holder} • ${b.number}`;
@@ -2630,7 +2669,7 @@ function renderAdmin() {
     </div>
     <div class="panel flush"><h3 style="padding:14px 16px 0;margin:0">প্রতিষ্ঠানভিত্তিক হিসাব</h3><div class="sub" style="padding:2px 16px 10px">এডমিনের নিকট জমা = মূল টাকা − এডমিন কর্তৃক পরিশোধিত − মেইনটেন্স চার্জ</div><div style="padding:0 16px 10px"><button type="button" class="btn sm ghost" data-act="bkcsv">⬇ হিসাব বিবরণী Export (Excel CSV)</button></div><div class="tw"><table>
       <tr><th>প্রতিষ্ঠান</th><th class="n">ভেরিফাইড মোট</th><th class="n">সার্ভিস চার্জ</th><th class="n">প্রাপ্য মূল টাকা</th><th class="n">পরিশোধিত</th><th class="n">মেইনটেন্স</th><th class="n">এডমিনের নিকট জমা</th><th></th></tr>
-      ${rows.map(r => `<tr><td><b>${esc(r.name)}</b><div class="sub">${bn(r.c.n)} টি পেমেন্ট</div></td><td class="n">${tk(r.c.total)}</td><td class="n">${tk(r.c.charge)}</td><td class="n">${tk(r.c.due)}</td><td class="n">${tk(r.c.paid)}</td><td class="n">${tk(r.c.maint)}${r.c.maintDue ? `<div class="sub" style="color:var(--out)">বকেয়া ${tk(r.c.maintDue)}</div>` : ''}</td><td class="n"><b>${tk(r.c.held)}</b></td><td><div class="row"><button class="btn sm ok" data-act="ledpay" data-id="${esc(r.id)}">পরিশোধ</button><button class="btn sm warn" data-act="ledmaint" data-id="${esc(r.id)}">মেইনটেন্স</button><button class="btn sm ghost" data-act="ledhist" data-id="${esc(r.id)}">ইতিহাস</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এখনো কোনো হিসাব নেই</b>অনলাইন পেমেন্ট ভেরিফাই হলে এখানে দেখা যাবে।</td></tr>'}
+      ${rows.map(r => `<tr><td><b>${esc(r.name)}</b><div class="sub">${bn(r.c.n)} টি পেমেন্ট</div>${subAmt(r.id) ? `<div class="sub" style="color:var(--amb)">মাসিক সাবস্ক্রিপশন ${tk(subAmt(r.id))}</div>` : ''}</td><td class="n">${tk(r.c.total)}</td><td class="n">${tk(r.c.charge)}</td><td class="n">${tk(r.c.due)}</td><td class="n">${tk(r.c.paid)}</td><td class="n">${tk(r.c.maint)}${r.c.maintDue ? `<div class="sub" style="color:var(--out)">বকেয়া ${tk(r.c.maintDue)}</div>` : ''}</td><td class="n"><b>${tk(r.c.held)}</b></td><td><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:170px"><button class="btn sm ok" data-act="ledpay" data-id="${esc(r.id)}">পরিশোধ</button><button class="btn sm warn" data-act="ledmaint" data-id="${esc(r.id)}">মেইনটেন্স</button><button class="btn sm ghost" data-act="ledsub" data-id="${esc(r.id)}">সাবস্ক্রিপশন</button><button class="btn sm ghost" data-act="ledhist" data-id="${esc(r.id)}">ইতিহাস</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এখনো কোনো হিসাব নেই</b>অনলাইন পেমেন্ট ভেরিফাই হলে এখানে দেখা যাবে।</td></tr>'}
       ${rows.length ? `<tr class="ledt sum"><td><b>সর্বমোট</b></td><td class="n">${tk(T.total)}</td><td class="n">${tk(T.charge)}</td><td class="n">${tk(T.due)}</td><td class="n">${tk(T.paid)}</td><td class="n">${tk(T.maint)}</td><td class="n">${tk(T.held)}</td><td></td></tr>` : ''}
     </table></div></div>`;
     return;
@@ -2665,6 +2704,11 @@ function renderAdmin() {
     <div class="panel" style="max-width:620px"><h3>পেমেন্ট সেটিং</h3><form id="payF">
       <label>পেমেন্ট নির্দেশনা (শিক্ষার্থী দেখবে)</label><textarea class="tarea" name="instructions" rows="4" maxlength="1500">${esc(paySet.instructions || '')}</textarea>
       <label>Bangla QR ছবি (সর্বোচ্চ ১২০ কেবি)</label><div class="logoprev"><span class="logo ${qr ? 'has' : ''}" id="qrBox">${qr ? `<img src="${esc(qr)}" alt="">` : ic('receipt')}</span><input type="file" id="qrFile" accept="image/jpeg,image/png,image/webp"></div>
+      <button class="btn full">সংরক্ষণ করুন</button></form></div>
+    <div class="panel" style="max-width:620px"><h3>আন্ডার মেইনটেন্স</h3><form id="maintF">
+      <label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;cursor:pointer;font-weight:600"><input type="checkbox" name="on" ${mntActive() ? 'checked' : ''} style="width:20px;height:20px;flex:none;margin-top:2px"><span>আন্ডার মেইনটেন্স চালু করুন<span class="hint" style="display:block;font-weight:400">চালু থাকলে শুধু প্রতিষ্ঠান লগইন (ও অ্যাডমিন) বাদে বাকি সবকিছুতে ক্লিক করলে “সার্ভার আন্ডার মেইনটেন্স — অনুগ্রহপূর্বক নির্দিষ্ট সময় পর্যন্ত অপেক্ষা করুন” দেখাবে।</span></span></label>
+      ${inp('কখন পর্যন্ত চলবে *', 'until', mntUntilVal(), 'datetime-local', '')}
+      <div class="hint">${mntActive() ? '🟠 এখন চালু আছে' + (Number(site.maint.until) ? ' — ' + mntWhen(site.maint.until) + ' পর্যন্ত' : '') : '⚪ এখন বন্ধ আছে'}। নির্ধারিত সময় পার হলে নিজে থেকেই সব স্বাভাবিক হয়ে যাবে।</div>
       <button class="btn full">সংরক্ষণ করুন</button></form></div>`;
     return;
   }
@@ -3680,6 +3724,7 @@ const A = {
     try { await fbUpdate(root(), { [`payoutReq/${d.u}/${d.id}/status`]: 'rejected', [`payoutReq/${d.u}/${d.id}/decidedAt`]: Date.now(), [`payoutReq/${d.u}/${d.id}/reason`]: why.trim().slice(0, 200) }); toast('প্রত্যাখ্যান করা হয়েছে'); } catch (e) { toast(errMsg(e)); }
   },
   ledmaint: d => ledModal(d.id, 'maint'),
+  ledsub: d => subModal(d.id),
   ledhist: d => ledHist(d.id),
   leddel: async d => { if (!confirm('এই এন্ট্রি মুছে ফেলবেন?')) return; try { await update(root(), { [`instLedger/${d.u}/settle/${d.id}`]: null }); $('#dlg').close(); toast('এন্ট্রি মুছে ফেলা হয়েছে'); } catch (e) { toast(errMsg(e)); } },
   ledsync: async (d, el) => { el.disabled = true; ledFailed = false; await ledSyncAll(false); el.disabled = false; },
@@ -4235,6 +4280,32 @@ document.addEventListener('click', async e => {
 });
 
 document.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (el && A[el.dataset.act]) A[el.dataset.act](el.dataset, el); });
+/* ===== আন্ডার মেইনটেন্স: প্রতিষ্ঠান লগইন/ড্যাশবোর্ড ও অ্যাডমিন বাদে সবকিছুতে ক্লিক করলে বার্তা ===== */
+const mntActive = () => { const m = site && site.maint; return !!(m && m.on === true && (!Number(m.until) || Number(m.until) > Date.now())); };
+const mntWhen = t => new Date(Number(t)).toLocaleString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+const mntUntilVal = () => { const t = Number(site && site.maint && site.maint.until); return t > 0 ? new Date(t - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''; };
+function mntShow() {
+  let d = document.getElementById('mntDlg');
+  if (!d) { d = document.createElement('dialog'); d.id = 'mntDlg'; d.style.cssText = 'border:0;border-radius:16px;padding:26px 22px;max-width:min(92vw,420px);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)'; document.body.appendChild(d); }
+  const t = site && site.maint && Number(site.maint.until);
+  d.innerHTML = `<div style="font-size:44px;line-height:1">🛠️</div><h3 style="margin:10px 0 8px">সার্ভার আন্ডার মেইনটেন্স</h3><p style="margin:0 0 16px;color:#444">অনুগ্রহপূর্বক ${t ? '<b>' + esc(mntWhen(t)) + '</b> পর্যন্ত ' : 'নির্দিষ্ট সময় পর্যন্ত '}অপেক্ষা করুন।</p><button type="button" class="btn" id="mntOk">ঠিক আছে</button>`;
+  d.querySelector('#mntOk').onclick = () => d.close();
+  if (!d.open) d.showModal();
+}
+const mntBlocked = el => {
+  if (!mntActive() || !el || me || el.closest('#mntDlg') || el.closest('#v-auth')) return false;
+  const a = el.closest('[data-act]'); if (a && a.dataset.act === 'go' && ['v-auth', 'v-home'].includes(a.dataset.v)) return false;
+  return true;
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest && e.target.closest('button,a,[data-act],[onclick],select,summary,label,input[type=button],input[type=submit],input[type=checkbox],input[type=radio],input[type=file]');
+  if (!mntBlocked(el)) return;
+  e.preventDefault(); e.stopImmediatePropagation(); mntShow();
+}, true);
+document.addEventListener('submit', e => {
+  if (!mntBlocked(e.target)) return;
+  e.preventDefault(); e.stopImmediatePropagation(); mntShow();
+}, true);
 const onPf = e => { const k = e.target.dataset && e.target.dataset.pf; if (!k) return; pf[k] = e.target.value; adminPayRefresh(); };
 document.addEventListener('input', onPf); document.addEventListener('change', onPf);
 const onUi = e => { const k = e.target.dataset.ui; if (!k) return; ui[k] = e.target.value; if (listFn) $('#list').innerHTML = listFn(); };
@@ -4380,7 +4451,7 @@ document.addEventListener('submit', async e => {
 });
 
 document.addEventListener('submit', async e => {
-  const id = e.target.id; if (!['loginF', 'regF', 'proF', 'siteF', 'sF', 'headF'].includes(id)) return;
+  const id = e.target.id; if (!['loginF', 'regF', 'proF', 'siteF', 'sF', 'headF', 'maintF'].includes(id)) return;
   e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)), b = e.submitter; b.disabled = true;
   try {
     if ((id === 'loginF' || id === 'regF') && !EMAIL_RE.test(f.email.trim())) throw new Error('সঠিক ইমেইল ঠিকানা দিন');
@@ -4395,10 +4466,16 @@ document.addEventListener('submit', async e => {
     }
     else if (id === 'loginF') { logNext = true; try { await signInWithEmailAndPassword(auth, f.email.trim(), f.pw); } catch (er) { logNext = false; throw er; } }
     else if (id === 'sF') { if (!f.school) throw new Error('আগে তালিকা থেকে স্কুল বেছে নিন'); await studentLogin(f); }
+    else if (id === 'maintF') {
+      const on = f.on === 'on', until = f.until ? new Date(f.until).getTime() : 0;
+      if (on && !(until > Date.now())) throw new Error('আন্ডার মেইনটেন্স কখন পর্যন্ত চলবে তার ভবিষ্যতের তারিখ ও সময় দিন');
+      await update(ref(db, 'siteSettings'), { maint: { on, until: until > 0 ? until : null, updatedAt: Date.now() } });
+      toast(on ? 'আন্ডার মেইনটেন্স চালু হয়েছে' : 'আন্ডার মেইনটেন্স বন্ধ করা হয়েছে');
+    }
     else if (id === 'siteF') {
       const logo = pendingLogo !== undefined ? pendingLogo : site.logo;
       const pct = Number(f.chargePct); if (!isFinite(pct) || pct < 0 || pct > 100) throw new Error('অনলাইন চার্জের শতকরা হার ০ থেকে ১০০ এর মধ্যে দিন');
-      await set(ref(db, 'siteSettings'), { name: f.name.trim(), tagline: f.tagline.trim(), logo, chargePct: Math.round(pct * 100) / 100, updatedAt: Date.now() });
+      await update(ref(db, 'siteSettings'), { name: f.name.trim(), tagline: f.tagline.trim(), logo, chargePct: Math.round(pct * 100) / 100, updatedAt: Date.now() });
       pendingLogo = undefined; toast('সাইট সেটিং সংরক্ষিত হয়েছে');
     }
     else if (id === 'headF') await saveHead(f);
