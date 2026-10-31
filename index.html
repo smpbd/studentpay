@@ -800,9 +800,17 @@ details.dd>.ddb{padding:4px 18px 16px;border-top:1px solid var(--line)}
 .ht-footer-copy strong{font-size:clamp(18px,2.2vw,24px);line-height:1.15;letter-spacing:.2px;color:#fff;font-weight:800}
 .ht-footer-copy>span{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#35d4e8}
 .ht-footer-copy small{font-size:12px;line-height:1.4;color:#c4d8f4;margin-top:0}
+.ht-footer-copy{flex:1 1 auto}
+.ht-footer-links{margin-left:auto;flex:0 0 auto;display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}
+.ht-footer-links a{display:flex;align-items:center;gap:10px;padding:6px 16px 6px 6px;border-radius:30px;background:rgba(255,255,255,.1);border:1px solid rgba(169,244,255,.35);color:#fff;text-decoration:none;font-size:13px;font-weight:600;line-height:1.2;white-space:nowrap;transition:background .2s,transform .2s,border-color .2s}
+.ht-footer-links a:hover{background:rgba(255,255,255,.2);border-color:#35d4e8;transform:translateY(-1px)}
+.ht-footer-links .ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;color:#fff}
+.ht-footer-links .fb .ic{background:#1877f2}
+.ht-footer-links .ml .ic{background:linear-gradient(135deg,#ea4335,#f59e0b)}
 .ht-footer-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid rgba(218,235,255,.2);padding-top:8px;font-size:12px;color:#c4d8f4}
 .ht-footer-badge{border:1px solid rgba(53,212,232,.45);border-radius:30px;padding:4px 10px;color:#a9f4ff;letter-spacing:.3px}
-@media(max-width:600px){.ht-footer-inner{padding:12px 0 8px}.ht-footer-brand{gap:10px;align-items:center;padding-bottom:8px}.ht-footer-logo{width:46px;height:46px;border-radius:8px}.ht-footer-copy strong{font-size:16px}.ht-footer-copy>span{font-size:10px;letter-spacing:1.5px}.ht-footer-copy small{font-size:10px;line-height:1.3}.ht-footer-bottom{font-size:11px}}
+@media(max-width:600px){.ht-footer-inner{padding:12px 0 8px}.ht-footer-brand{gap:10px;align-items:center;padding-bottom:8px}.ht-footer-logo{width:46px;height:46px;border-radius:8px}.ht-footer-copy strong{font-size:16px}.ht-footer-copy>span{font-size:10px;letter-spacing:1.5px}.ht-footer-copy small{font-size:10px;line-height:1.3}.ht-footer-bottom{font-size:11px}.ht-footer-brand{flex-wrap:wrap}.ht-footer-copy{flex:1 1 0;min-width:0}.ht-footer-links{flex:0 0 100%;margin-left:0;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}.ht-footer-links a{font-size:12px;padding:5px 12px 5px 5px;white-space:normal;word-break:break-all}.ht-footer-links .ic{width:24px;height:24px}}
+@media(max-width:940px){.ht-footer-brand{flex-wrap:wrap}.ht-footer-copy{flex:1 1 0;min-width:0}.ht-footer-links{flex:0 0 100%;margin-left:0}}
 </style>
 <footer class="lfoot ht-footer">
   <div class="lw ht-footer-inner">
@@ -812,6 +820,10 @@ details.dd>.ddb{padding:4px 18px 16px;border-top:1px solid var(--line)}
         <strong>HTC Software Solutions</strong>
         <span>Ideas to Digital Reality</span>
         <small>Web Development · Mobile App Development · Cloud Solutions · Website Maintenance &amp; Support</small>
+      </div>
+      <div class="ht-footer-links">
+        <a class="fb" href="https://www.facebook.com/share/1HxtsgPvXV/" target="_blank" rel="noopener noreferrer" aria-label="ফেসবুক পেজ"><span class="ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg></span>ফেসবুক পেজ</a>
+        <a class="ml" href="mailto:studentpay.smp@gmail.com" aria-label="ইমেইল"><span class="ic"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>studentpay.smp@gmail.com</a>
       </div>
     </div>
     <div class="ht-footer-bottom">
@@ -2056,7 +2068,7 @@ function openWorkspace(uid, p) {
   unAll(dataUns); ctx = uid; ctxProfile = p; S = {}; P = {}; page = (REST && REST.ctx === uid && TITLES[REST.page] && REST.page !== 'head') ? REST.page : 'dash'; REST = null; ui = {};
   instLogo = ''; pendingInst = undefined; RG = {}; AD = {}; LG = {}; AP = {}; headIn = false;
   dataUns.push(onValue(ref(db, `institutionData/${uid}/approvals`), s => { AP = s.val() || {}; updChip(); if ((page === 'head' || page === 'hpro' || page === 'dash') && !$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#headF'))) render(); }, () => {}));
-  dataUns.push(onValue(ref(db, `instLedger/${uid}`), s => { LG = s.val() || {}; if (ctx === uid && page === 'dash' && !$('#dlg').open) render(); }, () => {}));
+  dataUns.push(onValue(ref(db, `instLedger/${uid}`), s => { LG = s.val() || {}; if (ctx === uid && (page === 'dash' || page === 'stu') && !$('#dlg').open) render(); }, () => {}));
   dataUns.push(onValue(ref(db, `schoolLogos/${uid}`), s => { instLogo = (s.val() || {}).logo || ''; }, () => {}));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/students`), s => { S = s.val() || {}; render(); autoHeal(); }, e => toast(errMsg(e))));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/payments`), s => { P = s.val() || {}; render(); autoHeal(); }, e => toast(errMsg(e))));
@@ -2151,8 +2163,15 @@ const FW_MAX = 10 * 60 * 1000;
 let fwLast = 0, fwLoaded = false, fwShown = null, fwAdmPrev;
 const fwOnline = () => fwLast > 0 && nowSrv() - fwLast < FW_MAX;
 /* অ্যাডমিন "শুধু ম্যানুয়াল ভেরিফাই" চালু করলে ফরওয়ার্ডার অফলাইনেও পেমেন্ট নেওয়া যায় (paySettings/manualOnly) */
-const payOpen = () => fwOnline() || (paySet && paySet.manualOnly === true);
-const fwNote = () => !fwLoaded ? '<div class="hint">⏳ অটো ভেরিফিকেশন যাচাই হচ্ছে...</div>'
+/* পেমেন্ট সার্ভিস চালু থাকার সময় (অ্যাডমিন: ওয়েবসাইট সেটিং) — siteSettings/payHrs {on, from, to} (দিনের মিনিট, বাংলাদেশ সময় UTC+6) */
+const payHrs = () => { const h = site && site.payHrs; return h && h.on === true && isFinite(h.from) && isFinite(h.to) && h.from !== h.to ? h : null; };
+const dhakaMin = () => { const d = new Date(nowSrv() + 21600000); return d.getUTCHours() * 60 + d.getUTCMinutes(); };
+const payInHours = () => { const h = payHrs(); if (!h) return true; const m = dhakaMin(); return h.from < h.to ? (m >= h.from && m < h.to) : (m >= h.from || m < h.to); };
+const hrsLbl = m => { const h = Math.floor(m / 60), mi = m % 60, p = h < 4 ? 'রাত' : h < 12 ? 'সকাল' : h < 15 ? 'দুপুর' : h < 18 ? 'বিকাল' : h < 20 ? 'সন্ধ্যা' : 'রাত'; return p + ' ' + bn(h % 12 || 12) + (mi ? ':' + (mi < 10 ? '০' : '') + bn(mi) : 'টা'); };
+const minToTime = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const payClosedMsg = () => payInHours() ? 'এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না, একটু পরে চেষ্টা করুন।' : 'পেমেন্ট সার্ভিস প্রতিদিন ' + hrsLbl(payHrs().from) + ' থেকে ' + hrsLbl(payHrs().to) + ' পর্যন্ত চালু থাকে। এখন সার্ভিস বন্ধ আছে — নির্দিষ্ট সময়ের মধ্যে আবার চেষ্টা করুন।';
+const payOpen = () => payInHours() && (fwOnline() || (paySet && paySet.manualOnly === true));
+const fwNote = () => !payInHours() ? `<div class="hint" style="color:var(--out);font-weight:600">🔴 ${esc(payClosedMsg())}</div>` : !fwLoaded ? '<div class="hint">⏳ অটো ভেরিফিকেশন যাচাই হচ্ছে...</div>'
   : fwOnline() ? '<div class="hint" style="color:var(--pri);font-weight:600">🟢 অটো ভেরিফিকেশন চালু</div>'
   : (paySet && paySet.manualOnly === true) ? '<div class="hint" style="color:#b45309;font-weight:600">🟠 পেমেন্ট করে "পেমেন্ট করেছি" চাপুন, অ্যাডমিন যাচাই করে রসিদ দেবেন।</div>'
   : '<div class="hint" style="color:var(--out);font-weight:600">🔴 এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না, একটু পরে চেষ্টা করুন।</div>';
@@ -2293,7 +2312,7 @@ async function openPayDlg(bid) {
   stuBid = bid || stuBid;
   const b = stuRec && stuBill(); if (!b || !(b.amount > 0)) return;
   const d = $('#dlg'); stopPay(); payM = 'bkash';
-  if (!payOpen()) { d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">🔴</div><h3>এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না</h3><p class="sub">একটু পরে চেষ্টা করুন।</p></div><div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`; if (!d.open) d.showModal(); return; }
+  if (!payOpen()) { d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">🔴</div><h3>${payInHours() ? 'এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না' : 'পেমেন্ট সার্ভিস এখন বন্ধ'}</h3><p class="sub">${esc(payClosedMsg())}</p></div><div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`; if (!d.open) d.showModal(); return; }
   try {
     if ((await get(ref(db, 'payBlock/' + stuKey))).exists()) {
       d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">⏳</div><h3>ভেরিফাই রিকোয়েস্ট পাঠানো আছে</h3><p class="sub">আপনার পেমেন্ট ভেরিফাই রিকোয়েস্ট অ্যাডমিনের কাছে পাঠানো হয়েছে। অ্যাডমিন ব্যবস্থা না নেওয়া পর্যন্ত নতুন পেমেন্ট করা যাবে না।</p></div><div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`;
@@ -2313,11 +2332,11 @@ function openPayForm() {
   <div class="paybox"><div class="sub"><b>${esc(billNo(b.id))}</b> • ${esc(b.title)}${b.month ? ' (' + bnMonth(b.month) + ')' : ''}</div><div class="rowb"><span>পরিশোধযোগ্য টাকা</span><b>${tk(b.amount)}</b></div><div class="rowb"><span>অনলাইন চার্জ (${money2(chgRate() * 100)}%)</span><b>${tk(charge)}</b></div><div class="totl"><span>মোট পরিশোধ</span><b>৳ ${money2(total)}</b></div></div>
   <form id="pf"><label>পেমেন্ট মাধ্যম</label><div class="seg mseg"><button type="button" class="on" data-act="pm" data-m="bkash" aria-label="বিকাশ">${mLogo('bkash', 40)}</button><button type="button" data-act="pm" data-m="rocket" aria-label="রকেট">${mLogo('rocket', 40)}</button></div>
   <label>যে নম্বর থেকে পেমেন্ট করবেন</label><div class="ph"><span>+880</span><input name="sender" required maxlength="10" inputmode="numeric" pattern="1[3-9][0-9]{8}" title="+880 এর পরে ১০ সংখ্যার মোবাইল নম্বর দিন" placeholder="১০ সংখ্যা"></div>
-  ${paySet.qr ? '' : '<div class="hint" style="color:var(--out)">পেমেন্ট এখনো চালু হয়নি।</div>'}${payOpen() ? '' : '<div class="hint" style="color:var(--out)">এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না, একটু পরে চেষ্টা করুন।</div>'}${fwOnline() || !payOpen() ? '' : '<div class="hint" style="color:#b45309">পেমেন্ট করে "পেমেন্ট করেছি" চাপুন — অ্যাডমিন হাতে ভেরিফাই করবেন।</div>'}
+  ${paySet.qr ? '' : '<div class="hint" style="color:var(--out)">পেমেন্ট এখনো চালু হয়নি।</div>'}${payOpen() ? '' : '<div class="hint" style="color:var(--out)">' + esc(payClosedMsg()) + '</div>'}${fwOnline() || !payOpen() ? '' : '<div class="hint" style="color:#b45309">পেমেন্ট করে "পেমেন্ট করেছি" চাপুন — অ্যাডমিন হাতে ভেরিফাই করবেন।</div>'}
   <div class="row end"><button type="button" class="btn ghost" data-act="close">বাতিল</button><button class="btn" ${paySet.qr && payOpen() ? '' : 'disabled'}>পেমেন্ট করুন</button></div></form>`;
 }
 async function startPay(sender) {
-  if (!payOpen()) throw new Error('এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না, একটু পরে চেষ্টা করুন');
+  if (!payOpen()) throw new Error(payClosedMsg());
   const b = stuBill(); if (!b) throw new Error('বিলটি আর পাওয়া যাচ্ছে না'); const { charge, total } = calcPay(b.amount), id = push(ref(db, 'payReq')).key;
   const req = { uid: stuRec.uid, sid: stuRec.sid, key: stuKey, school: stuRec.school, name: stuRec.name, class: stuRec.class, roll: stuRec.roll || '', title: b.title, amount: b.amount, charge, total, method: payM, sender, status: 'pending', createdAt: { '.sv': 'timestamp' } };
   req.bid = b.id;
@@ -2475,11 +2494,20 @@ const TIERS = {
 };
 const tierOf = uid => { const t = ((ledgerAll[uid] || {}).sub || {}).tier; return TIERS[t] ? t : 'basic'; };
 const tierIcon = uid => { const t = tierOf(uid), [l, c, p] = TIERS[t]; return `<span class="tier tier-${t}" title="${l} সাবস্ক্রিপশন" aria-label="${l} সাবস্ক্রিপশন" style="display:inline-flex;vertical-align:-4px;margin:0 2px"><svg viewBox="0 0 24 24" width="20" height="20" fill="${c}" fill-opacity=".22" stroke="${c}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${p}</svg></span>`; };
+/* ===== সাবস্ক্রিপশন অনুযায়ী শিক্ষার্থী সংখ্যার সীমা (প্রতিষ্ঠানের ওয়েবসাইটে): বেসিক ৫০০, সিলভার ১০০০, গোল্ডেন ১০০০+ (সীমাহীন) ===== */
+const STU_LIM = { basic: 500, silver: 1000, gold: Infinity };
+const stuLimTxt = t => STU_LIM[t] === Infinity ? '১০০০+' : bn(STU_LIM[t]);
+const myTier = () => { const t = ((LG || {}).sub || {}).tier; return TIERS[t] ? t : 'basic'; };
+const stuCnt = () => Object.keys(S || {}).length;
+const stuAtLimit = () => stuCnt() >= STU_LIM[myTier()];
+const stuLimMsg = () => { const t = myTier(), nx = t === 'basic' ? 'silver' : 'gold'; return TIERS[t][0] + ' সাবস্ক্রিপশনে সর্বোচ্চ ' + bn(STU_LIM[t]) + ' জন শিক্ষার্থী যুক্ত করা যায়, আপনার প্রতিষ্ঠানে এখন ' + bn(stuCnt()) + ' জন আছে। আরও শিক্ষার্থী যুক্ত করতে ' + TIERS[nx][0] + ' সাবস্ক্রিপশন (' + (nx === 'silver' ? 'সর্বোচ্চ ১০০০ জন' : '১০০০+ জন') + ') নিন — অ্যাডমিনের সাথে যোগাযোগ করুন।'; };
+const stuLimDlg = () => { const d = $('#dlg'); d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">🚫</div><h3>শিক্ষার্থী সংখ্যার সীমা পূর্ণ</h3><p class="sub">${esc(stuLimMsg())}</p></div><div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`; if (!d.open) d.showModal(); };
+const stuLimChip = () => { const t = myTier(), c = TIERS[t][1], full = stuAtLimit(); return `<span class="sub" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid ${full ? 'var(--out)' : c};border-radius:20px;font-weight:600;color:${full ? 'var(--out)' : c};white-space:nowrap" title="${TIERS[t][0]} সাবস্ক্রিপশন — সর্বোচ্চ ${stuLimTxt(t)} জন">👥 ${bn(stuCnt())} / ${stuLimTxt(t)} • ${TIERS[t][0]}</span>`; };
 function subModal(uid) {
   const sb = (ledgerAll[uid] || {}).sub || {}, nm = (adminList[uid] || {}).name || '';
   modal('সাবস্ক্রিপশন (ধরন ও মাসিক চার্জ) — ' + esc(nm),
-    `<div class="w"><div class="note">এই প্রতিষ্ঠানের জন্য মাসিক সাবস্ক্রিপশন চার্জ। এটি <b>মেইনটেন্স চার্জ</b> হিসেবে হিসাবে যোগ হবে — প্রথম মাসের চার্জ সেট করার দিনেই, এরপর প্রতি মাসের ১ তারিখে। জমা থেকে কাটার মতো টাকা থাকলে কেটে নেওয়া (সেটেল) হবে, না থাকলে ‘বকেয়া’ থাকবে। টাকা বদলালে পরের মাসগুলো থেকে নতুন টাকা প্রযোজ্য হবে। অ্যাডমিন প্যানেল খোলা হলে মিস হওয়া মাসগুলোও যোগ হয়ে যাবে। বন্ধ করতে টাকা ০ দিন।</div></div>` +
-    sel('সাবস্ক্রিপশনের ধরন', 'tier', Object.entries(TIERS).map(([k, v]) => [k, v[0]]), tierOf(uid), true) +
+    `<div class="w"><div class="note">এই প্রতিষ্ঠানের জন্য মাসিক সাবস্ক্রিপশন চার্জ। এটি <b>মেইনটেন্স চার্জ</b> হিসেবে হিসাবে যোগ হবে — প্রথম মাসের চার্জ সেট করার দিনেই, এরপর প্রতি মাসের ১ তারিখে। জমা থেকে কাটার মতো টাকা থাকলে কেটে নেওয়া (সেটেল) হবে, না থাকলে ‘বকেয়া’ থাকবে। টাকা বদলালে পরের মাসগুলো থেকে নতুন টাকা প্রযোজ্য হবে। অ্যাডমিন প্যানেল খোলা হলে মিস হওয়া মাসগুলোও যোগ হয়ে যাবে। বন্ধ করতে টাকা ০ দিন।<br><br><b>শিক্ষার্থী সংখ্যার সীমা:</b> বেসিক সর্বোচ্চ ৫০০ জন, সিলভার সর্বোচ্চ ১০০০ জন, গোল্ডেন ১০০০+ (সীমাহীন)। সীমা পূর্ণ হলে প্রতিষ্ঠান নতুন শিক্ষার্থী যুক্ত করতে পারবে না; আগে থেকে থাকা শিক্ষার্থীরা থাকবে।</div></div>` +
+    sel('সাবস্ক্রিপশনের ধরন', 'tier', Object.entries(TIERS).map(([k, v]) => [k, v[0] + ' — শিক্ষার্থী সর্বোচ্চ ' + stuLimTxt(k) + (k === 'gold' ? ' (সীমাহীন)' : ' জন')]), tierOf(uid), true) +
     inp('মাসিক চার্জ (৳) *', 'amount', sb.amount || '', 'number', 'min="0" step="0.01" required inputmode="decimal"', true),
     async f => {
       const amt = Math.round((Number(f.amount) || 0) * 100) / 100; if (!(amt >= 0)) throw new Error('টাকার পরিমাণ সঠিক দিন');
@@ -2765,6 +2793,10 @@ function renderAdmin() {
         <button type="button" class="btn sm ghost" style="margin-top:8px" data-act="rmlogo">লোগো সরান</button></div></div>
       ${inp('অনলাইন চার্জ (শতকরা হার %) *', 'chargePct', site.chargePct, 'number', 'required min="0" max="100" step="0.01" inputmode="decimal"')}
       <div class="hint">শিক্ষার্থী অনলাইনে পেমেন্ট করলে বিলের টাকার উপর এই হারে অনলাইন চার্জ যোগ হবে। চার্জের টাকা সবসময় পূর্ণ সংখ্যায় উপরে ধরা হয় — যেমন ২.৫ হলে ৩ টাকা, ৩.৩ হলে ৪ টাকা।</div>
+      <div style="margin:16px 0 8px;font-weight:700">পেমেন্ট সার্ভিস চালু থাকার সময়</div>
+      <label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 10px;cursor:pointer;font-weight:600"><input type="checkbox" name="hrsOn" ${site.payHrs && site.payHrs.on === true ? 'checked' : ''} style="width:20px;height:20px;flex:none;margin-top:2px"><span>নির্দিষ্ট সময়ে পেমেন্ট সার্ভিস চালু রাখুন<span class="hint" style="display:block;font-weight:400">চালু করলে নিচের সময়ের বাইরে শিক্ষার্থীরা ওয়েবসাইটে পেমেন্ট করতে পারবে না (বাংলাদেশ সময় অনুযায়ী, প্রতিদিন)। বন্ধ রাখলে সারাদিন পেমেন্ট চালু থাকবে।</span></span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${inp('শুরুর সময়', 'hrsFrom', minToTime(site.payHrs && isFinite(site.payHrs.from) ? site.payHrs.from : 540), 'time', '')}${inp('শেষের সময়', 'hrsTo', minToTime(site.payHrs && isFinite(site.payHrs.to) ? site.payHrs.to : 1320), 'time', '')}</div>
+      <div class="hint">${payHrs() ? (payInHours() ? '🟢 এখন সময়ের মধ্যে — পেমেন্ট সার্ভিস চালু' : '🔴 এখন সময়ের বাইরে — পেমেন্ট সার্ভিস বন্ধ') + ' (প্রতিদিন ' + hrsLbl(payHrs().from) + ' থেকে ' + hrsLbl(payHrs().to) + ' পর্যন্ত)' : '⚪ সময়সীমা বন্ধ আছে — পেমেন্ট সারাদিন চালু'}। রাত পার হওয়া সময়ও দেওয়া যায় (যেমন রাত ১০টা থেকে সকাল ৬টা)।</div>
       <button class="btn full">সংরক্ষণ করুন</button></form></div>
     <div class="panel" style="max-width:620px"><h3>পেমেন্ট সেটিং</h3><form id="payF">
       <label>পেমেন্ট নির্দেশনা (শিক্ষার্থী দেখবে)</label><textarea class="tarea" name="instructions" rows="4" maxlength="1500">${esc(paySet.instructions || '')}</textarea>
@@ -2949,7 +2981,7 @@ function pStu() {
   <div class="panel flush"><div class="toolbar">
     <input data-ui="q" placeholder="নাম, আইডি, ${RLB()}, অভিভাবক বা মোবাইল দিয়ে খুঁজুন" value="${esc(ui.q || '')}">
     <select data-ui="cls"><option value="">সব শ্রেণি</option>${classes.map(c => `<option ${ui.cls === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>
-    ${stuArr().some(x => !x.suid) ? `<button class="btn ghost" data-act="genuids">🆔 আইডি তৈরি (${bn(stuArr().filter(x => !x.suid).length)})</button>` : ''}<button class="btn ghost" data-act="bulkbill">একসাথে বিল</button><button class="btn ghost" data-act="smsq">📲 SMS কিউ</button><button class="btn ghost" data-act="smsa">📡 অটো SMS</button><button class="btn" data-act="addstu">+ নতুন শিক্ষার্থী</button></div>
+    ${stuArr().some(x => !x.suid) ? `<button class="btn ghost" data-act="genuids">🆔 আইডি তৈরি (${bn(stuArr().filter(x => !x.suid).length)})</button>` : ''}<button class="btn ghost" data-act="bulkbill">একসাথে বিল</button><button class="btn ghost" data-act="smsq">📲 SMS কিউ</button><button class="btn ghost" data-act="smsa">📡 অটো SMS</button>${stuLimChip()}<button class="btn" data-act="addstu">+ নতুন শিক্ষার্থী</button></div>
     <div id="list"></div></div>`;
   listFn = stuList; $('#list').innerHTML = stuList();
 }
@@ -3287,6 +3319,7 @@ function apAdmExtras(f, reg) {
   return ex;
 }
 function openStu(id, reg) {
+  if (!id && stuAtLimit()) return stuLimDlg();
   stuPhoto = undefined;
   const pre = {}; if (reg) { STU_KEYS.forEach(k => { if (reg[k]) pre[k] = reg[k]; }); if (!pre.prevSchool && reg.prev) pre.prevSchool = reg.prev; if (reg.photo) stuPhoto = reg.photo; }
   const s = id ? S[id] : { status: 'active', gender: 'ছেলে', monthlyFee: '', admissionDate: today(), ...pre };
@@ -3300,6 +3333,7 @@ function openStu(id, reg) {
     sel('অবস্থা', 'status', [['active', 'সক্রিয়'], ['inactive', 'নিষ্ক্রিয়']], s.status),
     async f => {
       const old = id ? S[id] : null;
+      if (!id && stuAtLimit()) throw new Error(stuLimMsg());
       if (apAdm) f = { ...f, prevSchool: f.prev || '' };
       if (!f.class) throw new Error('শ্রেণি নির্বাচন করুন');
       if (!f.gender) throw new Error('লিঙ্গ নির্বাচন করুন');
@@ -3731,6 +3765,7 @@ const A = {
   admf: d => { admF = d.f; if (page === 'adm' || page === 'head') render(); },
   admok: async d => {
     const x = AD[d.id]; if (!x || x.status !== 'pending') return toast('আবেদনটি আর অপেক্ষায় নেই');
+    if (x.kind !== 'manual' && stuAtLimit()) return stuLimDlg();
     try {
       await update(root(), { [`admissionReqs/${ctx}/${d.id}/status`]: 'accepted', [`admissionReqs/${ctx}/${d.id}/decidedAt`]: Date.now() });
       toast(x.kind === 'manual' ? 'অনলাইন আবেদন অনুমোদিত হয়েছে' : 'আবেদন গৃহীত — শিক্ষার্থী তথ্যের ফর্ম খুলছে');
@@ -4575,7 +4610,12 @@ document.addEventListener('submit', async e => {
     else if (id === 'siteF') {
       const logo = pendingLogo !== undefined ? pendingLogo : site.logo;
       const pct = Number(f.chargePct); if (!isFinite(pct) || pct < 0 || pct > 100) throw new Error('অনলাইন চার্জের শতকরা হার ০ থেকে ১০০ এর মধ্যে দিন');
-      await update(ref(db, 'siteSettings'), { name: f.name.trim(), tagline: f.tagline.trim(), logo, chargePct: Math.round(pct * 100) / 100, updatedAt: Date.now() });
+      const tm = v => { const m = /^(\d{1,2}):(\d{2})$/.exec(v || ''); return m ? (+m[1]) * 60 + (+m[2]) : NaN; };
+      const hOn = f.hrsOn === 'on', hf = tm(f.hrsFrom), ht = tm(f.hrsTo);
+      if (hOn && (!isFinite(hf) || !isFinite(ht))) throw new Error('পেমেন্ট চালু থাকার শুরু ও শেষের সময় দিন');
+      if (hOn && hf === ht) throw new Error('শুরু ও শেষের সময় একই হতে পারবে না');
+      const payHrsN = { on: hOn, from: isFinite(hf) ? hf : (site.payHrs && isFinite(site.payHrs.from) ? site.payHrs.from : 540), to: isFinite(ht) ? ht : (site.payHrs && isFinite(site.payHrs.to) ? site.payHrs.to : 1320) };
+      await update(ref(db, 'siteSettings'), { name: f.name.trim(), tagline: f.tagline.trim(), logo, chargePct: Math.round(pct * 100) / 100, payHrs: payHrsN, updatedAt: Date.now() });
       pendingLogo = undefined; toast('সাইট সেটিং সংরক্ষিত হয়েছে');
     }
     else if (id === 'headF') await saveHead(f);
