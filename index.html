@@ -667,6 +667,15 @@ details.dd>.ddb{padding:4px 18px 16px;border-top:1px solid var(--line)}
 #dlg:has(.apfull){width:98vw;max-width:98vw;height:96vh;height:96dvh;max-height:96dvh;padding:22px clamp(16px,3vw,40px)}
 #dlg:has(.apfull) .fg{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:0 22px}
 #dlg:has(.apfull) .fg>.w,#dlg:has(.apfull) .fg>div.w{grid-column:1/-1}
+
+/* ---------- চুক্তিনামা মডিউল ---------- */
+#dlg:has(#agrForm){width:min(980px,96vw);max-height:92dvh}
+#dlg:has(#agrSignedForm){width:min(900px,96vw);max-height:92dvh}
+#agrForm textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:9px;padding:10px 12px;resize:vertical;background:#fff;color:var(--tx)}
+#agrForm textarea:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-bg)}
+#agrForm label,#agrSignedForm label{font-weight:600}
+.agr-row[hidden]{display:none}
+@media(max-width:680px){#agrForm .fg{grid-template-columns:1fr}#agrForm .fg>.w{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -1216,8 +1225,8 @@ const STATUS = {pending:'অপেক্ষমাণ', approved:'অনুমো
 const INC = ['কমিটির টাকা','অনুদান / দান','সরকারি বরাদ্দ','অন্যান্য আয়']; /* শিক্ষার্থীর ফি এখানে নেই — তা শুধু শিক্ষার্থীর প্রোফাইল থেকে পেমেন্টে জমা হয় */
 const EXP = ['শিক্ষক-কর্মচারী বেতন','ভাড়া','বিদ্যুৎ/পানি/ইন্টারনেট','শিক্ষা উপকরণ','মেরামত','অন্যান্য খরচ'];
 const METHODS = ['নগদ','বিকাশ','নগদ (Nagad)','রকেট','ব্যাংক','চেক'].map(x => [x, x]);
-const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['reg','শিক্ষার্থী নিবন্ধন','card'],['tch','শিক্ষক','tch'],['dept','বিভাগ ও বিষয়','card'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['bkp','ব্যাকআপ','db'],['pro','প্রতিষ্ঠানের প্রোফাইল','pro'],['hpro','প্রধানের প্রোফাইল','stu'],['bnk','পেমেন্ট গ্রহণের অ্যাকাউন্ট','pay'],['slg','শিক্ষার্থী লগইন','card']];
-const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', reg:'শিক্ষার্থী নিবন্ধনের আবেদন', tch:'শিক্ষক ও স্টাফ', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', bkp:'ব্যাকআপ ও রিস্টোর', dept:'বিভাগ ও বিষয়', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল', hpro:'প্রতিষ্ঠান প্রধানের প্রোফাইল', bnk:'পেমেন্ট গ্রহণের অ্যাকাউন্ট', slg:'শিক্ষার্থী লগইন'};
+const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['reg','শিক্ষার্থী নিবন্ধন','card'],['tch','শিক্ষক','tch'],['dept','বিভাগ ও বিষয়','card'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['bkp','ব্যাকআপ','db'],['pro','প্রতিষ্ঠানের প্রোফাইল','pro'],['hpro','প্রধানের প্রোফাইল','stu'],['bnk','পেমেন্ট গ্রহণের অ্যাকাউন্ট','pay'],['slg','শিক্ষার্থী লগইন','card'],['agr','চুক্তিনামা','receipt']];
+const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', reg:'শিক্ষার্থী নিবন্ধনের আবেদন', tch:'শিক্ষক ও স্টাফ', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', bkp:'ব্যাকআপ ও রিস্টোর', dept:'বিভাগ ও বিষয়', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল', hpro:'প্রতিষ্ঠান প্রধানের প্রোফাইল', bnk:'পেমেন্ট গ্রহণের অ্যাকাউন্ট', slg:'শিক্ষার্থী লগইন', agr:'চুক্তিনামা'};
 
 /* ---------- সাইটের নাম ও লোগো ---------- */
 const DEF_SITE = { name: 'স্কুল ম্যানেজার', tagline: '', logo: '', chargePct: 1.25 };
@@ -1841,7 +1850,7 @@ function initReveal() {
 }
 
 /* ---------- স্টেট ---------- */
-let instLogo = '', pendingInst, RG = {}, AD = {}, admF = 'pending', LG = {}, ledgerAll = {}, BK = {}, banksAll = {}, lastSettle = null;
+let instLogo = '', pendingInst, RG = {}, AD = {}, AG = {}, admF = 'pending', LG = {}, ledgerAll = {}, BK = {}, banksAll = {}, lastSettle = null;
 const ADMIN_EMAIL = 'mydrive.edu.bd@gmail.com';
 let logNext = false, AL = {}, lhDays = 3, lhEv = '';
 let me = null, ctx = null, ctxProfile = null, S = {}, P = {}, adminList = {}, page = 'dash', ui = {}, listFn = null, registering = false;
@@ -2028,6 +2037,8 @@ async function init(u) {
   AP = {}; headIn = false;
   if (me.isAdmin) {
     baseUns.push(onValue(ref(db, 'institutionProfiles'), s => { adminList = s.val() || {}; if (!ctx) { const rc = REST && REST.ctx; if (rc && adminList[rc]) openWorkspace(rc, adminList[rc]); else { REST = null; show('v-app'); renderAdmin(); } } else if (adminList[ctx]) { ctxProfile = adminList[ctx]; if (!$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('form'))) render(); } syncPublic(); }, e => toast(errMsg(e))));
+    baseUns.push(onValue(ref(db, 'adminProfile'), s => { ADP = s.val() || {}; if (me && me.isAdmin && !ctx && ui.ap === 'aprofile' && !$('#dlg').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('form'))) renderAdminProfile(); }, e => toast('প্রোফাইল পড়া যায়নি: ' + errMsg(e))));
+    baseUns.push(onValue(ref(db, 'agreements'), s => { agreementsAll = s.val() || {}; if (me && me.isAdmin && !ctx && ui.ap === 'agreements' && !$('#dlg').open) renderAdmin(); }, e => toast('চুক্তিনামার তথ্য পড়া যায়নি: ' + errMsg(e))));
     baseUns.push(onValue(ref(db, 'payReq'), s => { payReqs = s.val() || {}; reqLoaded = true; ledAuto(); adminPayRefresh(); bankRefresh(); matchAll(); payAlertCheck(); }, () => {}));
     baseUns.push(onValue(ref(db, 'adminBank'), s => { adminBank = s.val(); bankRefresh(); }, () => {}));
     PRall = {}; let prFirst = true;
@@ -2068,6 +2079,7 @@ function openWorkspace(uid, p) {
   unAll(dataUns); ctx = uid; ctxProfile = p; S = {}; P = {}; page = (REST && REST.ctx === uid && TITLES[REST.page] && REST.page !== 'head') ? REST.page : 'dash'; REST = null; ui = {};
   instLogo = ''; pendingInst = undefined; RG = {}; AD = {}; LG = {}; AP = {}; headIn = false;
   dataUns.push(onValue(ref(db, `institutionData/${uid}/approvals`), s => { AP = s.val() || {}; updChip(); if ((page === 'head' || page === 'hpro' || page === 'dash') && !$('#dlg').open && !$('#apv').open && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#headF'))) render(); }, () => {}));
+  AG = {}; dataUns.push(onValue(ref(db, `agreements/${uid}`), s => { AG = s.val() || {}; if (ctx === uid && page === 'agr' && !$('#dlg').open) render(); }, e => toast('চুক্তির তথ্য পড়া যায়নি: ' + errMsg(e))));
   dataUns.push(onValue(ref(db, `instLedger/${uid}`), s => { LG = s.val() || {}; if (ctx === uid && (page === 'dash' || page === 'stu') && !$('#dlg').open) render(); }, () => {}));
   dataUns.push(onValue(ref(db, `schoolLogos/${uid}`), s => { instLogo = (s.val() || {}).logo || ''; }, () => {}));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/students`), s => { S = s.val() || {}; render(); autoHeal(); }, e => toast(errMsg(e))));
@@ -2127,7 +2139,7 @@ function shell({ nav, active, act, title, sub, actions = '', who = 'প্রত
 }
 
 /* ---------- অ্যাডমিন প্যানেল ---------- */
-const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set'], ['backup', 'ব্যাকআপ', 'db'], ['lh', 'লগইন হিস্ট্রি', 'due'], ['support', 'কাস্টমার সাপোর্ট', 'bell']];
+const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['agreements', 'চুক্তিনামা', 'receipt'], ['aprofile', 'আমার প্রোফাইল', 'stu'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set'], ['backup', 'ব্যাকআপ', 'db'], ['lh', 'লগইন হিস্ট্রি', 'due'], ['support', 'কাস্টমার সাপোর্ট', 'bell']];
 let payReqs = {}, smsList = {}, paySet = {}, payKey = '', pendingQr, matching = false;
 let pf = { st: 'all', m: 'all', sc: 'all', from: '', to: '', q: '' };
 const paySel = new Set(); /* মোছার জন্য বাছা পেমেন্টের আইডি (ভেরিফাইড কখনো এতে আসে না) */
@@ -2716,6 +2728,8 @@ function ledHist(uid) {
 function renderAdmin() {
   const ap = ui.ap || 'inst';
   saveNav({ ap, ctx: null });
+  if (ap === 'agreements') return renderAgreementAdmin();
+  if (ap === 'aprofile') return renderAdminProfile();
   if (ap === 'arep') return renderAdminRep();
   if (ap === 'lh') return renderLoginHist();
   if (ap === 'support') {
@@ -2895,7 +2909,7 @@ function renderInst() {
     `<button class="btn ok" data-act="addpay" data-t="income" title="কমিটি বা অন্য উৎসের টাকা">+ টাকা গ্রহণ (কমিটি/অন্য উৎস)</button><button class="btn bad" data-act="addpay" data-t="expense">− টাকা প্রদান</button>`;
   shell({ nav: NAV, active: page, act: 'nav', title: TITLES[page], sub: esc(ctxProfile.name) + (me.isAdmin ? ' • অ্যাডমিন ভিউ' : ''), actions: acts, brand: brandSch(ctx, ctxProfile.name) });
   listFn = null;
-  ({ dash: pDash, stu: pStu, reg: pReg, adm: pAdm, tch: pTch, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, bkp: pBkp, dept: pDept, head: pHead, pro: pPro, hpro: pHpro, bnk: pBnk, slg: pSlg })[page]();
+  ({ dash: pDash, stu: pStu, reg: pReg, adm: pAdm, tch: pTch, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, bkp: pBkp, dept: pDept, head: pHead, pro: pPro, hpro: pHpro, bnk: pBnk, slg: pSlg, agr: pAgreement })[page]();
 }
 
 const payArr = () => Object.entries(P).map(([id, v]) => ({ id, ...v }));
@@ -5797,7 +5811,7 @@ async function ibExport() {
     const nm = (ctxProfile && ctxProfile.name) || '';
     const txt = JSON.stringify({ format: 'smp-inst-backup', version: 1, uid: ctx, school: nm, createdAt: Date.now(), createdAtText: new Date().toLocaleString('bn-BD'), skipped: [...new Set(skipped)], data });
     bkSave('Backup-' + (nm.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'institute') + '-' + today() + '.json', txt, 'application/json');
-    try { localStorage.setItem('ibLast:' + ctx, new Date().toLocaleString('bn-BD')); } catch (e) {}
+    try { localStorage.setItem('ibLast:' + ctx, new Date().toLocaleString('bn-BD')); localStorage.setItem('ibWk:' + ctx, today()); } catch (e) {}
     ibMsg('✅ Export সম্পন্ন — ফাইলের আকার ' + bn(Math.round(txt.length / 1024)) + ' কেবি' + (skipped.length ? ' • পড়া যায়নি: ' + [...new Set(skipped)].join(', ') : ''));
   } catch (e) { ibMsg('❌ ' + errMsg(e)); }
   ibBusy = false;
@@ -6035,6 +6049,344 @@ Object.assign(A, { lhd: d => { lhDays = Number(d.d) || 3; renderAdmin(); }, lhe:
   catch (er) { logNext = false; toast(er.code === 'auth/invalid-email' ? 'ইমেইল মেলেনি' : er.code === 'auth/invalid-action-code' ? 'লিংকটি মেয়াদোত্তীর্ণ বা আগেই ব্যবহৃত — আবার লগইন করে নতুন লিংক নিন' : errMsg(er)); }
   history.replaceState(null, '', location.pathname);
 })();
+
+/* ================= প্রতিষ্ঠান চুক্তিনামা ব্যবস্থাপনা (SMP Admin) ================= */
+const AGR_STATUS = { draft: 'খসড়া', sent: 'প্রতিষ্ঠানের সম্মতির অপেক্ষায়', signed: 'চূড়ান্ত অনুমোদনের অপেক্ষায়', revision: 'সংশোধনের অপেক্ষায়', active: 'কার্যকর', expired: 'মেয়াদ শেষ', cancelled: 'বাতিল' };
+let ADP = {}, pendAdp = {};
+const AGR_DEFAULTS = {
+  backupTerms: '১. প্রতিষ্ঠানের ডেটা ব্যাকআপ রাখার দায়িত্ব প্রতিষ্ঠান কর্তৃক নিয়োগকৃত সফটওয়্যার ম্যানেজমেন্ট কর্মকর্তার।\n২. প্রতিষ্ঠান কর্তৃক নিয়োগকৃত সফটওয়্যার কর্মকর্তার অবহেলার কারণে কোনো প্রকার অর্থনৈতিক বা তথ্যগত ক্ষতি হলে অ্যাডমিন কর্তৃপক্ষ দায়ী থাকবে না।\n৩. প্রতি রবিবার সকাল ১১ ঘটিকায় প্রতিষ্ঠানের প্যানেলে ডেটা ব্যাকআপ করার অনুরোধ জানিয়ে পপআপ ও বার্তা আসবে। সম্মতি দিলে সম্পূর্ণ ব্যাকআপ শুরু হবে এবং কম্পিউটারে ডাউনলোড হবে; “পরে করব” চাপলে পপআপ বন্ধ হবে।\n৪. অ্যাডমিন কখনো প্রতিষ্ঠানের কোনো টাকা আত্মসাৎ করলে এবং তার উপযুক্ত প্রমাণ থাকলে, উক্ত প্রতিষ্ঠান অ্যাডমিনের বিরুদ্ধে আইনানুগ ব্যবস্থা গ্রহণ করতে পারবে।',
+  scope: 'Student Pay (Student Management Portal – SMP) ব্যবহারের মাধ্যমে শিক্ষার্থী নিবন্ধন ও তথ্য ব্যবস্থাপনা, ফি নির্ধারণ, পেমেন্ট রেকর্ড, মানি রিসিট, হিসাব, রিপোর্ট, নোটিশ এবং চুক্তিতে নির্ধারিত অন্যান্য ডিজিটাল সেবা প্রদান করা হবে।',
+  providerDuty: '১. নির্ধারিত সেবা ও সফটওয়্যার ব্যবহারের প্রবেশাধিকার প্রদান করা।\n২. যুক্তিসংগত প্রযুক্তিগত সহায়তা প্রদান করা।\n৩. সিস্টেম রক্ষণাবেক্ষণ, নিরাপত্তা আপডেট ও ত্রুটি সংশোধনের যথাসাধ্য ব্যবস্থা নেওয়া।\n৪. প্রতিষ্ঠানের তথ্য অনুমোদনহীনভাবে প্রকাশ বা অন্য কাজে ব্যবহার না করা।',
+  institutionDuty: '১. প্রতিষ্ঠানের সঠিক ও হালনাগাদ তথ্য প্রদান করা।\n২. অনুমোদিত ব্যবহারকারীর অ্যাকাউন্ট ও পাসওয়ার্ড গোপন রাখা।\n৩. শিক্ষার্থী/অভিভাবকের তথ্য ব্যবহারের জন্য প্রয়োজনীয় সম্মতি ও আইনগত ভিত্তি নিশ্চিত করা।\n৪. নির্ধারিত সার্ভিস চার্জ সময়মতো পরিশোধ করা এবং ভুল/অবৈধ তথ্য আপলোড না করা।',
+  privacy: 'প্রতিষ্ঠান তার শিক্ষার্থী, অভিভাবক, শিক্ষক ও কর্মচারীর তথ্য সংগ্রহ ও ব্যবহারের আইনগত অধিকার/সম্মতি নিশ্চিত করবে। Student Pay কেবল সেবা পরিচালনা, নিরাপত্তা, ব্যাকআপ ও সহায়তার প্রয়োজনে তথ্য প্রক্রিয়াকরণ করবে। উভয় পক্ষ তথ্যের গোপনীয়তা রক্ষায় যুক্তিসংগত প্রশাসনিক ও প্রযুক্তিগত ব্যবস্থা গ্রহণ করবে।',
+  support: 'সেবা ও সহায়তা অনলাইন/নির্ধারিত যোগাযোগ মাধ্যমে প্রদান করা হবে। ইন্টারনেট, বিদ্যুৎ, তৃতীয় পক্ষের সেবা, জরুরি রক্ষণাবেক্ষণ বা নিয়ন্ত্রণের বাইরে থাকা কারণে সাময়িক বিঘ্ন ঘটতে পারে। এ ধরনের বিঘ্ন কমাতে উভয় পক্ষ সহযোগিতা করবে।',
+  termination: 'যে কোনো পক্ষ চুক্তি বাতিল করতে চাইলে কমপক্ষে ১ (এক) মাস পূর্বে অপর পক্ষকে লিখিত নোটিশ দিতে হবে; নোটিশের মেয়াদ শেষে চুক্তি বাতিল হবে। বকেয়া পাওনা ও পূর্বে সংঘটিত দায় চুক্তি শেষ হলেও বহাল থাকবে। ডেটা রপ্তানি/হস্তান্তরের সময়সীমা ও পদ্ধতি উভয় পক্ষ লিখিতভাবে নির্ধারণ করবে।',
+  dispute: 'চুক্তি-সংক্রান্ত বিরোধ প্রথমে আলোচনার মাধ্যমে নিষ্পত্তির চেষ্টা করা হবে। সমাধান না হলে বাংলাদেশের প্রযোজ্য আইন অনুসারে উপযুক্ত আদালত/কর্তৃপক্ষের আশ্রয় নেওয়া যাবে।',
+  extra: 'এই চুক্তির কোনো পরিবর্তন উভয় পক্ষের লিখিত সম্মতি ছাড়া কার্যকর হবে না। চুক্তির কোনো ধারা অকার্যকর হলেও অন্যান্য ধারা বহাল থাকবে। উভয় পক্ষ চুক্তির সম্পূর্ণ বিষয়বস্তু পড়ে, বুঝে ও স্বেচ্ছায় সম্মত হয়ে স্বাক্ষর করবে।'
+};
+let agreementsAll = {};
+const agrStatusLabel = s => AGR_STATUS[s] || 'অজানা';
+const agrOpenFix = (x, by) => Object.values(x.corrections || {}).filter(c => c && c.by === by && c.version === (x.version || 1));
+const agrEffectiveStatus = x => {
+  if (!x) return 'draft'; const s = x.status || 'draft';
+  if (s === 'active') { if (x.cancelNotice && x.cancelNotice.effectiveTs < Date.now()) return 'cancelled'; if (x.endDate && x.endDate < today()) return 'expired'; }
+  if (s === 'sent') { if (agrOpenFix(x, 'inst').length) return 'revision'; if (x.inst && x.inst.version === (x.version || 1)) return 'signed'; }
+  return s;
+};
+const agrEditable = x => !x || ['draft', 'revision'].includes(agrEffectiveStatus(x));
+let agrExpirePending = new Set();
+function agrAutoExpire(rows) {
+  if (!me || !me.isAdmin || ctx) return;
+  rows.filter(x => x.status === 'active' && ['expired', 'cancelled'].includes(agrEffectiveStatus(x)) && !agrExpirePending.has(x.uid + '/' + x.id)).forEach(x => {
+    const k = x.uid + '/' + x.id, s = agrEffectiveStatus(x); agrExpirePending.add(k);
+    fbUpdate(ref(db, `agreements/${x.uid}/${x.id}`), { status: s, [s + 'At']: Date.now(), statusAt: Date.now(), statusBy: me.uid, updatedAt: Date.now(), updatedBy: me.uid })
+      .catch(e => toast('স্ট্যাটাস আপডেট হয়নি: ' + errMsg(e))).finally(() => agrExpirePending.delete(k));
+  });
+}
+const agrDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+const agrRec = (uid, id) => (uid === ctx ? AG[id] : ((agreementsAll[uid] || {})[id])) || null;
+const agrRows = () => Object.entries(agreementsAll || {}).flatMap(([uid, list]) => Object.entries(list || {}).filter(([, x]) => x && typeof x === 'object').map(([id, x]) => ({ uid, id, ...x })));
+const agrStatusClass = s => ({ draft: 'b-pending', sent: 'b-pending', signed: 'b-approved', active: 'b-active', expired: 'b-suspended', cancelled: 'b-rejected' }[s] || 'b-suspended');
+function renderAgreementAdmin() {
+  if (!me || !me.isAdmin || ctx) return;
+  const rows = agrRows().sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+  agrAutoExpire(rows);
+  const counts = Object.keys(AGR_STATUS).reduce((o, k) => (o[k] = rows.filter(x => agrEffectiveStatus(x) === k).length, o), {});
+  const renewSoon = rows.filter(x => agrEffectiveStatus(x) === 'active' && x.endDate && x.endDate >= today() && x.endDate <= new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10));
+  const insts = Object.entries(adminList || {}).filter(([, x]) => x && x.name).sort((a, b) => a[1].name.localeCompare(b[1].name, 'bn'));
+  shell({ nav: ANAV, active: 'agreements', act: 'adminnav', title: 'প্রতিষ্ঠান চুক্তিনামা', sub: 'প্রতিষ্ঠানভিত্তিক সেবা চুক্তি তৈরি, স্বাক্ষর ও মেয়াদ ব্যবস্থাপনা', who: 'সুপার অ্যাডমিন' });
+  $('#main').innerHTML = `
+    <div class="kpis">
+      <div class="kpi"><span>মোট চুক্তি</span><b>${bn(rows.length)}</b></div>
+      <div class="kpi du"><span>খসড়া / প্রেরিত</span><b>${bn(counts.draft + counts.sent)}</b></div>
+      <div class="kpi in"><span>সক্রিয়</span><b>${bn(counts.active)}</b></div>
+      <div class="kpi du"><span>৩০ দিনের মধ্যে মেয়াদ শেষ</span><b>${bn(renewSoon.length)}</b></div>
+      <div class="kpi ex"><span>মেয়াদ শেষ / বাতিল</span><b>${bn(counts.expired + counts.cancelled)}</b></div>
+    </div>
+    ${renewSoon.length ? `<div class="note" style="margin:0 0 16px"><b>নবায়নের জন্য নজর দিন:</b> ${renewSoon.map(x => esc(x.institutionName) + ' — ' + agrDate(x.endDate)).join(' • ')}</div>` : ''}
+    <div class="panel">
+      <h3 style="margin-top:0">নতুন চুক্তিনামা</h3>
+      <div class="toolbar" style="padding:0;border:0;align-items:end">
+        <div style="flex:1;min-width:220px"><label for="agrSchool">প্রতিষ্ঠান নির্বাচন করুন</label><select id="agrSchool"><option value="">প্রতিষ্ঠান বাছাই করুন</option>${insts.map(([id, x]) => `<option value="${esc(id)}">${esc(x.name)} — ${esc(TYPE_L[instType(x)] || '')}</option>`).join('')}</select></div>
+        <button type="button" class="btn" data-act="agrnew">＋ চুক্তি তৈরি</button>
+      </div>
+      <p class="hint">প্রতিষ্ঠান অনুমোদিত না হলেও তালিকা থেকে চুক্তি তৈরি করা যাবে। চুক্তি প্রথমে খসড়া অবস্থায় সংরক্ষিত হবে।</p>
+    </div>
+    <div class="panel flush">
+      <h3 style="padding:16px 18px 0;margin:0">চুক্তির তালিকা</h3>
+      <div class="toolbar"><input id="agrSearch" type="search" placeholder="প্রতিষ্ঠান, চুক্তি নম্বর বা EIIN দিয়ে খুঁজুন"><select id="agrFilter" style="max-width:190px"><option value="all">সব স্ট্যাটাস</option>${Object.entries(AGR_STATUS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></div>
+      <div class="tw"><table><thead><tr><th>চুক্তি / প্রতিষ্ঠান</th><th>মেয়াদ</th><th>সার্ভিস চার্জ</th><th>অবস্থা</th><th>সর্বশেষ আপডেট</th><th>কার্যক্রম</th></tr></thead><tbody id="agrRows">
+      ${rows.map(x => `<tr class="agr-row" data-status="${esc(agrEffectiveStatus(x))}" data-search="${esc([x.agreementNo, x.institutionName, x.eiin].join(' ').toLowerCase())}">
+        <td><b>${esc(x.agreementNo || 'নম্বর নেই')}</b><div>${esc(x.institutionName || '')}</div><div class="sub">${esc(x.eiin ? 'EIIN: ' + x.eiin : x.uid)}</div></td>
+        <td>${agrDate(x.startDate)}<div class="sub">থেকে ${agrDate(x.endDate)} পর্যন্ত</div></td>
+        <td>${esc(x.serviceCharge || 'আলোচনা সাপেক্ষে')}</td>
+        <td><span class="badge ${agrStatusClass(agrEffectiveStatus(x))}">${agrStatusLabel(agrEffectiveStatus(x))}</span></td>
+        <td>${x.updatedAt ? new Date(x.updatedAt).toLocaleDateString('bn-BD') : '—'}</td>
+        <td><div class="row" style="flex-wrap:nowrap"><button class="btn sm" data-act="agrview" data-u="${esc(x.uid)}" data-id="${esc(x.id)}">খুলুন</button><button class="btn sm ghost" data-act="agrprint" data-u="${esc(x.uid)}" data-id="${esc(x.id)}">PDF</button></div></td>
+      </tr>`).join('') || '<tr><td colspan="6" class="empty"><b>এখনো কোনো চুক্তিনামা তৈরি হয়নি</b>উপরের তালিকা থেকে প্রতিষ্ঠান বেছে প্রথম চুক্তি তৈরি করুন।</td></tr>'}
+      </tbody></table></div>
+    </div>
+    <div class="note" style="margin-top:4px">সব তথ্য ও ডিজিটাল স্বাক্ষর Realtime Database-এ সংরক্ষিত হয়। চূড়ান্ত সম্মতির জন্য “আমার প্রোফাইল” মেনুতে আপনার স্বাক্ষর যুক্ত থাকতে হবে। চূড়ান্ত PDF: লিগ্যাল সাইজ, ৩ পেজ।</div>`;
+}
+function agrOpenEditor(uid, id = '') {
+  if (!me || !me.isAdmin || ctx) return toast('শুধু সুপার অ্যাডমিন চুক্তি তৈরি বা সম্পাদনা করতে পারবেন');
+  const inst = adminList[uid]; if (!inst) return toast('প্রতিষ্ঠানের তথ্য পাওয়া যায়নি');
+  const old = id ? agrRec(uid, id) : null;
+  if (old && !agrEditable(old)) return toast('এই ধাপে চুক্তি সম্পাদনা করা যাবে না।');
+  const start = old && old.startDate || today();
+  const endDefault = new Date(start + 'T00:00:00'); endDefault.setFullYear(endDefault.getFullYear() + 1);
+  const end = old && old.endDate || endDefault.toISOString().slice(0, 10);
+  const val = (k, d = '') => esc(old && old[k] != null ? old[k] : d);
+  const d = $('#dlg');
+  d.innerHTML = `<h3>${old ? 'চুক্তির খসড়া সম্পাদনা' : 'নতুন সেবা চুক্তিনামা তৈরি'}</h3><p class="sub" style="margin:0 0 12px">${esc(inst.name)} • ${esc(inst.email || '')}</p>
+    <form id="agrForm" data-u="${esc(uid)}" data-id="${esc(id)}">
+      <div class="fg">
+        <div><label>চুক্তি নম্বর</label><input name="agreementNo" value="${val('agreementNo', 'SMP-AGR-' + new Date().getFullYear() + '-' + Date.now().toString(36).toUpperCase().slice(-6))}" required maxlength="40"></div>
+        <div><label>প্রতিষ্ঠানের EIIN / রেজিস্ট্রেশন</label><input name="eiin" value="${val('eiin', inst.eiin || '')}" maxlength="80"></div>
+        <div><label>সেবা প্রদানকারীর আইনগত নাম / মালিকের নাম *</label><input name="providerLegalName" value="${val('providerLegalName', ADP.name || site.name || 'Student Pay')}" required maxlength="160"></div>
+        <div><label>সেবা প্রদানকারীর নিবন্ধন / TIN (ঐচ্ছিক)</label><input name="providerReg" value="${val('providerReg', ADP.tin || '')}" maxlength="100"></div>
+        <div><label>সেবা প্রদানকারীর ঠিকানা</label><input name="providerAddress" value="${val('providerAddress', ADP.address || '')}" maxlength="250"></div>
+        <div><label>সেবা প্রদানকারীর মোবাইল</label><input name="providerPhone" value="${val('providerPhone', ADP.phone || '')}" maxlength="40"></div>
+        <div><label>সেবা প্রদানকারীর ইমেইল</label><input type="email" name="providerEmail" value="${val('providerEmail', ADP.email || me.email || '')}" maxlength="160"></div>
+        <div><label>প্রতিষ্ঠানের অনুমোদিত প্রতিনিধির নাম</label><input name="representativeName" value="${val('representativeName', (inst.head || {}).name || '')}" maxlength="160"></div>
+        <div><label>প্রতিনিধির পদবি</label><input name="representativeDesignation" value="${val('representativeDesignation', (inst.head || {}).designation || 'প্রতিষ্ঠান প্রধান')}" maxlength="100"></div>
+        <div><label>চুক্তি শুরুর তারিখ *</label><input type="date" name="startDate" value="${esc(start)}" required></div>
+        <div><label>চুক্তি শেষের তারিখ *</label><input type="date" name="endDate" value="${esc(end)}" required></div>
+        <div><label>সার্ভিস চার্জ / ফি *</label><input name="serviceCharge" value="${val('serviceCharge', 'আলোচনা সাপেক্ষে') }" required maxlength="120" placeholder="যেমন: মাসিক ৳ ৫০০ / বার্ষিক ৳ ৫,০০০"></div>
+        <div><label>পেমেন্টের সময় ও পদ্ধতি</label><input name="paymentTerms" value="${val('paymentTerms', 'প্রতি মাসের প্রথম ১০ দিনের মধ্যে নির্ধারিত মাধ্যমে') }" maxlength="250"></div>
+        <div><label>সাবস্ক্রাইব ফি</label><input name="subscribeFee" value="${val('subscribeFee')}" maxlength="120" placeholder="যেমন: ৳ ৫,০০০"></div>
+        <div><label>সাবস্ক্রাইব ধরণ</label><input name="subscribeType" list="agrSubTypes" value="${val('subscribeType')}" maxlength="120"><datalist id="agrSubTypes"><option value="মাসিক"><option value="ত্রৈমাসিক"><option value="ষান্মাসিক"><option value="বার্ষিক"><option value="এককালীন"></datalist></div>
+        <div class="w"><label>সাবস্ক্রিপশনের বর্ণনা</label><textarea name="subscribeDesc" rows="3" maxlength="1500">${val('subscribeDesc')}</textarea></div>
+        <div><label>সেবা প্রদানকারীর সাক্ষী ১ — নাম</label><input name="pw1Name" value="${val('pw1Name')}" maxlength="160"></div><div><label>সাক্ষী ১ — জাতীয় পরিচয়পত্র নম্বর</label><input name="pw1Nid" value="${val('pw1Nid')}" maxlength="20" inputmode="numeric"></div>
+        <div><label>সেবা প্রদানকারীর সাক্ষী ২ — নাম</label><input name="pw2Name" value="${val('pw2Name')}" maxlength="160"></div><div><label>সাক্ষী ২ — জাতীয় পরিচয়পত্র নম্বর</label><input name="pw2Nid" value="${val('pw2Nid')}" maxlength="20" inputmode="numeric"></div>
+        <div class="w"><label>চুক্তির আওতাভুক্ত সেবা</label><textarea name="scope" rows="3" maxlength="3000">${val('scope', AGR_DEFAULTS.scope)}</textarea></div>
+        <div class="w"><label>Student Pay-এর দায়িত্ব</label><textarea name="providerDuty" rows="4" maxlength="3000">${val('providerDuty', AGR_DEFAULTS.providerDuty)}</textarea></div>
+        <div class="w"><label>প্রতিষ্ঠানের দায়িত্ব</label><textarea name="institutionDuty" rows="4" maxlength="3000">${val('institutionDuty', AGR_DEFAULTS.institutionDuty)}</textarea></div>
+        <div class="w"><label>তথ্যের গোপনীয়তা ও নিরাপত্তা</label><textarea name="privacy" rows="4" maxlength="3000">${val('privacy', AGR_DEFAULTS.privacy)}</textarea></div>
+        <div class="w"><label>সাপোর্ট ও সেবা সচল থাকা</label><textarea name="support" rows="3" maxlength="2500">${val('support', AGR_DEFAULTS.support)}</textarea></div>
+        <div class="w"><label>চুক্তি নবায়ন / বাতিল</label><textarea name="termination" rows="3" maxlength="2500">${val('termination', AGR_DEFAULTS.termination)}</textarea></div>
+        <div class="w"><label>বিরোধ নিষ্পত্তি ও প্রযোজ্য আইন</label><textarea name="dispute" rows="2" maxlength="1500">${val('dispute', AGR_DEFAULTS.dispute)}</textarea></div>
+        <div class="w"><label>ডেটা ব্যাকআপ ও দায়-দায়িত্ব</label><textarea name="backupTerms" rows="5" maxlength="3000">${val('backupTerms', AGR_DEFAULTS.backupTerms)}</textarea></div>
+        <div class="w"><label>অতিরিক্ত শর্ত</label><textarea name="extra" rows="3" maxlength="2500">${val('extra', AGR_DEFAULTS.extra)}</textarea></div>
+      </div>
+      <p class="hint">এটি সম্পাদনাযোগ্য নমুনা খসড়া। বাস্তবে প্রয়োগের আগে সার্ভিস চার্জ, ডেটা-দায়, বাতিল ও বিরোধ নিষ্পত্তির শর্ত যাচাই করুন।</p>
+      <div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button><button type="submit" class="btn">খসড়া সংরক্ষণ</button></div>
+    </form>`;
+  if (!d.open) d.showModal();
+}
+const agrTs = t => t ? new Date(t).toLocaleString('bn-BD', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+function agrPrintRecord(uid, id) {
+  const x = agrRec(uid, id); if (!x) return toast('চুক্তির তথ্য পাওয়া যায়নি');
+  const w = window.open('', '_blank'); if (!w) return toast('পপ-আপ ব্লক হয়েছে। এই সাইটের পপ-আপ অনুমতি দিন।');
+  const p = v => esc(v || '—').replace(/\r?\n/g, '<br>'), st = agrEffectiveStatus(x), fin = !!(x.adminSignature && x.inst);
+  const bk = x.backupTerms || (['active', 'expired', 'cancelled'].includes(st) ? '' : AGR_DEFAULTS.backupTerms);
+  const parts = [['১. চুক্তির আওতা ও সেবা', x.scope], ['২. সার্ভিস চার্জ, সাবস্ক্রাইব ফি ও পরিশোধ', 'সার্ভিস চার্জ: ' + (x.serviceCharge || 'আলোচনা সাপেক্ষে') + '\nসাবস্ক্রাইব ফি: ' + (x.subscribeFee || '—') + '\nসাবস্ক্রাইব ধরণ: ' + (x.subscribeType || '—') + '\nসাবস্ক্রিপশনের বর্ণনা: ' + (x.subscribeDesc || '—') + '\nপেমেন্টের সময় ও পদ্ধতি: ' + (x.paymentTerms || 'উভয় পক্ষের সম্মতিতে')],
+    ['৩. Student Pay-এর দায়িত্ব', x.providerDuty], ['৪. প্রতিষ্ঠানের দায়িত্ব', x.institutionDuty], ['৫. তথ্যের গোপনীয়তা ও নিরাপত্তা', x.privacy],
+    ['৬. সাপোর্ট ও সেবা সচল থাকা', x.support], ['৭. নবায়ন, স্থগিত ও বাতিল', x.termination + (x.cancelNotice ? '\nবাতিলের নোটিশ: ' + (x.cancelNotice.by === 'admin' ? 'সেবা প্রদানকারী' : 'প্রতিষ্ঠান') + ' ' + agrTs(x.cancelNotice.at) + ' তারিখে নোটিশ দিয়েছে; বাতিল কার্যকর: ' + agrDate(x.cancelNotice.effectiveDate) + '।' : '')],
+    ['৮. বিরোধ নিষ্পত্তি ও প্রযোজ্য আইন', x.dispute], ...(bk ? [['৯. ডেটা ব্যাকআপ ও দায়-দায়িত্ব', bk]] : []), ['১০. অতিরিক্ত শর্ত', x.extra]];
+  const sg = (img, name, des, at, lbl) => `<div class="sig"><div class="si">${img ? `<img src="${esc(img)}" alt="">` : ''}</div><b>${esc(lbl)}</b><br>${p(name)}${des ? ' — ' + esc(des) : ''}<br><small>${img ? 'ডিজিটাল স্বাক্ষরিত: ' + esc(agrTs(at)) : 'স্বাক্ষর অপেক্ষমাণ'}</small></div>`;
+  const wl = ws => ws.map((q, i) => `<div class="wi"><b>সাক্ষী ${bn(i + 1)}:</b> ${p(q[0])}<br>এনআইডি: ${p(q[1])}<div class="si" style="height:.32in"></div><small>সহি</small></div>`).join('');
+  const I = x.inst || {}, wit = `<div class="wits"><div><b>সেবা প্রদানকারীর পক্ষে সাক্ষী</b>${wl([[x.pw1Name, x.pw1Nid], [x.pw2Name, x.pw2Nid]])}</div><div><b>প্রতিষ্ঠানের পক্ষে সাক্ষী</b>${wl([[I.iw1Name, I.iw1Nid], [I.iw2Name, I.iw2Nid]])}</div></div>`;
+  w.document.open();
+  w.document.write(`<!doctype html><html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(x.agreementNo || 'চুক্তিনামা')}</title><link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;600;700&display=swap" rel="stylesheet"><style>
+  @page{size:8.5in 14in;margin:4.3in .8in 1.2in .8in}*{box-sizing:border-box}body{margin:0;font-family:'Anek Bangla','Noto Sans Bengali',sans-serif;color:#182235;line-height:1.45}
+  .paper{width:6.9in;margin:0 auto;font-size:var(--fs,11pt);display:flex;flex-direction:column;justify-content:space-between}h1{text-align:center;font-size:1.5em;margin:0 0 4px;text-decoration:underline;text-underline-offset:5px}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:2px 14px;font-size:.92em;margin:4px 0 6px}.intro,.part p{margin:3px 0;text-align:justify}.part{margin:1.1em 0 0}.part h3{font-size:1.05em;margin:0;color:#243b63;border-bottom:1px solid #d8deea}
+  .sigs{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin-top:14px;text-align:center;font-size:.92em}.si{height:.75in;border-bottom:1px solid #26354d;display:flex;align-items:flex-end;justify-content:center}.si img{max-height:.7in;max-width:100%}
+  .bot{break-inside:avoid}.wits{display:grid;grid-template-columns:1fr 1fr;gap:34px;margin-top:10px;font-size:.88em}.wi{margin-top:4px}.stamp{margin-top:10px;text-align:center;font-weight:700;font-size:.9em;border-top:1px solid #26354d;padding-top:4px}.wm{text-align:center;color:#b42318;font-weight:700;border:1px dashed #b42318;padding:2px;margin-bottom:4px}.tools{max-width:6.9in;margin:12px auto;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:#64748b}.tools button{background:#20365e;color:#fff;border:0;padding:9px 16px;border-radius:8px;font:inherit;font-size:14px;cursor:pointer}
+  @media print{.tools{display:none}.paper{height:calc(25.5in - 48px)}}</style></head><body>
+  <div class="tools"><span>লিগ্যাল সাইজ • ৩ পেজ • প্রিন্টে উপরে ৪.৩" ফাঁকা থাকবে</span><button onclick="window.print()">🖨 প্রিন্ট / Save as PDF</button></div>
+  <main class="paper"><div class="body">${fin ? '' : '<div class="wm">খসড়া কপি — চূড়ান্ত অনুমোদন সম্পন্ন হয়নি (' + esc(agrStatusLabel(st)) + ')</div>'}
+  <h1>সেবা চুক্তিনামা</h1><div class="meta"><div><b>চুক্তি নম্বর:</b> ${p(x.agreementNo)}</div><div><b>অবস্থা:</b> ${p(agrStatusLabel(st))}</div><div><b>শুরুর তারিখ:</b> ${p(agrDate(x.startDate))}</div><div><b>শেষের তারিখ:</b> ${p(agrDate(x.endDate))}</div></div>
+  <p class="intro">এই চুক্তিনামা ${p(agrDate(x.startDate))} তারিখে একদিকে Student Pay / Student Management Portal (SMP), পরবর্তীতে “সেবা প্রদানকারী”; এবং অন্যদিকে নিম্নে উল্লিখিত শিক্ষা প্রতিষ্ঠান, পরবর্তীতে “প্রতিষ্ঠান”—এর মধ্যে সম্পাদিত হলো।</p>
+  <div class="part"><h3>পক্ষদ্বয়ের পরিচয়</h3><p><b>সেবা প্রদানকারী:</b> ${p(x.providerLegalName || site.name || 'Student Pay')} | <b>নিবন্ধন/TIN:</b> ${p(x.providerReg)} | <b>ঠিকানা:</b> ${p(x.providerAddress)} | <b>মোবাইল:</b> ${p(x.providerPhone)} | <b>ইমেইল:</b> ${p(x.providerEmail)}</p><p><b>প্রতিষ্ঠান:</b> ${p(x.institutionName)} | <b>EIIN:</b> ${p(x.eiin)} | <b>ঠিকানা:</b> ${p(x.address)} | <b>যোগাযোগ:</b> ${p(x.phone)} | <b>ইমেইল:</b> ${p(x.email)} | <b>প্রতিনিধি:</b> ${p(x.representativeName)} (${p(x.representativeDesignation)})</p></div>
+  ${parts.map(([h, v]) => `<section class="part"><h3>${esc(h)}</h3><p>${p(v)}</p></section>`).join('')}
+  <p class="intro" style="margin-top:1.1em"><b>সম্মতি:</b> উভয় পক্ষ ঘোষণা করছে যে তারা এই চুক্তির সব ধারা পড়েছে, বুঝেছে এবং স্বেচ্ছায় সম্মত হয়েছে। এই চুক্তি ডিজিটাল স্বাক্ষরের মাধ্যমে সম্পাদিত।</p></div>
+  <div class="bot"><div class="sigs">${sg(x.adminSignature, x.adminSignedName || x.providerLegalName, x.adminSignedDesignation, x.finalAt, 'সেবা প্রদানকারীর পক্ষে')}${sg(x.inst && x.inst.signature, (x.inst && x.inst.name) || x.representativeName, (x.inst && x.inst.designation) || x.representativeDesignation, x.inst && x.inst.at, 'প্রতিষ্ঠানের পক্ষে')}</div>${wit}<div class="stamp">এই চুক্তিপত্র ৩০০ টাকার নন-জুডিশিয়াল স্ট্যাম্পে প্রিন্ট করে সংরক্ষিত করতে হবে এবং সাক্ষীগণের ফিজিক্যাল সহি থাকতে হবে।</div></div></main></body></html>`);
+  w.document.close();
+  const fit = () => { const P = w.document.querySelector('.paper'); if (!P) return; let fs = 12.5; P.style.height = 'auto'; do { P.style.setProperty('--fs', fs + 'pt'); fs -= .25; } while (P.scrollHeight > 3 * 816 - 60 && fs > 7); P.style.height = ''; };
+  w.addEventListener('load', () => (w.document.fonts ? w.document.fonts.ready : Promise.resolve()).then(fit)); setTimeout(fit, 900);
+}
+function agrOpenDetail(uid, id) {
+  const adm = !!(me && me.isAdmin && !ctx); if (!adm) uid = ctx;
+  const x = agrRec(uid, id); if (!x) return toast('চুক্তির তথ্য পাওয়া যায়নি');
+  const st = agrEffectiveStatus(x), d = $('#dlg'), at = `data-u="${esc(uid)}" data-id="${esc(id)}"`;
+  const b = (a, l, c = 'ok') => `<button type="button" class="btn ${c}" data-act="agract" data-a="${a}" ${at}>${l}</button>`, btn = [];
+  if (adm) {
+    if (agrEditable(x)) btn.push(`<button type="button" class="btn ghost" data-act="agredit" ${at}>সম্পাদনা</button>`, b('send', st === 'draft' ? 'প্রতিষ্ঠানকে পাঠান' : 'সংশোধন করে পুনরায় পাঠান'));
+    if (st === 'draft') btn.push(`<button type="button" class="btn bad" data-act="agrdel" ${at}>মুছুন</button>`);
+    if (st === 'signed') btn.push(b('final', 'চূড়ান্ত সম্মতি দিন'));
+    if (['sent', 'signed', 'revision'].includes(st)) btn.push(b('cancel', 'চুক্তি বাতিল', 'bad'));
+  } else if (st === 'sent') btn.push(b('consent', 'আমি সম্মতি প্রদান করলাম'));
+  if (['sent', 'signed', 'active'].includes(st) || (st === 'revision' && !adm)) btn.push(b('fix', 'যা সংশোধন প্রয়োজন', 'ghost'));
+  if (st === 'active' && !x.cancelNotice) btn.push(b('notice', 'চুক্তি বাতিলের নোটিশ', 'bad'));
+  const hint = { sent: adm ? 'প্রতিষ্ঠানের সম্মতির অপেক্ষা চলছে।' : 'চুক্তিটি পড়ুন। সম্মত হলে নিচের বাটনে চাপুন—প্রধানের ডিজিটাল স্বাক্ষরসহ কপি অ্যাডমিনের কাছে যাবে।', signed: adm ? 'প্রতিষ্ঠান স্বাক্ষরসহ সম্মতি দিয়েছে। পড়ে চূড়ান্ত সম্মতি দিন।' : 'আপনার স্বাক্ষরিত কপি অ্যাডমিনের কাছে গেছে; চূড়ান্ত সম্মতির অপেক্ষা।', revision: adm ? 'সংশোধনী এসেছে/চাওয়া হয়েছে—সম্পাদনা করে পুনরায় পাঠান।' : 'সংশোধনী পাঠানো হয়েছে; অ্যাডমিনের সংশোধিত চুক্তির অপেক্ষা।', active: 'চূড়ান্ত চুক্তি কার্যকর। উভয় পক্ষ PDF দেখতে পারবেন।' }[st] || '';
+  const fx = Object.values(x.corrections || {}).sort((a, c) => a.at - c.at);
+  const tl = [['তৈরি', x.createdAt], ['প্রতিষ্ঠানে প্রেরণ', x.sentAt], ['প্রতিষ্ঠানের সম্মতি ও স্বাক্ষর', x.inst && x.inst.at], ['অ্যাডমিনের চূড়ান্ত সম্মতি', x.finalAt]].filter(r => r[1]);
+  d.innerHTML = `<div style="display:flex;justify-content:space-between;gap:12px"><div><h3>${esc(x.institutionName || '')}</h3><p class="sub" style="margin:0">${esc(x.agreementNo || '')} • <span class="badge ${agrStatusClass(st)}">${agrStatusLabel(st)}</span> • সংস্করণ ${bn(x.version || 1)}</p></div><button type="button" class="btn sm ghost" data-act="close">✕</button></div>
+  ${hint ? `<div class="note" style="margin:10px 0">${hint}</div>` : ''}
+  <div class="kpis sm"><div class="kpi"><span>শুরু</span><b style="font-size:15px">${agrDate(x.startDate)}</b></div><div class="kpi"><span>শেষ</span><b style="font-size:15px">${agrDate(x.endDate)}</b></div><div class="kpi"><span>সার্ভিস চার্জ</span><b style="font-size:15px">${esc(x.serviceCharge || '—')}</b></div></div>
+  ${x.cancelNotice ? `<div class="note" style="margin:10px 0;border-color:#e11d48">⚠ বাতিলের নোটিশ (${x.cancelNotice.by === 'admin' ? 'অ্যাডমিন' : 'প্রতিষ্ঠান'}): কার্যকর ${agrDate(x.cancelNotice.effectiveDate)}${x.cancelNotice.reason ? ' — ' + esc(x.cancelNotice.reason) : ''}</div>` : ''}
+  <div class="panel" style="margin:10px 0"><h3>অগ্রগতি</h3>${tl.map(r => `<div class="sub">✔ ${r[0]} — ${agrTs(r[1])}</div>`).join('')}</div>
+  ${fx.length ? `<div class="panel" style="margin:10px 0"><h3>সংশোধনী অনুরোধ</h3>${fx.map(c => `<div style="margin:6px 0"><b>${c.by === 'admin' ? 'অ্যাডমিন' : 'প্রতিষ্ঠান'}</b> <span class="sub">${agrTs(c.at)} • সংস্করণ ${bn(c.version)}</span><div style="white-space:pre-wrap">${esc(c.text)}</div></div>`).join('')}</div>` : ''}
+  <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap"><button type="button" class="btn ${st === 'active' ? '' : 'ghost'}" data-act="agrprint" ${at}>${st === 'active' ? 'চূড়ান্ত চুক্তিনামা PDF' : 'প্রিন্ট / PDF'}</button>${btn.join('')}<button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`;
+  if (!d.open) d.showModal();
+}
+function pAgreement() {
+  const rows = Object.entries(AG || {}).filter(([, x]) => x && typeof x === 'object' && x.status !== 'draft').map(([id, x]) => ({ id, ...x })).sort((a, c) => (c.updatedAt || 0) - (a.updatedAt || 0));
+  $('#main').innerHTML = `<div class="panel"><h3 style="margin-top:0">চুক্তিনামা</h3><p class="sub">অ্যাডমিন পাঠানো চুক্তি এখানে দেখে সম্মতি দিন। সম্মতি দিতে “প্রধানের প্রোফাইল”-এ স্বাক্ষর আপলোড থাকতে হবে।</p></div>
+  ${rows.map(x => { const s = agrEffectiveStatus(x); return `<div class="panel"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><b>${esc(x.agreementNo || 'চুক্তিনামা')}</b><div class="sub">${agrDate(x.startDate)} — ${agrDate(x.endDate)}</div></div><span class="badge ${agrStatusClass(s)}">${agrStatusLabel(s)}</span></div><div style="margin-top:8px">সার্ভিস চার্জ: <b>${esc(x.serviceCharge || 'আলোচনা সাপেক্ষে')}</b></div><div class="row" style="margin-top:12px"><button type="button" class="btn sm" data-act="agrview" data-id="${esc(x.id)}">${s === 'sent' ? 'পড়ুন ও সম্মতি দিন' : 'খুলুন'}</button><button type="button" class="btn sm ghost" data-act="agrprint" data-u="${esc(ctx)}" data-id="${esc(x.id)}">${s === 'active' ? 'চূড়ান্ত PDF' : 'PDF'}</button></div></div>`; }).join('') || '<div class="panel empty"><b>এখনো কোনো চুক্তিনামা আসেনি</b>অ্যাডমিন চুক্তি পাঠালে এখানে দেখা যাবে।</div>'}`;
+}
+async function agrSaveForm(form) {
+  if (!me || !me.isAdmin || ctx) throw new Error('শুধু সুপার অ্যাডমিন চুক্তি সংরক্ষণ করতে পারবেন');
+  const fd = new FormData(form), uid = String(form.dataset.u || ''), id = String(form.dataset.id || '');
+  const inst = adminList[uid]; if (!inst) throw new Error('প্রতিষ্ঠানের তথ্য পাওয়া যায়নি');
+  const agreementNo = String(fd.get('agreementNo') || '').trim();
+  const startDate = String(fd.get('startDate') || ''), endDate = String(fd.get('endDate') || '');
+  if (!agreementNo) throw new Error('চুক্তি নম্বর দিন');
+  if (!startDate || !endDate || endDate < startDate) throw new Error('চুক্তির তারিখ সঠিকভাবে নির্বাচন করুন');
+  const current = id ? agrRec(uid, id) : null;
+  if (current && !agrEditable(current)) throw new Error('এই ধাপে চুক্তি সম্পাদনা করা যাবে না');
+  const getv = k => String(fd.get(k) || '').trim();
+  const now = Date.now();
+  const rec = {
+    ...(current || {}), agreementNo, institutionId: uid, institutionName: inst.name || '', eiin: getv('eiin'),
+    address: inst.address || '', phone: inst.phone || '', email: inst.email || '',
+    providerLegalName: getv('providerLegalName') || site.name || 'Student Pay', providerReg: getv('providerReg'), providerAddress: getv('providerAddress'), providerPhone: getv('providerPhone'), providerEmail: getv('providerEmail'),
+    representativeName: getv('representativeName'), representativeDesignation: getv('representativeDesignation'),
+    startDate, endDate, serviceCharge: getv('serviceCharge'), paymentTerms: getv('paymentTerms'), backupTerms: getv('backupTerms'), subscribeFee: getv('subscribeFee'), subscribeType: getv('subscribeType'), subscribeDesc: getv('subscribeDesc'), pw1Name: getv('pw1Name'), pw1Nid: getv('pw1Nid'), pw2Name: getv('pw2Name'), pw2Nid: getv('pw2Nid'),
+    scope: getv('scope'), providerDuty: getv('providerDuty'), institutionDuty: getv('institutionDuty'), privacy: getv('privacy'),
+    support: getv('support'), termination: getv('termination'), dispute: getv('dispute'), extra: getv('extra'),
+    status: current ? current.status : 'draft', createdAt: current ? current.createdAt : now,
+    createdBy: current ? current.createdBy : me.uid, updatedAt: now, updatedBy: me.uid, version: current ? (Number(current.version) || 1) : 1
+  };
+  if (!id) {
+    const newId = push(ref(db, `agreements/${uid}`)).key;
+    if (!newId) throw new Error('চুক্তির আইডি তৈরি করা যায়নি');
+    await fbSet(ref(db, `agreements/${uid}/${newId}`), rec);
+  } else { delete rec.inst; delete rec.corrections; delete rec.cancelNotice; await fbUpdate(ref(db, `agreements/${uid}/${id}`), rec); }
+  $('#dlg').close(); toast('চুক্তির খসড়া সংরক্ষণ হয়েছে'); renderAdmin();
+}
+function agrWit() {
+  return new Promise(res => {
+    const d = $('#dlg'), f = n => `<div><label>সাক্ষী ${n} — নাম *</label><input name="n${n}" required maxlength="160"></div><div><label>সাক্ষী ${n} — জাতীয় পরিচয়পত্র নম্বর *</label><input name="i${n}" required inputmode="numeric" pattern="[0-9]{10,17}" title="১০–১৭ অঙ্কের ইংরেজি সংখ্যা" maxlength="17"></div>`;
+    d.innerHTML = `<h3>প্রতিষ্ঠানের পক্ষে ২ জন সাক্ষী</h3><form id="agrWit"><div class="fg">${f(1)}${f(2)}</div><p class="hint">সাক্ষীদের ফিজিক্যাল সহি প্রিন্টেড কপিতে নেওয়া হবে।</p><div class="row end"><button type="button" class="btn ghost" id="agrWitNo">বাতিল</button><button type="submit" class="btn">পরবর্তী</button></div></form>`;
+    if (!d.open) d.showModal();
+    $('#agrWitNo').onclick = () => res(null);
+    $('#agrWit').onsubmit = e => { e.preventDefault(); const q = new FormData(e.target); res({ iw1Name: String(q.get('n1')).trim(), iw1Nid: String(q.get('i1')).trim(), iw2Name: String(q.get('n2')).trim(), iw2Nid: String(q.get('i2')).trim() }); };
+  });
+}
+function agrAsk(title, withDate) {
+  return new Promise(res => {
+    const d = $('#dlg'), dd = new Date(today() + 'T12:00:00'); dd.setDate(dd.getDate() + 30); const m = dd.toISOString().slice(0, 10);
+    d.innerHTML = `<h3>${esc(title)}</h3><form id="agrAsk"><label>${withDate ? 'কারণ / মন্তব্য (ঐচ্ছিক)' : 'যা সংশোধন প্রয়োজন — বিস্তারিত লিখুন'}</label><textarea name="t" rows="5" maxlength="800" ${withDate ? '' : 'required minlength="3"'}></textarea>${withDate ? `<label>বাতিল কার্যকরের তারিখ (আজ থেকে কমপক্ষে ১ মাস পর)</label><input type="date" name="d" min="${m}" value="${m}" required>` : ''}<div class="row end"><button type="button" class="btn ghost" id="agrAskNo">বাতিল</button><button type="submit" class="btn">পাঠান</button></div></form>`;
+    if (!d.open) d.showModal();
+    $('#agrAskNo').onclick = () => res(null);
+    $('#agrAsk').onsubmit = e => { e.preventDefault(); const f = new FormData(e.target); res({ t: String(f.get('t') || ''), d: String(f.get('d') || '') }); };
+  });
+}
+A.agract = async d => {
+  const adm = !!(me && me.isAdmin && !ctx), uid = adm ? d.u : ctx, id = d.id, x = agrRec(uid, id); if (!x) return toast('চুক্তির তথ্য পাওয়া যায়নি');
+  const st = agrEffectiveStatus(x), ver = x.version || 1, now = Date.now(), base = `agreements/${uid}/${id}`, stp = { updatedAt: now, updatedBy: me.uid, statusAt: now, statusBy: me.uid };
+  try {
+    if (d.a === 'consent') {
+      const h = (ctxProfile && ctxProfile.head) || {};
+      if (adm || st !== 'sent') return toast('এখন সম্মতি দেওয়া যাবে না');
+      if (!h.signature) return toast('আগে “প্রধানের প্রোফাইল” থেকে আপনার স্বাক্ষর আপলোড করুন');
+      const wt = await agrWit(); if (!wt) return agrOpenDetail(uid, id);
+      if (!confirm('আমি সম্মতি প্রদান করলাম — আপনার ডিজিটাল স্বাক্ষরসহ কপি অ্যাডমিনের কাছে যাবে। নিশ্চিত?')) return agrOpenDetail(uid, id);
+      await fbSet(ref(db, base + '/inst'), { ...wt, signature: h.signature, name: h.name || x.representativeName || '', designation: h.designation || x.representativeDesignation || '', at: { '.sv': 'timestamp' }, version: ver });
+      toast('সম্মতি ও স্বাক্ষরিত কপি অ্যাডমিনের কাছে পাঠানো হয়েছে');
+    } else if (d.a === 'send') {
+      if (!adm || !agrEditable(x)) return toast('এই ধাপে পাঠানো যাবে না');
+      if (!confirm('চুক্তি প্রতিষ্ঠানকে পাঠাবেন?')) return;
+      await fbUpdate(ref(db, base), { ...stp, status: 'sent', version: x.status === 'draft' ? ver : ver + 1, inst: null, sentAt: now }); toast('চুক্তি প্রতিষ্ঠানকে পাঠানো হয়েছে');
+    } else if (d.a === 'final') {
+      if (!adm || st !== 'signed' || !x.inst) return toast('প্রতিষ্ঠানের স্বাক্ষরসহ সম্মতি ছাড়া চূড়ান্ত সম্মতি দেওয়া যাবে না');
+      if (!ADP.signature) return toast('আগে “আমার প্রোফাইল” মেনু থেকে আপনার স্বাক্ষর যুক্ত করুন');
+      if (!confirm('চূড়ান্ত সম্মতি দিলে আপনার ডিজিটাল স্বাক্ষর যুক্ত হয়ে চুক্তি কার্যকর হবে। নিশ্চিত?')) return;
+      await fbUpdate(ref(db, base), { ...stp, status: 'active', adminSignature: ADP.signature, adminSignedName: ADP.name || '', adminSignedDesignation: ADP.designation || '', finalAt: now, activatedAt: now }); toast('চুক্তি কার্যকর হয়েছে—উভয় পক্ষ চূড়ান্ত PDF দেখতে পারবে');
+    } else if (d.a === 'fix') {
+      const r = await agrAsk('যা সংশোধন প্রয়োজন', 0); if (!r) return agrOpenDetail(uid, id);
+      const k = push(ref(db, base + '/corrections')).key;
+      await fbSet(ref(db, base + '/corrections/' + k), { by: adm ? 'admin' : 'inst', text: r.t.trim(), at: { '.sv': 'timestamp' }, version: ver, step: st });
+      if (adm && ['sent', 'signed'].includes(st)) await fbUpdate(ref(db, base), { ...stp, status: 'revision' });
+      toast('সংশোধনী পাঠানো হয়েছে');
+    } else if (d.a === 'notice') {
+      if (st !== 'active' || x.cancelNotice) return toast('এখন নোটিশ দেওয়া যাবে না');
+      const r = await agrAsk('চুক্তি বাতিলের নোটিশ', 1); if (!r) return agrOpenDetail(uid, id);
+      await fbSet(ref(db, base + '/cancelNotice'), { by: adm ? 'admin' : 'inst', reason: r.t.trim(), effectiveDate: r.d, effectiveTs: new Date(r.d + 'T23:59:59').getTime(), at: { '.sv': 'timestamp' } });
+      toast('বাতিলের নোটিশ পাঠানো হয়েছে');
+    } else if (d.a === 'cancel') {
+      if (!adm || !['sent', 'signed', 'revision'].includes(st) || !confirm('চূড়ান্ত হওয়ার আগেই এই চুক্তি বাতিল করবেন?')) return;
+      await fbUpdate(ref(db, base), { ...stp, status: 'cancelled', cancelledAt: now });
+    }
+    agrOpenDetail(uid, id);
+  } catch (e) { toast(errMsg(e)); }
+};
+Object.assign(A, {
+  agrnew: () => { const uid = ($('#agrSchool') || {}).value || ''; if (!uid) return toast('আগে প্রতিষ্ঠান নির্বাচন করুন'); agrOpenEditor(uid); },
+  agredit: d => agrOpenEditor(d.u, d.id), agrview: d => agrOpenDetail(d.u || ctx, d.id), agrprint: d => agrPrintRecord(d.u || ctx, d.id), agrinstprint: d => agrPrintRecord(ctx, d.id),
+  agrdel: async d => {
+    const x = agrRec(d.u, d.id); if (!x || x.status !== 'draft') return toast('শুধু খসড়া চুক্তি মোছা যাবে');
+    if (!confirm('এই খসড়া চুক্তি স্থায়ীভাবে মুছে ফেলবেন?')) return;
+    try { await fbSet(ref(db, `agreements/${d.u}/${d.id}`), null); $('#dlg').close(); toast('খসড়া মুছে ফেলা হয়েছে'); renderAdmin(); } catch (e) { toast(errMsg(e)); }
+  }
+});
+/* ---- অ্যাডমিন প্রোফাইল (ছবি, ব্যক্তিগত তথ্য, NID, TIN, স্বাক্ষর) — Realtime Database ---- */
+function renderAdminProfile() {
+  shell({ nav: ANAV, active: 'aprofile', act: 'adminnav', title: 'আমার প্রোফাইল', sub: 'চুক্তিনামায় ব্যবহৃত অ্যাডমিনের তথ্য ও ডিজিটাল স্বাক্ষর', who: 'অ্যাডমিন' });
+  const g = k => pendAdp[k] !== undefined ? pendAdp[k] : (ADP[k] || ''), v = k => esc(g(k));
+  const f = (k, l, ph = '') => `<div><label>${l}</label><input name="${k}" value="${v(k)}" maxlength="300" placeholder="${ph}"></div>`;
+  const im = (k, i, l) => `<div><label>${l}</label><div style="width:170px;height:90px;border:1px dashed #94a3b8;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden"><img id="${i}Img" src="${esc(g(k))}" style="max-width:100%;max-height:100%;object-fit:contain;${g(k) ? '' : 'display:none'}"><span id="${i}Ph" style="font-size:12px;color:#64748b;${g(k) ? 'display:none' : ''}">নেই</span></div><input type="file" id="${i}File" accept="image/*" style="margin-top:6px"></div>`;
+  $('#main').innerHTML = `<div class="panel"><form id="admProfForm"><div class="fg">${f('name', 'নাম *')}${f('designation', 'পদবি')}${f('phone', 'মোবাইল')}${f('email', 'ইমেইল')}${f('nid', 'এনআইডি নম্বর')}${f('tin', 'টিন (TIN) নম্বর')}<div class="w">${f('address', 'ঠিকানা')}</div>${im('photo', 'admPhoto', 'ছবি')}${im('signature', 'admSig', 'ডিজিটাল স্বাক্ষর (JPG/PNG)')}</div><p class="hint">চুক্তিতে চূড়ান্ত সম্মতির সময় এই স্বাক্ষর স্বয়ংক্রিয়ভাবে যুক্ত হবে। তথ্য শুধু আপনি দেখতে পাবেন; স্বাক্ষরের কপি চূড়ান্ত চুক্তির সঙ্গে প্রতিষ্ঠানও দেখবে।</p><div class="row end"><button type="submit" class="btn">সংরক্ষণ</button></div></form></div>`;
+}
+document.addEventListener('change', async e => {
+  const t = e.target; if (!t.files || !t.files[0] || !['admPhotoFile', 'admSigFile'].includes(t.id)) return;
+  const sg = t.id === 'admSigFile', k = sg ? 'signature' : 'photo', i = sg ? 'admSig' : 'admPhoto';
+  try { pendAdp[k] = await (sg ? fileToSig : fileToLogo)(t.files[0]); const im = $('#' + i + 'Img'); im.src = pendAdp[k]; im.style.display = ''; $('#' + i + 'Ph').style.display = 'none'; } catch (err) { toast(err.message); t.value = ''; }
+});
+document.addEventListener('submit', async e => {
+  if (e.target.id === 'agrForm') {
+    e.preventDefault(); const b = e.target.querySelector('button[type=submit]'); if (b) { b.disabled = true; b.textContent = 'সংরক্ষণ হচ্ছে…'; }
+    try { await agrSaveForm(e.target); } catch (err) { toast(errMsg(err)); } finally { if (b) { b.disabled = false; b.textContent = 'খসড়া সংরক্ষণ'; } }
+  } else if (e.target.id === 'admProfForm') {
+    e.preventDefault(); if (!me || !me.isAdmin || ctx) return;
+    const fd = new FormData(e.target), o = { updatedAt: Date.now() };
+    ['name', 'designation', 'phone', 'email', 'nid', 'tin', 'address'].forEach(k => { const s = String(fd.get(k) || '').trim(); pendAdp[k] = s; if (s) o[k] = s; });
+    ['photo', 'signature'].forEach(k => { const s = pendAdp[k] !== undefined ? pendAdp[k] : ADP[k]; if (s) o[k] = s; });
+    if (!o.name) return toast('নাম লিখুন');
+    try { await fbSet(ref(db, 'adminProfile'), o); ADP = o; pendAdp = {}; toast('প্রোফাইল সংরক্ষিত হয়েছে'); renderAdminProfile(); } catch (err) { toast(errMsg(err)); }
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id !== 'agrSearch') return;
+  const q = e.target.value.trim().toLowerCase(), st = ($('#agrFilter') || {}).value || 'all';
+  document.querySelectorAll('.agr-row').forEach(r => { r.hidden = (st !== 'all' && r.dataset.status !== st) || (!!q && !r.dataset.search.includes(q)); });
+});
+document.addEventListener('change', e => {
+  if (e.target.id !== 'agrFilter') return;
+  const s = e.target.value, q = (($('#agrSearch') || {}).value || '').trim().toLowerCase();
+  document.querySelectorAll('.agr-row').forEach(r => { r.hidden = (s !== 'all' && r.dataset.status !== s) || (!!q && !r.dataset.search.includes(q)); });
+});
+/* ================= চুক্তিনামা মডিউল শেষ ================= */
+
+
+/* ---- প্রতি রবিবার সকাল ১১টা থেকে ডেটা ব্যাকআপের পপআপ (প্রতিষ্ঠান প্যানেল) ---- */
+let ibSnooze = false;
+function ibWeeklyCheck() {
+  try {
+    if (ibSnooze || !me || me.isAdmin || !ctx || !ctxProfile || document.getElementById('ibPop')) return;
+    const n = new Date(); if (n.getDay() !== 0 || n.getHours() < 11) return;
+    if (localStorage.getItem('ibWk:' + ctx) === today()) return;
+    const o = document.createElement('div'); o.id = 'ibPop'; o.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    o.innerHTML = '<div style="background:#fff;color:#182235;max-width:430px;width:100%;border-radius:14px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.3)"><h3 style="margin:0 0 8px">📦 সাপ্তাহিক ডেটা ব্যাকআপ</h3><p style="margin:0 0 14px;line-height:1.6">আজ রবিবার — আপনার প্রতিষ্ঠানের ডেটা ব্যাকআপ করার জন্য অনুরোধ জানানো হচ্ছে। সম্মতি দিলে সম্পূর্ণ ব্যাকআপ শুরু হবে এবং আপনার কম্পিউটারে ডাউনলোড হবে।</p><div class="row end"><button type="button" class="btn ghost" id="ibPopLater">পরে করব</button><button type="button" class="btn" id="ibPopOk">সম্মতি — ব্যাকআপ শুরু করুন</button></div></div>';
+    document.body.appendChild(o); toast('📦 আজ ডেটা ব্যাকআপ করার অনুরোধ জানানো হচ্ছে');
+    o.querySelector('#ibPopLater').onclick = () => { ibSnooze = true; o.remove(); };
+    o.querySelector('#ibPopOk').onclick = async () => { o.remove(); toast('ব্যাকআপ শুরু হয়েছে…'); await ibExport(); };
+  } catch (e) {}
+}
+setInterval(ibWeeklyCheck, 60000); setTimeout(ibWeeklyCheck, 8000);
 
 applySite();
 </script>
