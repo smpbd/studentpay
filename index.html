@@ -507,6 +507,12 @@ dialog .row.end{position:sticky;bottom:-24px;background:#fff;padding:10px 0 2px;
 .bsel-f{padding:9px 12px;background:#f7f8fb;border-top:1px solid var(--line);font-size:13px;color:var(--mut);font-weight:600}
 #dlg:has(.bsel){width:min(660px,96vw)}
 #dlg:has(.frmv){width:min(860px,96vw)}.frmv iframe{width:100%;height:60vh;border:1px solid var(--line);border-radius:10px;background:#fff;display:block;margin-top:8px}.frmv .tap{cursor:pointer}
+#pvw{width:min(1000px,98vw);height:94vh;height:94dvh;max-height:none;padding:0;overflow:hidden;border-radius:14px}
+#pvw[open]{display:flex;flex-direction:column}
+.pvh{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;border-bottom:1px solid var(--line);background:#f8fafc}
+.pvh b{flex:1;min-width:140px;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pvh .row{display:flex;gap:8px;flex-wrap:wrap}
+#pvF{flex:1;min-height:0;width:100%;border:0;background:#e5e7eb;display:block}
 #dlg:has(.stubl){width:min(1100px,97vw)}
 .stubl .ledt{font-size:15px}.stubl .ledt th{font-size:14px;white-space:nowrap}.stubl .ledt td,.stubl .ledt th{padding:12px 14px}.stubl h4{font-size:17px}
 .ledt{width:100%}.ledt td{white-space:normal}.ledt td.n{white-space:nowrap}
@@ -530,6 +536,8 @@ th.pc,td.pc{width:42px;text-align:center;padding-left:10px;padding-right:6px}
 #bkSt{margin-top:10px;font-weight:600}
 .apvall{display:flex;gap:8px;align-items:center;margin:10px 0 0;font-weight:700}
 @media(max-width:600px){.apvg{grid-template-columns:1fr}}
+.fbtn{display:inline-flex;align-items:center;gap:10px}.fbtn b{color:inherit}.fbtn i{width:1px;align-self:stretch;background:rgba(255,255,255,.5)}
+.fchip{display:inline-flex;align-items:center;gap:6px;border:1px solid #d8dce6;background:#fff;color:inherit;border-radius:99px;padding:7px 13px;font-weight:600;font-size:13px;cursor:pointer;font-family:inherit}.fchip b{color:#15803d}
 .hd-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.hd-chips span{font-size:12.5px;background:#eef2ff;color:var(--ink);padding:3px 10px;border-radius:99px}
 .hsec{margin:18px 0 0;font-size:15px}
 .hchip{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:5px 14px 5px 6px;cursor:pointer;position:relative;text-align:left;color:var(--tx)}
@@ -1144,6 +1152,7 @@ details.dd>.ddb{padding:4px 18px 16px;border-top:1px solid var(--line)}
 </dialog>
 
 <dialog id="dlg"></dialog>
+<dialog id="pvw"><div class="pvh"><b id="pvT">প্রিভিউ</b><div class="row"><button type="button" class="btn" data-act="pvdl">⬇ PDF ডাউনলোড</button><button type="button" class="btn ghost" data-act="pvprint">🖨 প্রিন্ট</button><button type="button" class="btn ghost" data-act="pvclose">✕ বন্ধ করুন</button></div></div><iframe id="pvF" title="প্রিভিউ"></iframe></dialog>
 <dialog id="apv"></dialog>
 <div id="toast" role="status"></div>
 
@@ -1225,8 +1234,8 @@ const STATUS = {pending:'অপেক্ষমাণ', approved:'অনুমো
 const INC = ['কমিটির টাকা','অনুদান / দান','সরকারি বরাদ্দ','অন্যান্য আয়']; /* শিক্ষার্থীর ফি এখানে নেই — তা শুধু শিক্ষার্থীর প্রোফাইল থেকে পেমেন্টে জমা হয় */
 const EXP = ['শিক্ষক-কর্মচারী বেতন','ভাড়া','বিদ্যুৎ/পানি/ইন্টারনেট','শিক্ষা উপকরণ','মেরামত','অন্যান্য খরচ'];
 const METHODS = ['নগদ','বিকাশ','নগদ (Nagad)','রকেট','ব্যাংক','চেক'].map(x => [x, x]);
-const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['reg','শিক্ষার্থী নিবন্ধন','card'],['tch','শিক্ষক','tch'],['dept','বিভাগ ও বিষয়','card'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['bkp','ব্যাকআপ','db'],['pro','প্রতিষ্ঠানের প্রোফাইল','pro'],['hpro','প্রধানের প্রোফাইল','stu'],['bnk','পেমেন্ট গ্রহণের অ্যাকাউন্ট','pay'],['slg','শিক্ষার্থী লগইন','card'],['agr','চুক্তিনামা','receipt']];
-const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', reg:'শিক্ষার্থী নিবন্ধনের আবেদন', tch:'শিক্ষক ও স্টাফ', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', bkp:'ব্যাকআপ ও রিস্টোর', dept:'বিভাগ ও বিষয়', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল', hpro:'প্রতিষ্ঠান প্রধানের প্রোফাইল', bnk:'পেমেন্ট গ্রহণের অ্যাকাউন্ট', slg:'শিক্ষার্থী লগইন', agr:'চুক্তিনামা'};
+const NAV = [['dash','ড্যাশবোর্ড','dash'],['stu','শিক্ষার্থী','stu'],['reg','শিক্ষার্থী নিবন্ধন','card'],['tch','শিক্ষক','tch'],['dept','বিভাগ ও বিষয়','card'],['pay','লেনদেন','pay'],['due','বকেয়া','due'],['notice','নোটিশ','bell'],['exam','পরীক্ষা ও ফলাফল','trophy'],['idc','স্টুডেন্ট আইডি কার্ড','card'],['adc','এডমিট কার্ড','card'],['rsc','রেজাল্ট কার্ড','trophy'],['hol','ছুটি','cal'],['rep','রিপোর্ট','receipt'],['bkp','ব্যাকআপ','db'],['pro','প্রতিষ্ঠানের প্রোফাইল','pro'],['hpro','প্রধানের প্রোফাইল','stu'],['bnk','পেমেন্ট গ্রহণের অ্যাকাউন্ট','pay'],['slg','শিক্ষার্থী লগইন','card'],['agr','চুক্তিনামা','receipt']];
+const TITLES = {dash:'ড্যাশবোর্ড', stu:'শিক্ষার্থী', reg:'শিক্ষার্থী নিবন্ধনের আবেদন', tch:'শিক্ষক ও স্টাফ', pay:'লেনদেন', due:'বকেয়া ফি', notice:'নোটিশ', exam:'পরীক্ষা ও ফলাফল', hol:'ছুটির তালিকা', rep:'রিপোর্ট ও ডাউনলোড', bkp:'ব্যাকআপ ও রিস্টোর', dept:'বিভাগ ও বিষয়', head:'প্রতিষ্ঠান প্রধানের প্যানেল', pro:'প্রতিষ্ঠানের প্রোফাইল', hpro:'প্রতিষ্ঠান প্রধানের প্রোফাইল', bnk:'পেমেন্ট গ্রহণের অ্যাকাউন্ট', slg:'শিক্ষার্থী লগইন', agr:'চুক্তিনামা', idc:'স্টুডেন্ট আইডি কার্ড', adc:'এডমিট কার্ড', rsc:'রেজাল্ট কার্ড'};
 
 /* ---------- সাইটের নাম ও লোগো ---------- */
 const DEF_SITE = { name: 'স্কুল ম্যানেজার', tagline: '', logo: '', chargePct: 1.25 };
@@ -1253,7 +1262,8 @@ const tenDigits = s => { const d = String(s ?? '').replace(/[০-৯]/g, c => '�
 const validPhone10 = d => /^1[3-9]\d{8}$/.test(d);
 const fullPhone = s => { const d = tenDigits(s); return validPhone10(d) ? '+880' + d : ''; };
 const phoneInp = (l, n, v = '', req = false) => `<div><label>${l}</label><div class="ph"><span>+880</span><input name="${n}" value="${esc(tenDigits(v))}" ${req ? 'required ' : ''}maxlength="10" inputmode="numeric" pattern="1[3-9][0-9]{8}" title="+880 এর পরে ১০ সংখ্যার মোবাইল নম্বর দিন" placeholder="১০ সংখ্যা" autocomplete="tel-national"></div></div>`;
-const classOpts = cur => ['', ...CLASSES, ...(cur && !CLASSES.includes(cur) ? [cur] : [])].map(c => `<option value="${esc(c)}" ${c === cur ? 'selected' : ''}>${c || 'শ্রেণি নির্বাচন করুন'}</option>`).join('');
+const instClasses = () => (ctx && instTypeOf(ctx) === 'coaching') ? [...COACH_COURSES, ...CLASSES] : CLASSES;
+const classOpts = cur => ['', ...instClasses(), ...(cur && !instClasses().includes(cur) ? [cur] : [])].map(c => `<option value="${esc(c)}" ${c === cur ? 'selected' : ''}>${c || 'শ্রেণি নির্বাচন করুন'}</option>`).join('');
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.closest && t.closest('.ph') && t.tagName === 'INPUT') {
@@ -1442,8 +1452,8 @@ document.addEventListener('submit', async e => {
 });
 
 /* ---------- Admission form: English, fields change with the selected class ---------- */
-const COACH_COURSES = ['প্রাথমিক (১ম–৫ম)', 'জুনিয়র (৬ষ্ঠ–৮ম)', 'এসএসসি (৯ম–১০ম)', 'এইচএসসি (১১শ–১২শ)', 'বিশ্ববিদ্যালয় ভর্তি প্রস্তুতি', 'মেডিকেল/ইঞ্জিনিয়ারিং ভর্তি', 'চাকরি প্রস্তুতি (BCS/ব্যাংক)', 'স্পোকেন ইংলিশ / IELTS', 'কম্পিউটার / আইটি কোর্স', 'অন্যান্য কোর্স'];
-const COACH_EN = { 'প্রাথমিক (১ম–৫ম)': 'Primary (Class 1–5)', 'জুনিয়র (৬ষ্ঠ–৮ম)': 'Junior (Class 6–8)', 'এসএসসি (৯ম–১০ম)': 'SSC (Class 9–10)', 'এইচএসসি (১১শ–১২শ)': 'HSC (Class 11–12)', 'বিশ্ববিদ্যালয় ভর্তি প্রস্তুতি': 'University admission prep', 'মেডিকেল/ইঞ্জিনিয়ারিং ভর্তি': 'Medical / Engineering admission prep', 'চাকরি প্রস্তুতি (BCS/ব্যাংক)': 'Job prep (BCS / Bank)', 'স্পোকেন ইংলিশ / IELTS': 'Spoken English / IELTS', 'কম্পিউটার / আইটি কোর্স': 'Computer / IT course', 'অন্যান্য কোর্স': 'Other course' };
+const COACH_COURSES = ['প্রথম শ্রেণি', 'দ্বিতীয় শ্রেণি', 'তৃতীয় শ্রেণি', 'চতুর্থ শ্রেণি', 'পঞ্চম শ্রেণি', 'ষষ্ঠ শ্রেণি', 'সপ্তম শ্রেণি', 'অষ্টম শ্রেণি', 'নবম শ্রেণি', 'দশম শ্রেণি', 'একাদশ শ্রেণি', 'দ্বাদশ শ্রেণি', 'বিশ্ববিদ্যালয় ভর্তি প্রস্তুতি', 'মেডিকেল/ইঞ্জিনিয়ারিং ভর্তি', 'চাকরি প্রস্তুতি (BCS/ব্যাংক)', 'স্পোকেন ইংলিশ / IELTS', 'কম্পিউটার / আইটি কোর্স', 'অন্যান্য কোর্স'];
+const COACH_EN = { 'প্রথম শ্রেণি': 'Class 1', 'দ্বিতীয় শ্রেণি': 'Class 2', 'তৃতীয় শ্রেণি': 'Class 3', 'চতুর্থ শ্রেণি': 'Class 4', 'পঞ্চম শ্রেণি': 'Class 5', 'ষষ্ঠ শ্রেণি': 'Class 6', 'সপ্তম শ্রেণি': 'Class 7', 'অষ্টম শ্রেণি': 'Class 8', 'নবম শ্রেণি': 'Class 9', 'দশম শ্রেণি': 'Class 10', 'একাদশ শ্রেণি': 'Class 11', 'দ্বাদশ শ্রেণি': 'Class 12', 'বিশ্ববিদ্যালয় ভর্তি প্রস্তুতি': 'University admission prep', 'মেডিকেল/ইঞ্জিনিয়ারিং ভর্তি': 'Medical / Engineering admission prep', 'চাকরি প্রস্তুতি (BCS/ব্যাংক)': 'Job prep (BCS / Bank)', 'স্পোকেন ইংলিশ / IELTS': 'Spoken English / IELTS', 'কম্পিউটার / আইটি কোর্স': 'Computer / IT course', 'অন্যান্য কোর্স': 'Other course' };
 const admClassIdx = (type, c) => type === 'coaching' ? COACH_COURSES.indexOf(c) : CLASSES.indexOf(c);
 /* একই জন্ম নিবন্ধন / NID বা ফোন+নাম দিয়ে একই শ্রেণিতে দ্বিতীয়বার ভর্তির আবেদন আটকানো: admDup/{প্রতিষ্ঠান}/{কী} সূচক (একবার লেখা যায়, আবেদনকারী মুছতে পারে না) */
 const admDigits = v => enDigits(String(v || '')).replace(/\D/g, '');
@@ -1475,16 +1485,9 @@ const ADM_LABELS = {
 };
 const admGroupOf = c => (ADM_GROUPS.find(g => g.c.includes(c)) || {}).k || '';
 const admClassOpts = (type = '') => {
-  // Always show Primary classes for schools; colleges show XI-XII only.
   const t = String(type || '').trim().toLowerCase();
-  const primary = { t: 'Play – Class 5 (Primary)', c: ['প্লে', 'নার্সারি', 'প্রথম', 'দ্বিতীয়', 'তৃতীয়', 'চতুর্থ', 'পঞ্চম'] };
-  const secondary = { t: 'Class 6 – 10 (Secondary)', c: ['ষষ্ঠ', 'সপ্তম', 'অষ্টম', 'নবম', 'দশম'] };
-  const higher = { t: 'Class 11 – 12 (Higher Secondary)', c: ['একাদশ', 'দ্বাদশ'] };
-  const coach = { t: 'Private Institute / Coaching Center (Course)', c: COACH_COURSES };
-  const groups = t === 'coaching' ? [coach] : t === 'primary' ? [primary] : t === 'college' ? [higher] : t === 'school' ? [secondary] : [primary, secondary, higher];
-  return '<option value="">Select class</option>' + groups.map(g =>
-    `<optgroup label="${esc(g.t)}">${g.c.map(c => `<option value="${esc(c)}">${ADM_EN[c]}</option>`).join('')}</optgroup>`
-  ).join('');
+  const classes = t === 'coaching' ? [...COACH_COURSES, ...CLASSES] : t === 'primary' ? CLASSES.slice(0, 7) : t === 'school' ? CLASSES.slice(7, 12) : t === 'college' ? CLASSES.slice(12, 14) : CLASSES;
+  return '<option value="">Select class / course</option>' + classes.map(c => `<option value="${esc(c)}">${esc(ADM_EN[c] || c)}</option>`).join('');
 };
 const ADM_GROUP_OPTS = ['Science', 'Humanities', 'Business Studies'];
 const ADM_TC_OPTS = ['Yes — available', 'No', 'Will submit later'];
@@ -1559,6 +1562,7 @@ function admBodyHtml(cls, opt = {}) {
     admSel('guardianType', 'Guardian', [['Father', 'Father'], ['Mother', 'Mother'], ['Others', 'Others']], { req: 1 }) + admIn('guardian', "Guardian's name", { req: 1 }) + admIn('guardianRel', "Guardian's relationship with the applicant", { req: 1, max: 40 }) + admPh('phone', "Guardian's mobile (we will contact this number)", true) +
     admIn('address', 'Present address', { req: 1, max: 300 }) + admIn('permAddress', 'Permanent address', { max: 300 }) +
     `<div class="w"><label>Anything you would like to tell the institution (optional)</label><input name="msg" maxlength="300"></div>
+    <div class="w" id="admFeePreview"></div>
   </div>`;
 }
 let admPhoto = '';
@@ -1595,7 +1599,7 @@ let apDeptSrc = null;
 function admDepts() {
   if (apDeptSrc) return apDeptSrc();
   const sid = ($('#admSchool') || {}).value, o = PDEPT[sid]; if (!o) return [];
-  return Object.entries(o).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) }))
+  return Object.entries(o).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', compulsoryCount: v && v.compulsoryCount != null ? Number(v.compulsoryCount) : Object.values((v && v.subjects) || {}).filter(x => x && (x.type || 'আবশ্যিক') === 'আবশ্যিক').length, optionalCount: v && v.optionalCount != null ? Number(v.optionalCount) : 0, subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) }))
     .filter(d => d.name).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
 }
 function admGroupFields(cls) {
@@ -1613,23 +1617,48 @@ function admSubFill() {
   const g = $('#admBody [name="wantGroup"]'), info = $('#admSubInfo'), hint = $('#admGroupHint');
   if (!g || !info) return;
   const ds = admDepts(), d = ds.find(x => x.name === g.value), all = d ? d.subs : [];
-  const typeOf = x => x.type || 'আবশ্যিক';
-  const comp = all.filter(x => typeOf(x) === 'আবশ্যিক');
-  const flexible = all.filter(x => typeOf(x) === 'আবশ্যিক ও ঐচ্ছিক');
-  if (hint) hint.innerHTML = !ds.length
-    ? '<div class="admhint">এই প্রতিষ্ঠান Secondary / Higher Secondary-এর জন্য এখনো কোনো Group বা Department সেট করেনি। অনুগ্রহ করে প্রতিষ্ঠান কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।</div>'
-    : '';
-  if (!d) { info.innerHTML = '<div class="admhint">প্রথমে গ্রুপ নির্বাচন করুন।</div>'; return; }
-  if (!all.length) { info.innerHTML = '<div class="admhint">এই গ্রুপের জন্য কোনো বিষয় সেট করা নেই। প্রতিষ্ঠান কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।</div>'; return; }
-  info.innerHTML =
-    (comp.length ? `<div class="admsum" style="margin:6px 0">আবশ্যিক বিষয় / Compulsory: <b>${comp.map(x => esc(x.name)).join(', ')}</b></div>` : '') +
-    `<div class="sub" style="margin:8px 0">বিষয় নির্বাচন করুন। “আবশ্যিক ও ঐচ্ছিক” বিষয়ের ক্ষেত্রে আপনার জন্য কোনটি প্রযোজ্য তা বেছে নিন।</div>` +
-    all.map((x, i) => {
-      const ty = typeOf(x);
-      if (ty === 'আবশ্যিক') return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:7px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#f3f8f4;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" checked disabled style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} <small style="color:var(--mut)">(আবশ্যিক — স্বয়ংক্রিয়ভাবে নির্বাচিত)</small></span></label>`;
-      if (ty === 'আবশ্যিক ও ঐচ্ছিক') return `<div class="adm-subject-option" style="margin:7px 0;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:#fff"><b>${esc(x.name)}</b> <small style="color:var(--mut)">(আবশ্যিক অথবা ঐচ্ছিক—একটি বেছে নিন)</small><div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px"><label><input type="radio" name="subjectType_${i}" value="আবশ্যিক" data-flex-subject="${esc(x.name)}" style="width:auto;min-height:0"> আবশ্যিক</label><label><input type="radio" name="subjectType_${i}" value="ঐচ্ছিক" data-flex-subject="${esc(x.name)}" style="width:auto;min-height:0"> ঐচ্ছিক</label></div></div>`;
-      return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:7px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" data-subject-type="ঐচ্ছিক" style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} <small style="color:var(--mut)">(ঐচ্ছিক)</small></span></label>`;
-    }).join('');
+  const common = all.filter(x => x.type === SUB_COMMON), comp = all.filter(x => (x.type || 'আবশ্যিক') === 'আবশ্যিক' || x.type === SUB_BOTH), optional = all.filter(x => x.type === 'ঐচ্ছিক' || x.type === SUB_BOTH);
+  const reqComp = Number(d && d.compulsoryCount || 0), reqOpt = Number(d && d.optionalCount || 0);
+  if (hint) hint.innerHTML = !ds.length ? '<div class="admhint">এই প্রতিষ্ঠানের বিভাগ ও বিষয়ের তালিকা পাওয়া যায়নি। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।</div>' : '';
+  if (!d) { info.innerHTML = '<div class="admhint">প্রথমে বিভাগ নির্বাচন করুন।</div>'; return; }
+  if (!all.length) { info.innerHTML = '<div class="admhint">এই বিভাগের জন্য কোনো বিষয় সেট করা নেই।</div>'; return; }
+  const block = (title, arr, kind, count) => `<div style="margin:10px 0"><b>${title}</b>${count !== null ? `<div class="sub">এই তালিকা থেকে ${bn(count)} টি নির্বাচন করতে হবে</div>` : ''}${arr.map((x,i)=>{
+    if (kind === 'common') return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:6px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#f3f8f4;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" checked disabled style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} <small style="color:var(--mut)">(কমন — স্বয়ংক্রিয়ভাবে যুক্ত)</small></span></label>`;
+    const shared = x.type === SUB_BOTH;
+    return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:6px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" data-subject-type="${kind}" ${shared ? `data-shared-subject="${esc(x.name)}"` : ''} style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} ${shared ? '<small style="color:var(--mut)">(দুই তালিকাতেই আছে — একবারই নির্বাচন করা যাবে)</small>' : ''}</span></label>`;
+  }).join('')}</div>`;
+  info.innerHTML = (common.length ? block('কমন বিষয়', common, 'common', null) : '') +
+    (comp.length ? block('আবশ্যিক বিষয়', comp, 'compulsory', reqComp) : '') +
+    (optional.length ? block('ঐচ্ছিক বিষয়', optional, 'optional', reqOpt) : '') +
+    `<div class="sub" style="margin-top:8px">একই বিষয় দুই তালিকায় থাকলে সেটি আবশ্যিক বা ঐচ্ছিক—যেকোনো এক তালিকা থেকে একবারই নেওয়া যাবে।</div>`;
+  // Shared subjects may appear twice in the two lists, but checking one unchecks its counterpart.
+  info.querySelectorAll('[data-shared-subject]').forEach(el => el.addEventListener('change', () => {
+    if (!el.checked) return;
+    info.querySelectorAll('[data-shared-subject]').forEach(other => { if (other !== el && other.dataset.sharedSubject === el.dataset.sharedSubject) other.checked = false; });
+    admBuildFeeQuote();
+  }));
+}
+// Admission fee configuration is published per institution + class + group.
+const admFeeKey = (cls, group) => (String(cls || '').trim() + '__' + String(group || 'সাধারণ').trim()).replace(/[.#$\[\]\/]/g, '_').slice(0, 100);
+let admFeeConfig = null, admCurrentFeeQuote = null, admFeeFetchSeq = 0;
+function admFeeSubjectRows(raw) {
+  const out = {}; String(raw || '').split(/\r?\n/).forEach(line => { const i = line.lastIndexOf(':'); if (i < 1) return; const name = line.slice(0, i).trim(), amount = Number(line.slice(i + 1).trim()); if (name && Number.isFinite(amount) && amount >= 0) out[name] = Math.round(amount); }); return out;
+}
+async function admBuildFeeQuote(show = true) {
+  const seq = ++admFeeFetchSeq, cls = ($('#admClass') || {}).value || '', group = ($('#admBody [name="wantGroup"]') || {}).value || '';
+  const sid = ($('#admSchool') || {}).value || ''; admCurrentFeeQuote = null;
+  const box = $('#admFeePreview'); if (!sid || !cls) { if (box) box.innerHTML = ''; return null; }
+  let cfg = null; try { cfg = (await get(ref(db, `publicAdmissionFees/${sid}/${admFeeKey(cls, group)}`))).val(); } catch (e) {}
+  if (seq !== admFeeFetchSeq) return null;
+  if (!cfg || cfg.published !== true) { if (box) box.innerHTML = '<div class="admhint">এই শ্রেণি/গ্রুপের ভর্তি ফি এখনো প্রকাশ করা হয়নি। প্রতিষ্ঠানের সঙ্গে যোগাযোগ করুন।</div>'; return null; }
+  const selected = [...new Set([...document.querySelectorAll('#admBody [name="selectedSubjects"]:checked')].map(x => x.value))];
+  const flex = [...document.querySelectorAll('#admBody [data-flex-subject]:checked')].map(x => x.dataset.flexSubject); const subjects = [...new Set([...selected, ...flex])];
+  const subjectLines = subjects.map(n => { const fees = cfg.subjectFees || {}; if (!Object.prototype.hasOwnProperty.call(fees, n)) throw new Error('“' + n + '” বিষয়ের ফি নির্ধারণ করা হয়নি। প্রতিষ্ঠান কর্তৃপক্ষকে বিষয়ভিত্তিক ফি সেট করতে বলুন।'); const amount = Number(fees[n]); if (!Number.isFinite(amount) || amount < 0) throw new Error('“' + n + '” বিষয়ের ফি সঠিক নয়।'); return { name:n, amount }; });
+  const subjectTotal = subjectLines.reduce((a, x) => a + x.amount, 0), admissionFee = Number(cfg.admissionFee || 0), sessionFee = Number(cfg.sessionFee || 0), otherFee = Number(cfg.otherFee || 0), discount = Number(cfg.discount || 0);
+  const total = Math.max(0, admissionFee + sessionFee + subjectTotal + otherFee - discount);
+  admCurrentFeeQuote = { session: String(cfg.session || ''), version: Number(cfg.version || 1), group, admissionFee, sessionFee, subjectFee: subjectTotal, subjectLines, otherFee, discount, total, currency:'BDT', paymentStatus:'unpaid', quotedAt:Date.now() };
+  if (box && show) box.innerHTML = `<div class="panel" style="margin:10px 0"><b>ভর্তি ফি হিসাব • ${esc(cfg.session || '')}</b><div class="rowb"><span>ভর্তি ফি</span><b>${tk(admissionFee)}</b></div><div class="rowb"><span>বার্ষিক সেশন ফি</span><b>${tk(sessionFee)}</b></div>${subjectLines.map(x=>`<div class="rowb"><span>${esc(x.name)} বিষয় ফি</span><b>${tk(x.amount)}</b></div>`).join('')}<div class="rowb"><span>অন্যান্য ফি</span><b>${tk(otherFee)}</b></div>${discount ? `<div class="rowb"><span>ছাড়</span><b>− ${tk(discount)}</b></div>` : ''}<div class="totl"><span>সর্বমোট</span><b>${tk(total)}</b></div><div class="sub">এই হিসাব আবেদন জমার সময় সংরক্ষিত হবে। পেমেন্ট যাচাইয়ের স্বয়ংক্রিয় সার্ভার ব্যবস্থা পরবর্তী ধাপে যুক্ত করা যাবে।</div></div>`;
+  return admCurrentFeeQuote;
 }
 async function admLoadDepts(sid) {
   Object.keys(PDEPT).forEach(k => delete PDEPT[k]);
@@ -1646,9 +1675,10 @@ async function admLoadDepts(sid) {
   admRender(($('#admClass') || {}).value || '');
 }
 document.addEventListener('change', e => {
-  if (e.target.id === 'admClass') admRender(e.target.value);
+  if (e.target.id === 'admClass') { admRender(e.target.value); admBuildFeeQuote(); }
   else if (e.target.id === 'admSchool') admLoadDepts(e.target.value);
-  else if (e.target.name === 'wantGroup' && e.target.closest('#admBody')) admSubFill();
+  else if (e.target.name === 'wantGroup' && e.target.closest('#admBody')) { admSubFill(); admBuildFeeQuote(); }
+  else if (e.target.closest('#admBody') && (e.target.name === 'selectedSubjects' || e.target.dataset.flexSubject)) admBuildFeeQuote();
 });
 const admDateEn = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 function admExtraHtml(x) {
@@ -1695,6 +1725,42 @@ ${k("Guardian's name", r.guardian)}${r.guardianRel ? k("Relationship with applic
 </div><div class="np"><button onclick="window.print()">🖨 Print / Save as PDF</button></div></body></html>`;
 }
 
+let admFeeSettingsSeq = 0;
+async function admFeeSettingsSubjects() {
+  const seq = ++admFeeSettingsSeq, cls = ($('#admFeeClass') || {}).value || '', group = ($('#admFeeGroup') || {}).value || '', box = $('#admFeeSubjectTable'), form = $('#admFeeSettingsForm');
+  if (!box || !form) return;
+  ['admissionFee','sessionFee','otherFee','discount','feeSession'].forEach(n => { const el = form.elements[n]; if (el) el.value = n === 'feeSession' ? '' : '0'; });
+  const published = form.elements.feePublished; if (published) published.checked = true;
+  if (!cls) { box.innerHTML = '<div class="admhint">শ্রেণি/কোর্স নির্বাচন করুন।</div>'; return; }
+  box.innerHTML = '<div class="admhint">ফি সেটিংস লোড হচ্ছে…</div>';
+  let cfg = null;
+  try { if (ctx) cfg = (await get(ref(db, `publicAdmissionFees/${ctx}/${admFeeKey(cls, group)}`))).val(); } catch (_) {}
+  if (seq !== admFeeSettingsSeq) return;
+  if (cfg) {
+    ['admissionFee','sessionFee','otherFee','discount'].forEach(n => { if (form.elements[n]) form.elements[n].value = Number(cfg[n] || 0); });
+    if (form.elements.feeSession) form.elements.feeSession.value = cfg.session || '';
+    if (published) published.checked = cfg.published === true;
+  }
+  const dept = deptArr().find(d => d.name === group), subjects = dept ? subArr(dept) : [];
+  if (!group || !subjects.length) { box.innerHTML = '<div class="admhint">সাধারণ ফি সেটিংস: এই শ্রেণি/কোর্সে বিভাগভিত্তিক বিষয় প্রযোজ্য নয়।</div>'; return; }
+  const fees = cfg && cfg.subjectFees || {};
+  box.innerHTML = `<table><tr><th>বিষয়</th><th>ধরন</th><th>ফি (৳)</th></tr>${subjects.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.type || 'আবশ্যিক')}</td><td><input type="number" min="0" step="1" name="feeSubject_${esc(x.id)}" data-fee-subject="${esc(x.name)}" value="${Number(fees[x.name] || 0)}" style="max-width:130px"></td></tr>`).join('')}</table>`;
+}
+document.addEventListener('change', e => { if (e.target.id === 'admFeeClass' || e.target.id === 'admFeeGroup') admFeeSettingsSubjects(); });
+
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'admFeeSettingsForm') return;
+  e.preventDefault(); const f = new FormData(e.target), msg = $('#admFeeSaveMsg');
+  try {
+    if (!ctx || !ctxProfile || ctxProfile.status !== 'approved') throw new Error('অনুমোদিত প্রতিষ্ঠান অ্যাডমিন হিসেবে লগইন করুন');
+    const cls = String(f.get('feeClass') || '').trim(), group = String(f.get('feeGroup') || '').trim();
+    const cfg = { class:cls, group, session:String(f.get('feeSession') || '').trim(), admissionFee:Math.max(0, Number(f.get('admissionFee') || 0)), sessionFee:Math.max(0, Number(f.get('sessionFee') || 0)), otherFee:Math.max(0, Number(f.get('otherFee') || 0)), discount:Math.max(0, Number(f.get('discount') || 0)), subjectFees:Object.fromEntries([...e.target.querySelectorAll('[data-fee-subject]')].map(el => [el.dataset.feeSubject, Math.max(0, Number(el.value || 0))])), published:f.get('feePublished') === 'on', version:Date.now(), updatedAt:{'.sv':'timestamp'} };
+    if (!cls || !cfg.session || [cfg.admissionFee,cfg.sessionFee,cfg.otherFee,cfg.discount,...Object.values(cfg.subjectFees)].some(n => !Number.isFinite(n) || n > 1000000)) throw new Error('শ্রেণি, সেশন ও সঠিক ফি লিখুন (সর্বোচ্চ ১০,০০,০০০ টাকা)');
+    await set(ref(db, `publicAdmissionFees/${ctx}/${admFeeKey(cls, group)}`), cfg);
+    if (msg) msg.textContent = 'সংরক্ষণ হয়েছে';
+  } catch (x) { if (msg) msg.textContent = '⚠ ' + errMsg(x); else toast(errMsg(x)); }
+});
+
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'admF') return;
   e.preventDefault(); const b = e.submitter, box = $('#admErr'); if (b) b.disabled = true; box.style.display = 'none';
@@ -1720,23 +1786,18 @@ document.addEventListener('submit', async e => {
       if (!depts.length) throw new Error('এই প্রতিষ্ঠানের ডেটাবেজে Group সেট করা নেই। প্রতিষ্ঠান কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।');
       if (!selectedDept) throw new Error('অনুগ্রহ করে প্রতিষ্ঠানের তালিকা থেকে একটি বৈধ Group নির্বাচন করুন।');
       const validSubjects = selectedDept.subs.map(x => x.name);
-      const compulsory = selectedDept.subs.filter(x => (x.type || 'আবশ্যিক') === 'আবশ্যিক').map(x => x.name);
-      const flexibleTypes = {};
-      selectedDept.subs.filter(x => x.type === 'আবশ্যিক ও ঐচ্ছিক').forEach(x => {
-        const radios = [...e.target.querySelectorAll('[data-flex-subject]')].filter(el => el.dataset.flexSubject === x.name);
-        const picked = radios.find(el => el.checked);
-        if (!picked) throw new Error('“' + x.name + '” বিষয়টি আপনার জন্য আবশ্যিক নাকি ঐচ্ছিক, তা নির্বাচন করুন।');
-        flexibleTypes[x.name] = picked.value;
-      });
-      chosenSubjects = [...new Set([...compulsory, ...chosenSubjects, ...Object.keys(flexibleTypes)])];
-      if (!chosenSubjects.length && validSubjects.length) throw new Error('অনুগ্রহ করে অন্তত একটি বিষয় নির্বাচন করুন।');
-      if (chosenSubjects.some(x => !validSubjects.includes(x))) throw new Error('নির্বাচিত বিষয় এই Group-এর জন্য বৈধ নয়। আবার নির্বাচন করুন।');
+      const commonSubjects = selectedDept.subs.filter(x => x.type === SUB_COMMON).map(x => x.name);
+      const reqComp = Number(selectedDept.compulsoryCount || 0), reqOpt = Number(selectedDept.optionalCount || 0);
+      const pickedComp = [...e.target.querySelectorAll('#admSubInfo [data-subject-type="compulsory"]:checked')].map(x => x.value);
+      const pickedOpt = [...e.target.querySelectorAll('#admSubInfo [data-subject-type="optional"]:checked')].map(x => x.value);
+      const overlap = pickedComp.filter(x => pickedOpt.includes(x));
+      if (overlap.length) throw new Error('একই বিষয় আবশ্যিক ও ঐচ্ছিক দুই তালিকা থেকে একসঙ্গে নেওয়া যাবে না: ' + overlap.join(', '));
+      if (pickedComp.length !== reqComp) throw new Error('আবশ্যিক তালিকা থেকে ঠিক ' + reqComp + ' টি বিষয় নির্বাচন করুন।');
+      if (pickedOpt.length !== reqOpt) throw new Error('ঐচ্ছিক তালিকা থেকে ঠিক ' + reqOpt + ' টি বিষয় নির্বাচন করুন।');
+      chosenSubjects = [...new Set([...commonSubjects, ...pickedComp, ...pickedOpt])];
+      if (chosenSubjects.some(x => !validSubjects.includes(x))) throw new Error('নির্বাচিত বিষয় এই বিভাগের জন্য বৈধ নয়। আবার নির্বাচন করুন।');
       f.selectedSubjects = chosenSubjects;
-      f.selectedSubjectTypes = Object.fromEntries([
-        ...compulsory.map(x => [x, 'আবশ্যিক']),
-        ...selectedDept.subs.filter(x => (x.type || 'আবশ্যিক') === 'ঐচ্ছিক' && chosenSubjects.includes(x.name)).map(x => [x.name, 'ঐচ্ছিক']),
-        ...Object.entries(flexibleTypes)
-      ]);
+      f.selectedSubjectTypes = Object.fromEntries([ ...commonSubjects.map(x => [x, 'কমন']), ...pickedComp.map(x => [x, 'আবশ্যিক']), ...pickedOpt.map(x => [x, 'ঐচ্ছিক']) ]);
     }
     if (!guardian) throw new Error("Please enter the guardian's name");
     const ph = tenDigits(f.phone); if (!validPhone10(ph)) throw new Error("Guardian's mobile number must be 10 digits after +880");
@@ -1763,7 +1824,9 @@ document.addEventListener('submit', async e => {
     const dbRef = ref(db, `studentRegs/${sid}/${ph}-${ci}-${h.toString(36)}`);
     const isPerm = x => x && (x.code === 'PERMISSION_DENIED' || /permission/i.test(x.message || ''));
     const dupMsg = 'An application or admission already exists in this class/course with the same birth registration no., NID no., or the same phone number and name — or the institution is not accepting applications right now. Please contact the institution.';
-    const rec = { ...r, ...ex, prevSchool: r.prev, adm: true }; delete rec.prev; if (admPhoto) rec.photo = admPhoto; if (!rec.msg) delete rec.msg; if (!rec.dob) delete rec.dob; if (!rec.prevSchool) delete rec.prevSchool;
+    const feeQuote = await admBuildFeeQuote(false);
+    if (!feeQuote) throw new Error('এই শ্রেণি/বিভাগের ভর্তি ফি এখনো প্রকাশ করা হয়নি। আবেদন করার আগে প্রতিষ্ঠান কর্তৃপক্ষকে ফি প্রকাশ করতে বলুন।');
+    const rec = { ...r, ...ex, ...(feeQuote ? { feeQuote } : {}), prevSchool: r.prev, adm: true }; delete rec.prev; if (admPhoto) rec.photo = admPhoto; if (!rec.msg) delete rec.msg; if (!rec.dob) delete rec.dob; if (!rec.prevSchool) delete rec.prevSchool;
     const wr = { [`studentRegs/${sid}/${ph}-${ci}-${h.toString(36)}`]: { ...rec, createdAt: { '.sv': 'timestamp' } } };
     wr[`admPublic/${manKey(r.regNo)}`] = { ...rec, sid, school: schools[sid].name || '', createdAt: { '.sv': 'timestamp' } };
     admDupKeys(f.type, { class: f.class, birthReg: ex.birthReg, nid: ex.nid, phone: '+880' + ph, name }).forEach(k => { wr[`admDup/${sid}/${k}`] = true; });
@@ -1856,7 +1919,7 @@ let logNext = false, AL = {}, lhDays = 3, lhEv = '';
 let me = null, ctx = null, ctxProfile = null, S = {}, P = {}, adminList = {}, page = 'dash', ui = {}, listFn = null, registering = false;
 let baseUns = [], dataUns = [], stuUns = [], stuRec = null;
 let SC = {}, SQ = {}; /* অটো SMS: সেটিং (smsCfg) ও কিউ (smsQueue) */
-let N = {}, EX = {}, HO = {}, RS = {}, SN = {}, SE = {}, SH = {}, SR = {}, sp = 'home';
+let EI = '', N = {}, EX = {}, HO = {}, RS = {}, SN = {}, SE = {}, SH = {}, SR = {}, sp = 'home';
 const unAll = a => { a.forEach(f => f()); a.length = 0; };
 const base = () => `institutionData/${ctx}`;
 let curGate = null, pendingHead, pendingHeadSignature, AP = {}, hp = 'req', headIn = false;
@@ -2109,13 +2172,17 @@ function openWorkspace(uid, p) {
     if (ctx === uid && (page === 'head' || page === 'dash') && !$('#dlg').open && !typing) render();
   }, () => {}));
   SC = {}; SQ = {};
+  FR = {}; FQ = {}; FS = {}; fundUn = new Set();
+  dataUns.push(onValue(ref(db, `instFund/${uid}/spend`), s => { FS = s.val() || {}; updFund(); const dl = $('#dlg'); if (dl && dl.open && $('#fundHist')) openFundHist(); }, () => {}));
+  dataUns.push(onValue(ref(db, `instFund/${uid}/reqs`), s => { FR = s.val() || {}; fundWatch(); updFund(); }, () => {}));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/smsCfg`), s => { SC = s.val() || {}; if ($('#smsaF') && $('#dlg').open) smsAutoRender(); }, () => {}));
   dataUns.push(onValue(query(ref(db, `institutionData/${uid}/smsQueue`), limitToLast(200)), s => { SQ = s.val() || {}; if ($('#smsaF') && $('#dlg').open) smsAutoRender(); }, () => {}));
   BK = {}; dataUns.push(onValue(ref(db, `instBanks/${uid}`), s => { BK = s.val() || {}; if (ctx === uid && (page === 'bnk' || page === 'dash') && !$('#dlg').open) render(); }, () => {}));
-  N = {}; EX = {}; HO = {}; RS = {};
+  EI = ''; N = {}; EX = {}; HO = {}; RS = {};
   [['notices', v => N = v], ['exams', v => EX = v], ['holidays', v => HO = v]].forEach(([k, f]) => dataUns.push(onValue(ref(db, `${k}/${uid}`), s => { f(s.val() || {}); render(); }, () => {})));
   DP = {}; dataUns.push(onValue(ref(db, `institutionData/${uid}/departments`), s => { DP = s.val() || {}; if (ctx === uid) syncPubDepts(uid); if (ctx === uid && page === 'dept') render(); }, () => {}));
   dataUns.push(onValue(ref(db, `institutionData/${uid}/results`), s => { RS = s.val() || {}; }, () => {}));
+  dataUns.push(onValue(ref(db, `institutionData/${uid}/examInstr`), s => { EI = typeof s.val() === 'string' ? s.val() : ''; }, () => {}));
   TC = {}; TA = {}; TP = {}; TL = {}; tchDirty = false;
   [['teachers', v => TC = v], ['teacherAtt', v => TA = v], ['teacherPay', v => TP = v], ['teacherLeave', v => TL = v]].forEach(([k, f]) => dataUns.push(onValue(ref(db, `institutionData/${uid}/${k}`), s => { f(s.val() || {}); if (ctx === uid && page === 'tch' && !$('#dlg').open && !tchDirty) render(); }, () => {})));
   show('v-app'); render();
@@ -2140,6 +2207,7 @@ function shell({ nav, active, act, title, sub, actions = '', who = 'প্রত
 
 /* ---------- অ্যাডমিন প্যানেল ---------- */
 const ANAV = [['inst', 'প্রতিষ্ঠান', 'pro'], ['agreements', 'চুক্তিনামা', 'receipt'], ['aprofile', 'আমার প্রোফাইল', 'stu'], ['pay', 'পেমেন্ট', 'pay'], ['ledger', 'হিসাব', 'receipt'], ['site', 'সাইট সেটিং', 'set'], ['backup', 'ব্যাকআপ', 'db'], ['lh', 'লগইন হিস্ট্রি', 'due'], ['support', 'কাস্টমার সাপোর্ট', 'bell']];
+let FR = {}, FQ = {}, FS = {}, fundUn = new Set();
 let payReqs = {}, smsList = {}, paySet = {}, payKey = '', pendingQr, matching = false;
 let pf = { st: 'all', m: 'all', sc: 'all', from: '', to: '', q: '' };
 const paySel = new Set(); /* মোছার জন্য বাছা পেমেন্টের আইডি (ভেরিফাইড কখনো এতে আসে না) */
@@ -2264,6 +2332,14 @@ const recOk = (v, r) => typeof v.amount === 'number' && Math.abs(v.amount - r.to
 async function verifyReq(rid, via, smsId, trx) {
   const r = (await get(ref(db, 'payReq/' + rid))).val(); if (!r || !['pending', 'review'].includes(r.status)) return false; /* অন্য কোথাও (অ্যাপ/অটো/অন্য অ্যাডমিন) আগেই ভেরিফাই বা বাতিল হয়ে গেছে */
   trx = trx || r.trx || '';
+  if (r.kind === 'fund') { /* প্রতিষ্ঠানের অ্যাড ফান্ড: শুধু ভেরিফাই চিহ্ন; ক্রেডিট ব্যালেন্স এই ভেরিফাইড রিকোয়েস্ট থেকেই হিসাব হয় */
+    const d0 = today(), rno0 = 'FD-' + d0.slice(2).replace(/-/g, '') + '-' + rid.slice(-5).toUpperCase();
+    const u0 = { [`payReq/${rid}/status`]: 'verified', [`payReq/${rid}/verifiedAt`]: Date.now(), [`payReq/${rid}/via`]: via, [`payReq/${rid}/receiptNo`]: rno0 };
+    if (trx) u0[`payReq/${rid}/trx`] = trx;
+    if (smsId) u0[`bkashPayments/${smsId}/used`] = rid;
+    if (r.key) u0[`payBlock/${r.key}`] = null;
+    await update(root(), u0); return true;
+  }
   const st = (await get(ref(db, `institutionData/${r.uid}/students/${r.sid}`))).val();
   const hasPortal = (await get(ref(db, 'studentPortal/' + r.key))).exists();
   const pid = push(ref(db, `institutionData/${r.uid}/payments`)).key, date = today(), mname = r.method === 'rocket' ? 'রকেট' : 'বিকাশ';
@@ -2306,6 +2382,100 @@ async function matchAll() {
     }
   } catch (e) { /* পরের পরিবর্তনে আবার চেষ্টা */ }
   matching = false;
+}
+
+/* ---------- অ্যাড ফান্ড (প্রতিষ্ঠানের ক্রেডিট ব্যালেন্স) ----------
+   প্রতিষ্ঠান স্টুডেন্টের মতোই payReq বানায় (kind:'fund', key:'fund_<uid>'); অটো/ম্যানুয়াল ভেরিফাই হলে ক্রেডিট ব্যালেন্সে নিজে থেকেই যোগ হয়।
+   ব্যালেন্স = instFund/{uid}/reqs-এর যেসব payReq (kind=fund, uid মেলে) ভেরিফাইড তাদের মোট amount (চার্জ বাদে) */
+const FUNDK = u => 'fund_' + u;
+const fundRows = () => Object.keys(FR).map(id => ({ id, ...(FQ[id] || {}) })).filter(r => r.kind === 'fund' && r.uid === ctx && typeof r.createdAt === 'number').sort((a, b) => b.createdAt - a.createdAt);
+const fundCred = () => fundRows().filter(r => r.status === 'verified').reduce((t, r) => t + (Number(r.amount) || 0), 0);
+const fundSpent = () => Object.values(FS).reduce((t, x) => t + (Number(x && x.amount) || 0), 0);
+const fundBal = () => Math.round((fundCred() - fundSpent()) * 100) / 100;
+function updFund() { const c = $('#fundChip'); if (c) c.innerHTML = '<span>💰 ক্রেডিট <b>' + tk(fundBal()) + '</b></span>' + (me && me.uid === ctx ? '<i></i><span style="display:inline-flex;align-items:center;gap:6px">' + ic('pay') + ' অ্যাড ফান্ড</span>' : ''); }
+function fundWatch() {
+  Object.keys(FR).forEach(rid => {
+    if (fundUn.has(rid)) return; fundUn.add(rid);
+    dataUns.push(onValue(ref(db, 'payReq/' + rid), s => { FQ[rid] = s.val(); updFund(); const dl = $('#dlg'); if (dl && dl.open && $('#fundHist')) openFundHist(); }, () => {}));
+  });
+}
+document.addEventListener('input', e => {
+  if (e.target.id !== 'fundAmt') return;
+  const a = Math.round(Number(e.target.value) || 0), c = $('#fundCalc'); if (!c) return;
+  if (!(a > 0)) { c.innerHTML = ''; return; }
+  const { charge, total } = calcPay(a);
+  c.innerHTML = `<div class="rowb"><span>ক্রেডিট যোগ হবে</span><b>${tk(a)}</b></div><div class="rowb"><span>অনলাইন চার্জ (${money2(chgRate() * 100)}%)</span><b>${tk(charge)}</b></div><div class="totl"><span>মোট পরিশোধ</span><b>৳ ${money2(total)}</b></div>`;
+});
+/* ---------- প্রিমিয়াম সার্ভিস: ক্রেডিট কাটা ----------
+   কোন সেবায় ক্রেডিট লাগবে ও দাম কত তা অ্যাডমিন সাইট সেটিং-এর siteSettings/prem/{idcard,admit,result} = {on, price} থেকে ঠিক করেন।
+   প্রতিটি কাটা instFund/{uid}/spend/{ref}-এ একটি রেকর্ড (ref একই হলে দ্বিতীয়বার কাটে না — রুলসও দ্বিতীয় লেখা আটকায়)। */
+const PREM = { idcard: 'স্টুডেন্ট আইডি কার্ড', admit: 'এডমিট কার্ড', result: 'রেজাল্ট শীট' };
+const PREMU = { idcard: 'প্রতি শিক্ষার্থীর কার্ড ডাউনলোডে (একই মেয়াদের একই কার্ড আবার ডাউনলোড ফ্রি)', admit: 'প্রতি শিক্ষার্থী প্রতি পরীক্ষায় — এডমিট কার্ড প্রকাশের সময় কাটবে', result: 'প্রতি শিক্ষার্থী প্রতি পরীক্ষায় — ফলাফল শিক্ষার্থীদের জন্য প্রকাশের সময় কাটবে' };
+const premCfg = k => { const c = ((site && site.prem) || {})[k] || {}; return { on: c.on === true, price: Math.max(0, Math.round(Number(c.price) || 0)) }; };
+const premOn = k => { const c = premCfg(k); return c.on && c.price > 0; };
+async function premGate(k, refs, label) {
+  if (!me || me.isAdmin || me.uid !== ctx || !premOn(k)) return true;
+  const c = premCfg(k), keys = [...new Set(refs.map(r => String(r).replace(/[.$#\[\]\/]/g, '_')))].filter(r => !FS[r]);
+  if (!keys.length) return true;
+  const cost = Math.round(keys.length * c.price * 100) / 100, bal = fundBal();
+  if (bal < cost) { alert(label + '\n\nএই কাজে ' + tk(cost) + ' ক্রেডিট লাগবে (' + bn(keys.length) + ' টি × ' + tk(c.price) + '), কিন্তু আপনার ক্রেডিট ব্যালেন্স ' + tk(bal) + '।\nহেডারের "অ্যাড ফান্ড" বাটন থেকে ক্রেডিট যোগ করে আবার চেষ্টা করুন।'); return false; }
+  if (!confirm(label + '\n\n' + bn(keys.length) + ' টি × ' + tk(c.price) + ' = ' + tk(cost) + ' ক্রেডিট কাটা হবে।\nবর্তমান ব্যালেন্স ' + tk(bal) + ', কাটার পর ' + tk(Math.round((bal - cost) * 100) / 100) + '।\nচালিয়ে যাবেন?')) return false;
+  const lb = label.slice(0, 90);
+  for (let i = 0; i < keys.length; i += 100) {
+    const upd = {}; keys.slice(i, i + 100).forEach(r => { upd[`instFund/${ctx}/spend/${r}`] = { svc: k, amount: c.price, qty: 1, label: lb, at: { '.sv': 'timestamp' } }; });
+    await fbUpdate(root(), upd); /* স্টাফের অনুমোদন-মোডেও (CAP) সঙ্গে সঙ্গে কাটে */
+  }
+  keys.forEach(r => { FS[r] = { svc: k, amount: c.price, label: lb }; }); updFund();
+  return true;
+}
+async function openFundDlg() {
+  if (!me || me.uid !== ctx) return;
+  const d = $('#dlg'); stopPay(); payM = 'bkash';
+  const closeBtn = '<div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>';
+  if (!payOpen()) { d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">🔴</div><h3>${payInHours() ? 'এই মুহূর্তে পেমেন্ট করা সম্ভব হচ্ছে না' : 'পেমেন্ট সার্ভিস এখন বন্ধ'}</h3><p class="sub">${esc(payClosedMsg())}</p></div>${closeBtn}`; if (!d.open) d.showModal(); return; }
+  try {
+    if ((await get(ref(db, 'payBlock/' + FUNDK(ctx)))).exists()) {
+      d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">⏳</div><h3>ভেরিফাই রিকোয়েস্ট পাঠানো আছে</h3><p class="sub">আপনার আগের ফান্ড পেমেন্টের ভেরিফাই রিকোয়েস্ট অ্যাডমিনের কাছে পাঠানো হয়েছে। ব্যবস্থা না নেওয়া পর্যন্ত নতুন ফান্ড যোগ করা যাবে না।</p></div>${closeBtn}`;
+      if (!d.open) d.showModal(); return;
+    }
+  } catch (e) { /* পরীক্ষা করা না গেলে এগিয়ে যান; রুলস আটকাবে */ }
+  d.innerHTML = `<h3>অ্যাড ফান্ড — পেমেন্ট নির্দেশনা</h3>
+  <div class="note" style="white-space:pre-line">${paySet.instructions ? esc(paySet.instructions) : 'পেমেন্ট নির্দেশনা এখনো দেওয়া হয়নি।'}</div>
+  <label style="display:flex;align-items:center;gap:10px;margin:16px 0;cursor:pointer;font-weight:600"><input type="checkbox" id="fundRead" data-act="fundread" style="width:20px;height:20px;flex:none"><span>আমি পড়েছি ও বুঝেছি</span></label>
+  <div class="row end"><button type="button" class="btn ghost" data-act="fundhist">ক্রেডিট ইতিহাস</button><button type="button" class="btn ghost" data-act="close">বাতিল</button></div>`;
+  if (!d.open) d.showModal();
+}
+function openFundForm() {
+  const d = $('#dlg'); payM = 'bkash'; d.dataset.pm = 'bkash';
+  d.innerHTML = `<h3>অ্যাড ফান্ড</h3>
+  <div class="paybox"><div class="sub">বর্তমান ক্রেডিট ব্যালেন্স</div><div class="rowb"><span>ব্যালেন্স</span><b>${tk(fundBal())}</b></div></div>
+  <form id="ff"><label>যত টাকা ফান্ড যোগ করবেন (৳)</label><input id="fundAmt" name="amount" type="number" min="10" max="500000" step="1" required inputmode="numeric" placeholder="যেমন: ৫০০" autocomplete="off">
+  <div class="paybox" id="fundCalc" style="margin-top:10px"></div>
+  <label>পেমেন্ট মাধ্যম</label><div class="seg mseg"><button type="button" class="on" data-act="pm" data-m="bkash" aria-label="বিকাশ">${mLogo('bkash', 40)}</button><button type="button" data-act="pm" data-m="rocket" aria-label="রকেট">${mLogo('rocket', 40)}</button></div>
+  <label>যে নম্বর থেকে পেমেন্ট করবেন</label><div class="ph"><span>+880</span><input name="sender" required maxlength="10" inputmode="numeric" pattern="1[3-9][0-9]{8}" title="+880 এর পরে ১০ সংখ্যার মোবাইল নম্বর দিন" placeholder="১০ সংখ্যা"></div>
+  ${paySet.qr ? '' : '<div class="hint" style="color:var(--out)">পেমেন্ট এখনো চালু হয়নি।</div>'}${payOpen() ? '' : '<div class="hint" style="color:var(--out)">' + esc(payClosedMsg()) + '</div>'}${fwOnline() || !payOpen() ? '' : '<div class="hint" style="color:#b45309">পেমেন্ট করে "পেমেন্ট করেছি" চাপুন — অ্যাডমিন হাতে ভেরিফাই করবেন।</div>'}
+  <div class="row end"><button type="button" class="btn ghost" data-act="close">বাতিল</button><button class="btn" ${paySet.qr && payOpen() ? '' : 'disabled'}>পেমেন্ট করুন</button></div></form>`;
+}
+async function startFund(amount, sender) {
+  if (!me || me.uid !== ctx) throw new Error('শুধু প্রতিষ্ঠান নিজে ফান্ড যোগ করতে পারবে');
+  if (!payOpen()) throw new Error(payClosedMsg());
+  amount = Math.round(Number(amount));
+  if (!(amount >= 10 && amount <= 500000)) throw new Error('টাকার পরিমাণ ৳১০ থেকে ৳৫,০০,০০০ এর মধ্যে দিন');
+  const { charge, total } = calcPay(amount), id = push(ref(db, 'payReq')).key, nm = String((ctxProfile && ctxProfile.name) || 'প্রতিষ্ঠান');
+  const req = { uid: ctx, sid: ctx, key: FUNDK(ctx), school: nm.slice(0, 120), name: nm.slice(0, 100), class: 'ফান্ড', title: 'অ্যাড ফান্ড', amount, charge, total, method: payM, sender, status: 'pending', createdAt: { '.sv': 'timestamp' }, kind: 'fund' };
+  await update(root(), { ['payReq/' + id]: req, [`instFund/${ctx}/reqs/${id}`]: true });
+  payId = id;
+  payUn = onValue(ref(db, 'payReq/' + id), s => { payCur = s.val(); paintPay(); }, () => {});
+  payTick = setInterval(paintPay, 1000);
+}
+function openFundHist() {
+  const d = $('#dlg'), rows = fundRows().slice(0, 30), me_ = me && me.uid === ctx, use = Object.entries(FS).map(([id, v]) => ({ id, ...v })).filter(x => typeof x.at === 'number').sort((a, b) => b.at - a.at).slice(0, 30);
+  const st = r => r.status === 'verified' ? '<span style="color:#15803d;font-weight:700">✅ যোগ হয়েছে</span>' : r.status === 'review' || claimed(r) ? '⏳ ভেরিফাই হচ্ছে' : r.status === 'cancelled' ? '🚫 বাতিল' : r.status === 'rejected' ? '❌ প্রত্যাখ্যাত' : (payExp(r) < nowSrv() ? '⌛ সময় শেষ' : '🕒 অপেক্ষমাণ');
+  d.innerHTML = `<div id="fundHist"><h3>💰 ক্রেডিট ব্যালেন্স</h3><div style="font-size:30px;font-weight:800;margin:4px 0 10px">${tk(fundBal())}</div>
+  ${rows.length ? `<div class="tw"><table class="ledt"><tr><th>সময়</th><th class="n">ফান্ড</th><th>মাধ্যম</th><th>অবস্থা</th></tr>${rows.map(r => `<tr><td>${new Date(r.createdAt).toLocaleString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}${r.receiptNo ? `<div class="sub">${esc(r.receiptNo)}</div>` : ''}</td><td class="n">${tk(r.amount)}</td><td>${r.method === 'rocket' ? 'রকেট' : 'বিকাশ'}</td><td>${st(r)}</td></tr>`).join('')}</table></div>` : '<p class="sub">এখনো কোনো ফান্ড যোগ করা হয়নি।</p>'}
+  ${use.length ? `<h3 style="margin:16px 0 6px;font-size:15px">ক্রেডিট ব্যবহার</h3><div class="tw"><table class="ledt"><tr><th>সময়</th><th>সেবা</th><th class="n">কাটা হয়েছে</th></tr>${use.map(x => `<tr><td>${new Date(x.at).toLocaleString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</td><td>${esc(x.label || PREM[x.svc] || '')}</td><td class="n">− ${tk(x.amount)}</td></tr>`).join('')}</table></div>` : ''}
+  <div class="row end" style="margin-top:12px">${me_ ? '<button type="button" class="btn" data-act="fundadd">+ অ্যাড ফান্ড</button>' : ''}<button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div></div>`;
+  if (!d.open) d.showModal();
 }
 
 /* ---------- শিক্ষার্থীর পেমেন্ট পপ-আপ ---------- */
@@ -2366,16 +2536,17 @@ function paintPay() {
   if (mode !== 'qr') { clearInterval(payTick); payTick = null; } else if (!payTick) payTick = setInterval(paintPay, 1000);
   const close = '<div class="row end"><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>';
   if (mode === 'ok') {
+    const fd = r.kind === 'fund';
     const vd = new Date(typeof r.verifiedAt === 'number' ? r.verifiedAt : nowSrv()).toLocaleString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' });
     const rr = (a, b) => b ? `<div class="rowb"><span>${a}</span><b>${esc(b)}</b></div>` : '';
     d.innerHTML = `<div class="okw"><div class="okc"><svg viewBox="0 0 52 52"><circle class="okr" cx="26" cy="26" r="23" fill="none" stroke="currentColor" stroke-width="3"/><path class="okk" d="M15 27l8 8 15-17" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <h3>পেমেন্ট ভেরিফাইড</h3><p class="sub" style="margin:0 0 12px">আপনার পেমেন্ট সফলভাবে যাচাই হয়েছে ও রসিদ তৈরি হয়েছে</p>
     <div class="rc"><div class="paidst"><b>পরিশোধিত</b><span>PAID</span></div><div style="margin-bottom:6px">${mLogo(r.method, 30)}</div>
-      ${rr('রসিদ নং', r.receiptNo)}${rr('শিক্ষার্থী', r.name)}${rr('শ্রেণি', r.class)}${rr('বিবরণ', (r.title || '') + (r.month ? ' (' + bnMonth(r.month) + ')' : ''))}${rr('TrxID', r.trx)}${rr('সময়', vd)}
-      <div class="totl"><span>পরিশোধিত টাকা</span><b>${tk(r.amount)}</b></div></div></div>
-    <div class="row end"><button class="btn" data-act="srcptreq">🧾 রসিদ দেখুন / প্রিন্ট</button><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`;
+      ${rr('রসিদ নং', r.receiptNo)}${fd ? rr('প্রতিষ্ঠান', r.name) + rr('বিবরণ', 'ক্রেডিট ব্যালেন্সে যোগ') : rr('শিক্ষার্থী', r.name) + rr('শ্রেণি', r.class) + rr('বিবরণ', (r.title || '') + (r.month ? ' (' + bnMonth(r.month) + ')' : ''))}${rr('TrxID', r.trx)}${rr('সময়', vd)}
+      <div class="totl"><span>${fd ? 'ক্রেডিট যোগ হয়েছে' : 'পরিশোধিত টাকা'}</span><b>${tk(r.amount)}</b></div></div></div>
+    <div class="row end">${fd ? '' : '<button class="btn" data-act="srcptreq">🧾 রসিদ দেখুন / প্রিন্ট</button>'}<button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div>`;
   }
-  else if (mode === 'no') d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">❌</div><h3>পেমেন্ট গৃহীত হয়নি</h3><p class="sub">বিস্তারিত জানতে স্কুলের সাথে যোগাযোগ করুন।</p></div>${close}`;
+  else if (mode === 'no') d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">❌</div><h3>পেমেন্ট গৃহীত হয়নি</h3><p class="sub">${r.kind === 'fund' ? 'বিস্তারিত জানতে অ্যাডমিনের সাথে যোগাযোগ করুন।' : 'বিস্তারিত জানতে স্কুলের সাথে যোগাযোগ করুন।'}</p></div>${close}`;
   else if (mode === 'cancel') d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">🚫</div><h3>পেমেন্ট বাতিল করা হয়েছে</h3><p class="sub">চাইলে আপনি নতুন করে পেমেন্ট শুরু করতে পারবেন।</p></div>${close}`;
   else if (mode === 'review') d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">⏳</div><h3>পেমেন্ট ভেরিফাই হচ্ছে</h3><p class="sub">আপনার পেমেন্টের তথ্য পাঠানো হয়েছে, অটো ভেরিফিকেশন চলছে। প্রয়োজনে অ্যাডমিন যাচাই করবেন। অটো বা অ্যাডমিনের যাচাই যেটা আগে হবে, হওয়ামাত্র এখানেই ভেরিফাইড ও রসিদ দেখাবে। যাচাই শেষ না হওয়া পর্যন্ত নতুন পেমেন্ট করা যাবে না।</p></div>${close}`;
   else if (mode === 'wait') d.innerHTML = `<div style="text-align:center"><div style="font-size:54px">⌛</div><h3>নির্দিষ্ট সময় শেষ হয়েছে</h3><p class="sub">এই সময়ের মধ্যে পেমেন্ট পাওয়া যায়নি। আপনি কী করতে চান?</p></div>
@@ -2530,7 +2701,7 @@ function subModal(uid) {
       toast(amt > 0 ? 'সাবস্ক্রিপশন (' + TIERS[f.tier][0] + ') ও মাসিক চার্জ সংরক্ষিত হয়েছে' : 'সাবস্ক্রিপশনের ধরন (' + TIERS[f.tier][0] + ') সংরক্ষিত হয়েছে • মাসিক চার্জ বন্ধ আছে');
     });
 }
-const ledMissing = () => Object.entries(payReqs).filter(([id, r]) => r.status === 'verified' && r.uid && !(((ledgerAll[r.uid] || {}).online || {})[id]));
+const ledMissing = () => Object.entries(payReqs).filter(([id, r]) => r.status === 'verified' && r.kind !== 'fund' && r.uid && !(((ledgerAll[r.uid] || {}).online || {})[id]));
 const BANK_T = { bank: 'ব্যাংক', bkash: 'বিকাশ', nagad: 'নগদ', rocket: 'রকেট' };
 const bankLbl = b => `${BANK_T[b.type] || 'ব্যাংক'}${b.bank ? ' — ' + b.bank : ''}${b.branch ? ' (' + b.branch + ')' : ''} • ${b.holder} • ${b.number}`;
 /* ================= পাওনা টাকার অনুরোধ (প্রতিষ্ঠান → অ্যাডমিন) ================= */
@@ -2579,10 +2750,23 @@ function admHtml() {
   const cnt = k => k === 'all' ? all.length : all.filter(x => x.status === k).length;
   return `<div class="panel"><h3 style="margin-top:0">📩 আবেদন</h3>
   <div class="sub" style="margin-bottom:10px">এখানে ভর্তি আবেদন ও ${hdTitle(instTypeOf(ctx))} বরাবর অনলাইন আবেদন দেখা যাবে। ভর্তি আবেদন থেকে “শিক্ষার্থী যোগ” করলে শিক্ষার্থী যুক্ত করার একই ফর্ম খুলবে। অনলাইন আবেদন অনুমোদনের পর আবেদন নম্বর দিয়ে স্বাক্ষরিত কপি প্রিন্ট করুন।</div>
+  <details class="panel" style="margin:12px 0"><summary style="cursor:pointer;font-weight:700">⚙️ ভর্তি ফি নির্ধারণ (শ্রেণি ও গ্রুপ অনুযায়ী)</summary>
+  <form id="admFeeSettingsForm" class="fg" style="margin-top:12px">
+    <div><label>শ্রেণি / কোর্স</label><select name="feeClass" id="admFeeClass" required>${['', ...instClasses()].map(c => `<option value="${esc(c)}">${c ? esc(c) : 'শ্রেণি / কোর্স নির্বাচন করুন'}</option>`).join('')}</select></div>
+    <div><label>বিভাগ / গ্রুপ</label><select name="feeGroup" id="admFeeGroup"><option value="">সাধারণ / গ্রুপ প্রযোজ্য নয়</option>${deptArr().map(d => `<option value="${esc(d.name)}">${esc(d.name)}</option>`).join('')}</select></div>
+    <div class="w"><label>বিষয়ভিত্তিক ফি (টেবিল)</label><div id="admFeeSubjectTable" class="tw"><div class="admhint">শ্রেণি ও বিভাগ নির্বাচন করলে বিষয়ের তালিকা আসবে।</div></div></div>
+    <div><label>ভর্তি ফি (৳)</label><input name="admissionFee" type="number" min="0" step="1" value="0" required></div>
+    <div><label>বার্ষিক সেশন ফি (৳)</label><input name="sessionFee" type="number" min="0" step="1" value="0" required></div>
+    <div><label>অন্যান্য ফি (৳)</label><input name="otherFee" type="number" min="0" step="1" value="0" required></div>
+    <div><label>ছাড় (৳)</label><input name="discount" type="number" min="0" step="1" value="0" required></div>
+    <div><label>শিক্ষাবর্ষ / সেশন</label><input name="feeSession" maxlength="20" required placeholder="যেমন: ২০২৭"></div>
+    <div class="w"><label><input type="checkbox" name="feePublished" checked style="width:auto;min-height:0"> আবেদনকারীদের জন্য ফি প্রকাশ করুন</label></div>
+    <div class="w"><button class="btn" type="submit">ফি সেটিংস সংরক্ষণ</button><span class="sub" id="admFeeSaveMsg" style="margin-left:10px"></span></div>
+  </form></details>
   <div class="row" style="margin:10px 0"><input id="admLookup" placeholder="অনলাইন আবেদনের নম্বর দিয়ে খুঁজুন (MAN-...)" style="max-width:420px"><button class="btn ghost" data-act="manualsearch">আবেদন নম্বর খুঁজুন / প্রিন্ট</button></div>
   <div class="chips" style="margin-bottom:10px">${[['pending', 'অপেক্ষায়'], ['accepted', 'গৃহীত'], ['admitted', 'ভর্তি সম্পন্ন'], ['rejected', 'প্রত্যাখ্যাত'], ['all', 'সব']].map(([k, l]) => `<button class="${admF === k ? 'on' : ''}" data-act="admf" data-f="${k}">${l} (${bn(cnt(k))})</button>`).join('')}</div>
   <div class="tw"><table><tr><th>তারিখ</th><th>আবেদনকারী</th><th>ভর্তির শ্রেণি</th><th>অভিভাবক ও যোগাযোগ</th><th>অবস্থা</th><th></th></tr>
-  ${rows.map(x => { const t = AD_ST[x.status] || ['b-pending', esc(x.status || '')]; const manual = x.kind === 'manual'; return `<tr><td>${bnDate(ymd(x.createdAt || 0))}<div class="sub">${esc(x.regNo || '')}</div>${manual ? '<span class="badge b-approved">অনলাইন আবেদন</span>' : ''}</td><td><b>${esc(x.name)}</b>${x.nameEn ? `<div class="sub">${esc(x.nameEn)}</div>` : ''}<div class="sub">${esc(x.gender || '')}${x.dob ? ' • জন্ম: ' + bnDate(x.dob) : ''}</div>${x.prev ? `<div class="sub">আগের প্রতিষ্ঠান: ${esc(x.prev)}</div>` : ''}${manual ? `<div class="sub"><b>বিষয়:</b> ${esc(x.subject || '')}</div><div class="sub" style="white-space:pre-wrap;max-width:380px">${esc(x.applicationText || '')}</div>` : admExtraHtml(x)}</td><td>${esc(x.class)}</td><td>${esc(x.guardian || '—')}<div class="sub">${esc(x.phone)}</div><div class="sub">${esc(x.address || '')}</div>${x.msg ? `<div class="sub">মন্তব্য: ${esc(x.msg)}</div>` : ''}</td><td><span class="badge ${t[0]}">${t[1]}</span>${x.status === 'rejected' && x.reason ? `<div class="sub">${esc(x.reason)}</div>` : ''}</td><td><div class="row">${x.status === 'pending' ? `<button type="button" class="btn sm ok" data-act="admok" data-id="${esc(x.id)}">✔ ${manual ? 'অনুমোদন' : 'গ্রহণ'}</button>` : ''}${x.status === 'accepted' && !manual ? `<button type="button" class="btn sm ok" data-act="admadd" data-id="${esc(x.id)}">➕ শিক্ষার্থী যোগ</button>` : ''}${x.status === 'pending' || x.status === 'accepted' ? `<button type="button" class="btn sm ghost" data-act="admno" data-id="${esc(x.id)}">✖ প্রত্যাখ্যান</button>` : ''}<button type="button" class="btn sm ghost" data-act="admprint" data-id="${esc(x.id)}">${manual && ['accepted','admitted'].includes(x.status) ? '🖨 স্বাক্ষরিত প্রিন্ট' : '🧾 ফর্ম'}</button><button type="button" class="btn sm ghost" data-act="admdel" data-id="${esc(x.id)}">মুছুন</button></div></td></tr>`; }).join('') || '<tr><td colspan="6" class="empty"><b>এই অবস্থায় কোনো আবেদন নেই</b>ভর্তি ইচ্ছুকরা হোম পেজের "এডমিশন" বাটন থেকে আবেদন করলে এখানে জমা হবে।</td></tr>'}
+  ${rows.map(x => { const t = AD_ST[x.status] || ['b-pending', esc(x.status || '')]; const manual = x.kind === 'manual'; return `<tr><td>${bnDate(ymd(x.createdAt || 0))}<div class="sub">${esc(x.regNo || '')}</div>${manual ? '<span class="badge b-approved">অনলাইন আবেদন</span>' : ''}</td><td><b>${esc(x.name)}</b>${x.nameEn ? `<div class="sub">${esc(x.nameEn)}</div>` : ''}<div class="sub">${esc(x.gender || '')}${x.dob ? ' • জন্ম: ' + bnDate(x.dob) : ''}</div>${x.prev ? `<div class="sub">আগের প্রতিষ্ঠান: ${esc(x.prev)}</div>` : ''}${manual ? `<div class="sub"><b>বিষয়:</b> ${esc(x.subject || '')}</div><div class="sub" style="white-space:pre-wrap;max-width:380px">${esc(x.applicationText || '')}</div>` : admExtraHtml(x)}${x.feeQuote ? `<div class="sub" style="margin-top:6px"><b>ভর্তি ফি:</b> ${tk(x.feeQuote.total)} • ${esc(x.feeQuote.session || '')}<br>পেমেন্ট: ${esc(x.feeQuote.paymentStatus || 'unpaid')}</div>` : ''}</td><td>${esc(x.class)}</td><td>${esc(x.guardian || '—')}<div class="sub">${esc(x.phone)}</div><div class="sub">${esc(x.address || '')}</div>${x.msg ? `<div class="sub">মন্তব্য: ${esc(x.msg)}</div>` : ''}</td><td><span class="badge ${t[0]}">${t[1]}</span>${x.status === 'rejected' && x.reason ? `<div class="sub">${esc(x.reason)}</div>` : ''}</td><td><div class="row">${x.status === 'pending' ? `<button type="button" class="btn sm ok" data-act="admok" data-id="${esc(x.id)}">✔ ${manual ? 'অনুমোদন' : 'গ্রহণ'}</button>` : ''}${x.status === 'accepted' && !manual ? `<button type="button" class="btn sm ok" data-act="admadd" data-id="${esc(x.id)}">➕ শিক্ষার্থী যোগ</button>` : ''}${x.status === 'pending' || x.status === 'accepted' ? `<button type="button" class="btn sm ghost" data-act="admno" data-id="${esc(x.id)}">✖ প্রত্যাখ্যান</button>` : ''}<button type="button" class="btn sm ghost" data-act="admprint" data-id="${esc(x.id)}">${manual && ['accepted','admitted'].includes(x.status) ? '🖨 স্বাক্ষরিত প্রিন্ট' : '🧾 ফর্ম'}</button><button type="button" class="btn sm ghost" data-act="admdel" data-id="${esc(x.id)}">মুছুন</button></div></td></tr>`; }).join('') || '<tr><td colspan="6" class="empty"><b>এই অবস্থায় কোনো আবেদন নেই</b>ভর্তি ইচ্ছুকরা হোম পেজের "এডমিশন" বাটন থেকে আবেদন করলে এখানে জমা হবে।</td></tr>'}
   </table></div></div>`;
 }
 function pAdm() { $('#main').innerHTML = admHtml(); }
@@ -2795,7 +2979,7 @@ function renderAdmin() {
     return;
   }
   if (ap === 'site') {
-    shell({ nav: ANAV, active: 'site', act: 'adminnav', title: 'সাইট সেটিং', sub: 'ওয়েবসাইটের নাম, লোগো, অনলাইন চার্জ, পেমেন্ট নির্দেশনা ও QR', who: 'অ্যাডমিন' });
+    shell({ nav: ANAV, active: 'site', act: 'adminnav', title: 'সাইট সেটিং', sub: 'ওয়েবসাইটের নাম, লোগো, অনলাইন চার্জ, পেমেন্ট নির্দেশনা, QR ও প্রিমিয়াম সার্ভিসের ক্রেডিট', who: 'অ্যাডমিন' });
     const logo = pendingLogo !== undefined ? pendingLogo : site.logo;
     const qr = pendingQr !== undefined ? pendingQr : (paySet.qr || '');
     $('#main').innerHTML = `<div class="panel" style="max-width:620px"><form id="siteF">
@@ -2815,6 +2999,10 @@ function renderAdmin() {
     <div class="panel" style="max-width:620px"><h3>পেমেন্ট সেটিং</h3><form id="payF">
       <label>পেমেন্ট নির্দেশনা (শিক্ষার্থী দেখবে)</label><textarea class="tarea" name="instructions" rows="4" maxlength="1500">${esc(paySet.instructions || '')}</textarea>
       <label>Bangla QR ছবি (সর্বোচ্চ ১২০ কেবি)</label><div class="logoprev"><span class="logo ${qr ? 'has' : ''}" id="qrBox">${qr ? `<img src="${esc(qr)}" alt="">` : ic('receipt')}</span><input type="file" id="qrFile" accept="image/jpeg,image/png,image/webp"></div>
+      <button class="btn full">সংরক্ষণ করুন</button></form></div>
+    <div class="panel" style="max-width:620px"><h3>💎 প্রিমিয়াম সার্ভিস (ক্রেডিট)</h3><form id="premF">
+      <p class="sub" style="margin:0 0 12px">কোন সেবায় প্রতিষ্ঠানের ক্রেডিট ব্যালেন্স কাটবে এবং কত টাকা, এখান থেকে ঠিক করুন। বন্ধ রাখলে বা দাম ০ হলে সেবাটি বিনামূল্যে থাকবে। অ্যাডমিন ভিউতে কোনো ক্রেডিট কাটে না।</p>
+      ${Object.keys(PREM).map(k => { const c = premCfg(k); return `<div style="border:1px solid var(--line,#d8dce6);border-radius:12px;padding:12px;margin-bottom:10px"><label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700"><input type="checkbox" name="on_${k}" ${c.on ? 'checked' : ''} style="width:20px;height:20px;flex:none"><span>${PREM[k]} — ক্রেডিট লাগবে</span></label><label style="margin-top:8px">দাম (৳) — ${PREMU[k]}</label><input type="number" name="price_${k}" min="0" max="100000" step="1" inputmode="numeric" value="${c.price || ''}" placeholder="যেমন: ৫"></div>`; }).join('')}
       <button class="btn full">সংরক্ষণ করুন</button></form></div>
     <div class="panel" style="max-width:620px"><h3>আন্ডার মেইনটেন্স</h3><form id="maintF">
       <label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;cursor:pointer;font-weight:600"><input type="checkbox" name="on" ${mntActive() ? 'checked' : ''} style="width:20px;height:20px;flex:none;margin-top:2px"><span>আন্ডার মেইনটেন্স চালু করুন<span class="hint" style="display:block;font-weight:400">চালু থাকলে শুধু প্রতিষ্ঠান লগইন (ও অ্যাডমিন) বাদে বাকি সবকিছুতে ক্লিক করলে “সার্ভার আন্ডার মেইনটেন্স — অনুগ্রহপূর্বক নির্দিষ্ট সময় পর্যন্ত অপেক্ষা করুন” দেখাবে।</span></span></label>
@@ -2906,10 +3094,11 @@ function renderInst() {
   if (page === 'head' && !(headIn || me.isAdmin)) page = 'dash';
   saveNav({ ctx, page: page === 'head' ? 'dash' : page });
   const acts = headChipHtml() + (me.isAdmin ? `<button class="btn ghost" data-act="back">← সব প্রতিষ্ঠান</button>` : '') +
+    `<button type="button" class="btn fbtn" id="fundChip" data-act="fundbtn" title="${me.uid === ctx ? 'অ্যাড ফান্ড' : 'ক্রেডিট ব্যালেন্স ও ইতিহাস'}"></button>` +
     `<button class="btn ok" data-act="addpay" data-t="income" title="কমিটি বা অন্য উৎসের টাকা">+ টাকা গ্রহণ (কমিটি/অন্য উৎস)</button><button class="btn bad" data-act="addpay" data-t="expense">− টাকা প্রদান</button>`;
   shell({ nav: NAV, active: page, act: 'nav', title: TITLES[page], sub: esc(ctxProfile.name) + (me.isAdmin ? ' • অ্যাডমিন ভিউ' : ''), actions: acts, brand: brandSch(ctx, ctxProfile.name) });
-  listFn = null;
-  ({ dash: pDash, stu: pStu, reg: pReg, adm: pAdm, tch: pTch, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, bkp: pBkp, dept: pDept, head: pHead, pro: pPro, hpro: pHpro, bnk: pBnk, slg: pSlg, agr: pAgreement })[page]();
+  listFn = null; updFund();
+  ({ dash: pDash, stu: pStu, reg: pReg, adm: pAdm, tch: pTch, pay: pPay, due: pDue, notice: pNotice, exam: pExam, hol: pHol, rep: pRep, bkp: pBkp, dept: pDept, head: pHead, pro: pPro, hpro: pHpro, bnk: pBnk, slg: pSlg, agr: pAgreement, idc: pIdc, adc: pAdc, rsc: pRsc })[page]();
 }
 
 const payArr = () => Object.entries(P).map(([id, v]) => ({ id, ...v }));
@@ -3004,7 +3193,7 @@ function stuList() {
   const rows = stuArr().filter(s => (!c || s.class === c) && (!q || [s.name, s.suid, s.roll, s.guardian, s.phone].join(' ').toLowerCase().includes(q)))
     .sort((a, b) => (a.class || '').localeCompare(b.class || '', 'bn') || String(a.roll || '').localeCompare(String(b.roll || ''), 'bn', { numeric: true }));
   return `<div class="tw"><table><tr><th>নাম</th><th>শ্রেণি</th><th>${RLB()}</th><th>অভিভাবক</th><th>মোবাইল</th><th class="n">মাসিক ফি</th><th>অবস্থা</th><th></th></tr>
-  ${rows.map(s => `<tr><td><b>${esc(s.name)}</b>${s.suid ? `<div class="sub" style="letter-spacing:.3px">${esc(s.suid)}</div>` : ''}</td><td>${esc(s.class)}${s.section ? ' <span class="sub">(' + esc(s.section) + ')</span>' : ''}</td><td>${esc(s.roll) || '—'}</td><td>${esc(s.guardian) || '—'}</td><td>${esc(s.phone) || '—'}</td><td class="n">${tk(s.monthlyFee)}</td>
+  ${rows.map(s => `<tr><td><b>${esc(s.name)}</b>${s.suid && RLB() !== 'স্টুডেন্ট আইডি' ? `<div class="sub" style="letter-spacing:.3px">${esc(s.suid)}</div>` : ''}</td><td>${esc(s.class)}${s.section ? ' <span class="sub">(' + esc(s.section) + ')</span>' : ''}</td><td>${esc(stuIdVal(s)) || '—'}</td><td>${esc(s.guardian) || '—'}</td><td>${esc(s.phone) || '—'}</td><td class="n">${tk(s.monthlyFee)}</td>
   <td><span class="badge b-${s.status}">${s.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
   <td><div class="row"><button class="btn sm" data-act="setbill" data-id="${s.id}">বিল${billsOf(s).length ? ' (' + bn(billsOf(s).length) + ')' : ''}</button><button class="btn sm ghost" data-act="editstu" data-id="${s.id}">সম্পাদনা</button><button class="btn sm ghost" data-act="delstu" data-id="${s.id}">মুছুন</button><button class="btn sm ok" data-act="stuprof" data-id="${s.id}">প্রোফাইল</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>কোনো শিক্ষার্থী পাওয়া যায়নি</b>"নতুন শিক্ষার্থী" চেপে প্রথম শিক্ষার্থী যোগ করুন।</td></tr>'}
   </table></div><div class="sub" style="padding:10px 16px;border-top:1px solid var(--line)">মোট ${bn(rows.length)} জন</div>`;
@@ -3061,7 +3250,7 @@ function dueList() {
   const m = ui.dm || today().slice(0, 7), rows = calcDues(m), tot = rows.reduce((a, x) => a + x.due, 0);
   return `<div class="kpis sm" style="border-radius:0;border-width:0 0 1px;margin:0"><div class="kpi"><span>বকেয়াদার শিক্ষার্থী</span><b>${bn(rows.length)} জন</b></div><div class="kpi du"><span>মোট বকেয়া (${bnMonth(m)})</span><b>${tk(tot)}</b></div></div>
   <div class="tw"><table><tr><th>নাম</th><th>শ্রেণি</th><th>${RLB()}</th><th>অভিভাবকের মোবাইল</th><th class="n">মাসিক ফি</th><th class="n">পরিশোধিত</th><th class="n">বকেয়া</th><th></th></tr>
-  ${rows.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.class)}</td><td>${esc(s.roll) || '—'}</td><td>${esc(s.phone) || '—'}</td><td class="n">${tk(s.monthlyFee)}</td><td class="n">${tk(s.paid)}</td><td class="n" style="color:var(--out)"><b>${tk(s.due)}</b>${s.billNote ? `<div class="sub">বিল: ${esc(s.billNote)}</div>` : ''}</td>
+  ${rows.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.class)}</td><td>${esc(stuIdVal(s)) || '—'}</td><td>${esc(s.phone) || '—'}</td><td class="n">${tk(s.monthlyFee)}</td><td class="n">${tk(s.paid)}</td><td class="n" style="color:var(--out)"><b>${tk(s.due)}</b>${s.billNote ? `<div class="sub">বিল: ${esc(s.billNote)}</div>` : ''}</td>
   <td><div class="row"><button class="btn sm ok" data-act="setbill" data-id="${s.id}">বিল নির্ধারণ</button><button type="button" class="btn sm ok" data-act="duewa" data-id="${s.id}" title="অভিভাবকের WhatsApp-এ বকেয়ার মেসেজ পাঠান">💬 WhatsApp পাঠান${waBadge('due:' + s.id + '|' + m)}</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty"><b>এ মাসে কোনো বকেয়া নেই</b>সব সক্রিয় শিক্ষার্থীর ফি পরিশোধিত।</td></tr>'}
   </table></div>
   ${rows.length ? `<div class="row" style="padding:12px 16px;border-top:1px solid #e5e7eb;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><span class="sub">WhatsApp পাঠানো হয়েছে: ${bn(rows.filter(x => dueWaDone.has(x.id + '|' + m)).length)} / ${bn(rows.length)} জন • মোট পাঠানো: ${bn(rows.reduce((a, x) => a + waCnt('due:' + x.id + '|' + m), 0))} বার</span><div class="row"><button type="button" class="btn ok" data-act="duewanext">💬 WhatsApp পাঠান (পরের জন)</button><button type="button" class="btn ghost" data-act="duewareset">রিসেট</button></div></div>` : ''}`;
@@ -3226,7 +3415,7 @@ function showFormView(r, o = {}) {
   const ex = stuExtraDoc(r); if (ex) doc = doc.replace('<div class="st">', ex + '<div class="st">');
   const d = $('#dlg');
   d.innerHTML = `<div class="frmv"><h3>📄 ${esc(r.name || 'আবেদন ফর্ম')}</h3><div class="sub">শিক্ষার্থীর পূরণ করা আবেদন ফর্ম</div><iframe title="আবেদন ফর্ম" srcdoc="${esc(doc)}"></iframe>
-  <div class="row end">${o.approveId ? `<button type="button" class="btn ok" data-act="frmapprove" data-id="${esc(o.approveId)}">✔ অনুমোদন</button>` : ''}<button type="button" class="btn ghost" data-act="frmprint">🖨 প্রিন্ট / PDF</button><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div></div>`;
+  <div class="row end">${o.approveId ? `<button type="button" class="btn ok" data-act="frmapprove" data-id="${esc(o.approveId)}">✔ অনুমোদন</button>` : ''}<button type="button" class="btn ghost" data-act="frmdl">⬇ PDF ডাউনলোড</button><button type="button" class="btn ghost" data-act="frmprint">🖨 প্রিন্ট / PDF</button><button type="button" class="btn ghost" data-act="close">বন্ধ করুন</button></div></div>`;
   if (!d.open) d.showModal();
 }
 /* ভর্তির আবেদনের অতিরিক্ত (শ্রেণিভিত্তিক) তথ্য — অনুমোদনের ফর্মের নিচে দেখার জন্য */
@@ -3254,7 +3443,7 @@ document.addEventListener('input', e => {
 });
 
 /* ---- অনুমোদনের ফর্ম: শিক্ষার্থী যে ফর্ম পূরণ করেছে হুবহু সেটাই, সব ঘর সম্পাদনযোগ্য ---- */
-const apDepts = () => Object.entries(DP || {}).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) })).filter(d => d.name).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
+const apDepts = () => Object.entries(DP || {}).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', compulsoryCount: v && v.compulsoryCount != null ? Number(v.compulsoryCount) : Object.values((v && v.subjects) || {}).filter(x => x && (x.type || 'আবশ্যিক') === 'আবশ্যিক').length, optionalCount: v && v.optionalCount != null ? Number(v.optionalCount) : 0, subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) })).filter(d => d.name).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
 const apKey = n => String(n).replace(/[.#$\[\]\/]/g, '_').slice(0, 120);
 function apAdmHtml(cls) {
   const photo = `<div class="w"><label>Applicant's photo (optional — বড় ছবি নিজে থেকে ছোট হবে)</label><div class="logoprev"><div class="logo ${stuPhoto ? 'has' : ''}" id="stuPhotoBox" style="border-radius:50%">${stuPhoto ? `<img src="${esc(stuPhoto)}" alt="" style="object-fit:cover">` : ic('stu')}</div><input type="file" id="stuPhoto" accept="image/jpeg,image/png,image/webp"><button type="button" class="btn ghost sm" data-act="rmphoto" data-p="stu">Remove photo</button></div></div>`;
@@ -3711,6 +3900,10 @@ const A = {
     } catch (e) { toast(errMsg(e)); }
   },
   paydlg: d => openPayDlg(d.bid),
+  fundadd: () => openFundDlg(),
+  fundbtn: () => (me && me.uid === ctx ? openFundDlg() : openFundHist()),
+  fundread: (d, el) => { if (el.checked) openFundForm(); },
+  fundhist: () => openFundHist(),
   payread: (d, el) => { if (el.checked) openPayForm(); },
   payext: async (d, el) => { el.disabled = true; try { await update(ref(db, 'payReq/' + payId), { ext: ((payCur && payCur.ext) || 0) + 1 }); } catch (e) { toast(errMsg(e)); el.disabled = false; } },
   payreview: () => {
@@ -3740,13 +3933,13 @@ const A = {
   },
   paycancel: async (d, el) => { el.disabled = true; try { await update(ref(db, 'payReq/' + payId), { status: 'cancelled' }); } catch (e) { toast(errMsg(e)); el.disabled = false; } },
   pfreset: () => { pf = { st: 'all', m: 'all', sc: 'all', from: '', to: '', q: '' }; renderAdmin(); },
-  pm: d => { payM = d.m; $('#dlg').dataset.pm = d.m; document.querySelectorAll('#pf .seg button').forEach(b => b.classList.toggle('on', b.dataset.m === d.m)); },
+  pm: d => { payM = d.m; $('#dlg').dataset.pm = d.m; document.querySelectorAll('#pf .seg button, #ff .seg button').forEach(b => b.classList.toggle('on', b.dataset.m === d.m)); },
   siopen: d => { const q = ($('#sInfoQ') || {}).value || ''; const dd = $('#sInfoDrop'); if (dd) dd.hidden = true; siOpen(d.k, q.trim()); },
   sisearch: d => siSearch(d.k),
   siadmprint: () => { if (siRes && !Array.isArray(siRes)) regPrint(siRes, siRes.school || '', LC[siRes.sid] || site.logo || '', 'adm'); },
   rcptprint: d => { const r = Array.isArray(siRes) && siRes[Number(d.i)], p = r && (r.payments || {})[d.id]; if (p) printStuReceipt({ ...p, uid: r.uid, school: r.school, name: r.name, class: r.class, roll: r.roll, phone: r.phone }); },
   srcpt: d => { const p = (stuRec.payments || {})[d.id]; if (p) printStuReceipt({ ...p, uid: stuRec.uid, school: stuRec.school, name: stuRec.name, class: stuRec.class, roll: stuRec.roll, phone: stuRec.phone }); },
-  srcptreq: () => { const r = payCur; if (r) printStuReceipt({ uid: r.uid, receiptNo: r.receiptNo, date: typeof r.verifiedAt === 'number' ? new Date(r.verifiedAt - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) : today(), school: r.school, name: r.name, class: r.class, roll: r.roll, phone: stuRec.phone, category: r.title, month: r.month, method: r.method === 'rocket' ? 'রকেট' : 'বিকাশ', amount: r.amount }); },
+  srcptreq: () => { const r = payCur; if (r) printStuReceipt({ uid: r.uid, receiptNo: r.receiptNo, date: typeof r.verifiedAt === 'number' ? new Date(r.verifiedAt - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10) : today(), school: r.school, name: r.name, class: r.class, roll: r.roll, phone: (stuRec && stuRec.phone) || '', category: r.title, month: r.month, method: r.method === 'rocket' ? 'রকেট' : 'বিকাশ', amount: r.amount }); },
   payv: async d => {
     const r = payReqs[d.id]; if (!r) return;
     if (!['pending', 'review'].includes(r.status)) return toast(r.status === 'verified' ? 'এই পেমেন্ট ইতিমধ্যে ভেরিফাই হয়ে গেছে' : 'এই পেমেন্টে আর ভেরিফাই করা যাবে না');
@@ -4065,36 +4258,40 @@ function pExam() {
   </table></div></div>`;
 }
 const mirrorRes = (eid, on, upd = {}) => { Object.entries(RS[eid] || {}).forEach(([sid, r]) => { const s = S[sid], k = s && portalKey(ctx, s.class, s.roll, s.phone); if (k) upd[`studentResults/${k}/${eid}`] = on ? r : null; }); return upd; };
+const rtRow = (x = {}) => `<tr><td><input type="date" value="${esc(x.date || '')}" aria-label="তারিখ" style="min-width:140px"></td><td><input type="text" value="${esc(x.subject || '')}" maxlength="60" placeholder="বিষয়, যেমন: বাংলা" aria-label="বিষয়"></td><td><input type="text" value="${esc(x.time || '')}" maxlength="40" placeholder="সকাল ১০:০০" aria-label="সময়"></td><td><button type="button" class="btn sm ghost" data-act="rtdel" aria-label="সারি মুছুন">✕</button></td></tr>`;
 function examForm(id) {
   const o = id ? EX[id] : {}, sel0 = (o.classes && o.classes !== 'all') ? o.classes.split(',') : [];
   const yn = (l, n, v) => sel(l, n, [['1', 'প্রকাশ করুন'], ['0', 'বন্ধ থাকুক']], v ? '1' : '0');
   modal(id ? 'পরীক্ষা সম্পাদনা' : 'নতুন পরীক্ষা',
     inp('পরীক্ষার নাম', 'title', o.title || '', 'text', 'required maxlength="100" placeholder="যেমন: বার্ষিক পরীক্ষা"') + inp('সাল', 'year', o.year || String(new Date().getFullYear()), 'text', 'required maxlength="10"') +
-    `<div class="w"><label>কোন কোন শ্রেণির জন্য (কিছু না বাছলে সব শ্রেণি)</label><div>${CLASSES.map(c => `<label style="display:inline-flex;gap:5px;align-items:center;margin:4px 12px 0 0;font-weight:500"><input type="checkbox" name="cls" value="${c}" ${sel0.includes(c) ? 'checked' : ''} style="width:auto;min-height:0"> ${c}</label>`).join('')}</div></div>` +
+    `<div class="w"><label>কোন কোন শ্রেণির জন্য (কিছু না বাছলে সব শ্রেণি)</label><div>${instClasses().map(c => `<label style="display:inline-flex;gap:5px;align-items:center;margin:4px 12px 0 0;font-weight:500"><input type="checkbox" name="cls" value="${c}" ${sel0.includes(c) ? 'checked' : ''} style="width:auto;min-height:0"> ${c}</label>`).join('')}</div></div>` +
     inp('পরীক্ষা কেন্দ্র', 'centre', o.centre || '', 'text', 'maxlength="120"', true) +
-    `<div class="w"><label>পরীক্ষার রুটিন (প্রতি লাইনে: তারিখ | বিষয় | সময়)</label><textarea class="tarea" name="routine" rows="5" placeholder="2026-12-01 | বাংলা | সকাল ১০:০০">${esc((o.routine || []).map(x => [x.date, x.subject, x.time].join(' | ')).join('\n'))}</textarea></div>` +
-    `<div class="w"><label>পরীক্ষার্থীর নির্দেশনা (এডমিট কার্ডে ছাপা হবে)</label><textarea class="tarea" name="instructions" rows="3" maxlength="800">${esc(o.instructions || '')}</textarea></div>` +
+    `<div class="w"><label>পরীক্ষার রুটিন (তারিখ, বিষয় ও সময়)</label><div class="tw" style="overflow-x:auto"><table style="min-width:420px"><tr><th>তারিখ</th><th>বিষয়</th><th>সময়</th><th style="width:44px"></th></tr><tbody id="rtB">${((o.routine && o.routine.length) ? o.routine : [{}]).map(rtRow).join('')}</tbody></table></div><div class="row" style="margin-top:8px"><button type="button" class="btn ghost sm" data-act="rtadd">+ সারি যোগ করুন</button></div></div>` +
+    `<div class="w"><label>পরীক্ষার্থীর নির্দেশনা (এডমিট কার্ডে ছাপা হবে)</label><textarea class="tarea" name="instructions" rows="3" maxlength="800">${esc(id ? (o.instructions || '') : (o.instructions || EI))}</textarea><div class="hint">একবার লিখে সংরক্ষণ করলে এটি সেভ থাকবে এবং পরের নতুন পরীক্ষায় নিজে থেকেই আসবে।</div></div>` +
     yn('এডমিট কার্ড', 'admitOn', o.admitOn) + yn('ফলাফল', 'resultOn', o.resultOn) +
     sel('ফি বকেয়া থাকলে এডমিট কার্ড', 'blockDue', [['0', 'তবুও পাবে'], ['1', 'বন্ধ থাকবে']], o.blockDue ? '1' : '0', true),
     async f => {
       const cls = new FormData($('#mf')).getAll('cls'), routine = [];
-      for (const ln of String(f.routine || '').split('\n').map(x => x.trim()).filter(Boolean)) {
-        const [dt, sj, tm] = ln.split('|').map(x => x.trim()), d = enDigits(dt || '');
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !sj) throw new Error('রুটিনের লাইন সঠিক নয়: ' + ln);
-        routine.push({ date: d, subject: sj.slice(0, 60), time: (tm || '').slice(0, 40) });
+      for (const tr of document.querySelectorAll('#rtB tr')) {
+        const [di, si, ti] = tr.querySelectorAll('input'), d = enDigits((di.value || '').trim()), sj = (si.value || '').trim(), tm = (ti.value || '').trim();
+        if (!d && !sj && !tm) continue;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !sj) throw new Error('রুটিনের প্রতিটি সারিতে তারিখ ও বিষয় দিন' + (sj ? ': ' + sj : ''));
+        routine.push({ date: d, subject: sj.slice(0, 60), time: tm.slice(0, 40) });
       }
       routine.sort((a, b) => a.date.localeCompare(b.date));
       const eid = id || push(ref(db, `exams/${ctx}`)).key, on = f.resultOn === '1';
+      if (f.admitOn === '1') { const el = stuArr().filter(s => s.status === 'active' && (!cls.length || cls.includes(s.class))); if (!(await premGate('admit', el.map(s => 'admit_' + eid + '_' + s.id), 'এডমিট কার্ড — ' + f.title.trim()))) throw new Error('ক্রেডিট কাটা হয়নি, তাই এডমিট কার্ড প্রকাশ করা হয়নি'); }
+      if (on && !(o && o.resultOn)) { const rl = Object.keys(RS[eid] || {}); if (rl.length && !(await premGate('result', rl.map(x => 'result_' + eid + '_' + x), 'রেজাল্ট শীট — ' + f.title.trim()))) throw new Error('ক্রেডিট কাটা হয়নি, তাই ফলাফল প্রকাশ করা হয়নি'); }
       const d = { title: f.title.trim(), year: f.year.trim(), classes: cls.length ? cls.join(',') : 'all', centre: (f.centre || '').trim(), instructions: (f.instructions || '').trim(), admitOn: f.admitOn === '1', resultOn: on, blockDue: f.blockDue === '1', createdAt: o.createdAt || Date.now() };
       if (routine.length) d.routine = routine;
-      const upd = { [`exams/${ctx}/${eid}`]: d };
+      const upd = { [`exams/${ctx}/${eid}`]: d, [`${base()}/examInstr`]: d.instructions || null };
       if (id && !!o.resultOn !== on) mirrorRes(eid, on, upd);
       await update(root(), upd); toast('পরীক্ষা সংরক্ষিত হয়েছে');
     });
 }
 let curEx = '';
 function resEntry(eid) {
-  const e = EX[eid], d = $('#dlg'), cl = e.classes && e.classes !== 'all' ? e.classes.split(',') : CLASSES; curEx = eid;
+  const e = EX[eid], d = $('#dlg'), cl = e.classes && e.classes !== 'all' ? e.classes.split(',') : instClasses(); curEx = eid;
   d.style.width = 'min(980px,96vw)'; d.addEventListener('close', () => { d.style.width = ''; }, { once: true });
   d.innerHTML = `<h3>ফলাফল এন্ট্রি — ${esc(e.title)}</h3><p class="sub" style="margin:0 0 6px">${e.resultOn ? 'ফলাফল প্রকাশিত আছে, সংরক্ষণ করলেই শিক্ষার্থীরা নতুন ফলাফল দেখবে।' : 'ফলাফল এখনো প্রকাশিত নয়। পরীক্ষা সম্পাদনা থেকে "ফলাফল: প্রকাশ করুন" দিলে শিক্ষার্থীরা দেখবে।'}</p>
   <div class="fg"><div><label>শ্রেণি</label><select id="reC">${cl.map(c => `<option>${esc(c)}</option>`).join('')}</select></div>
@@ -4121,6 +4318,7 @@ async function reSave() {
   });
   if (!out.length) return toast('কোনো নম্বর দেওয়া হয়নি');
   const ord = [...out].sort((a, b) => (b.gpa - a.gpa) || (b.total - a.total)); out.forEach(r => r.rank = ord.indexOf(r) + 1);
+  if (e.resultOn && !(await premGate('result', out.map(r => 'result_' + curEx + '_' + r.sid), 'রেজাল্ট শীট — ' + e.title))) return;
   const upd = {}, now = Date.now();
   out.forEach(r => { const s = S[r.sid], v = { subjects: r.subjects, total: r.total, gpa: r.gpa, grade: r.grade, pass: r.pass, rank: r.rank, class: c, updatedAt: now }; upd[`${base()}/results/${curEx}/${r.sid}`] = v; const k = e.resultOn && s && portalKey(ctx, s.class, s.roll, s.phone); if (k) upd[`studentResults/${k}/${curEx}`] = v; });
   try { await update(root(), upd); toast(`${bn(out.length)} জনের ফলাফল সংরক্ষিত হয়েছে`); } catch (er) { toast(errMsg(er)); }
@@ -4173,7 +4371,7 @@ function sResult(r) {
 function sAdmit(r) {
   const rows = listOf(SE).filter(e => e.admitOn && examFor(e, r.class)).sort((a, b) => b.createdAt - a.createdAt), due = billsOf(r).length > 0;
   return rows.map(e => `<div class="ncard"><h4>${esc(e.title)} — ${esc(e.year)}</h4><div class="sub">${e.routine && e.routine.length ? 'পরীক্ষা শুরু: ' + bnDate(e.routine[0].date) : ''}${e.centre ? ' • কেন্দ্র: ' + esc(e.centre) : ''}</div>
-    ${e.blockDue && due ? `<p style="color:var(--out)"><b>বকেয়া ফি পরিশোধ না করলে এডমিট কার্ড পাওয়া যাবে না।</b> ফি ও পেমেন্ট পেজ থেকে বকেয়া পরিশোধ করুন।</p>` : `<p></p><button class="btn" data-act="admit" data-id="${e.id}">এডমিট কার্ড দেখুন / প্রিন্ট করুন</button>`}</div>`).join('') || sEmpty('কোনো এডমিট কার্ড প্রকাশিত নেই', 'পরীক্ষার আগে স্কুল এডমিট কার্ড প্রকাশ করলে এখানে পাবেন।');
+    ${e.blockDue && due ? `<p style="color:var(--out)"><b>বকেয়া ফি পরিশোধ না করলে এডমিট কার্ড পাওয়া যাবে না।</b> ফি ও পেমেন্ট পেজ থেকে বকেয়া পরিশোধ করুন।</p>` : `<p></p><button class="btn" data-act="admit" data-id="${e.id}" data-lang="bn">বাংলা এডমিট কার্ড</button> <button class="btn ghost" data-act="admit" data-id="${e.id}" data-lang="en">English Admit Card</button>`}</div>`).join('') || sEmpty('কোনো এডমিট কার্ড প্রকাশিত নেই', 'পরীক্ষার আগে স্কুল এডমিট কার্ড প্রকাশ করলে এখানে পাবেন।');
 }
 function sHol() {
   const t = today(), all = listOf(SH).sort((a, b) => a.date.localeCompare(b.date)), up = all.filter(h => h.date >= t), past = all.filter(h => h.date < t).reverse();
@@ -4199,22 +4397,239 @@ function renderStudent() {
     <div class="content"><header class="topbar"><div><h1>${STITLE[sp]}</h1><p>${esc(r.school)}</p></div><div class="row"><div class="stu-av" style="width:44px;height:44px;border-radius:12px;font-size:0">${r.photo ? `<img src="${esc(r.photo)}" alt="">` : `<svg aria-hidden="true"><use href="#${r.gender === 'মেয়ে' ? 's-girl' : 's-boy'}"/></svg>`}</div><button class="btn ghost" data-act="stuout" aria-label="লগ আউট">${ic('out')}<span class="lbl">লগ আউট</span></button></div></header>
     <main class="sbody">${body}</main></div></div>`;
 }
-function printAdmit(eid) {
+/* এডমিট কার্ডের QR: শিক্ষার্থীর মূল তথ্য (আইডি, নাম, শ্রেণি, রোল/আইডি, পরীক্ষা, প্রতিষ্ঠান) — SVG হিসেবে কার্ডে বসে */
+function admQrSvg(e, s, school) {
+  const ct = ((s.class || '') + (s.section ? ' (' + s.section + ')' : '')).trim(), L = (k, v) => v ? k + ': ' + v : '';
+  const mk = lv => [L('ID', s.suid), L('Name', s.name), L('Class', ct), L('Roll', s.roll), lv >= 1 ? L('Exam', ((e.title || '') + ' ' + (e.year || '')).trim()) : '', lv >= 2 ? L('Institution', school) : ''].filter(Boolean).join('\n');
+  let m = null; for (const lv of [2, 1, 0]) { const x = qrMake(mk(lv)); if (x && x.length <= 77) { m = x; break; } }
+  if (!m) m = qrMake([L('ID', s.suid), L('Name', s.name)].filter(Boolean).join('\n'));
+  if (!m) return '';
+  const n = m.length, q = 2; let d = ''; m.forEach((r, y) => r.forEach((on, x) => { if (on) d += `M${x + q} ${y + q}h1v1h-1z`; }));
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n + q * 2} ${n + q * 2}" width="104" height="104" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+const admInstrQr = (e, s, school) => {
+  const q = admQrSvg(e, s, school), ins = e.instructions ? `<p style="font-size:13px;margin:0"><b>নির্দেশনা:</b> ${esc(e.instructions).replace(/\n/g, '<br>')}</p>` : '';
+  return (ins || q) ? `<div style="display:flex;gap:14px;align-items:flex-start;margin-top:8px"><div style="flex:1">${ins}</div>${q ? `<div style="text-align:center;font-size:11px;color:#667085">${q}<div>স্ক্যান করে যাচাই করুন</div></div>` : ''}</div>` : '';
+};
+/* ===== প্রিন্ট প্রিভিউ প্যানেল =====
+   যেকোনো প্রিন্ট / জেনারেট বাটন চাপলে আগে এই প্যানেলে ডকুমেন্টের প্রিভিউ দেখায়।
+   প্যানেলের "⬇ PDF ডাউনলোড" চাপলে PDF ফাইল ডিভাইসে নামে, "🖨 প্রিন্ট" চাপলে প্রিন্ট ডায়ালগ খোলে।
+   ফাঁকা পপ-আপ (window.open('', ...)) ধরে একটি ভার্চুয়াল উইন্ডো দেওয়া হয়, তাই আগের প্রিন্ট কোড বদলাতে হয়নি। */
+const PV = { url: '', html: '', title: '', busy: false, bound: false };
+const PV_INJ = '<script>window.__np=window.print.bind(window);window.print=function(){};<\/script><style>.np,.tools button{display:none!important}</style>';
+(function () {
+  const nativeOpen = window.open.bind(window);
+  window.open = function (url, target, features) {
+    if (url) return nativeOpen(url, target, features);
+    let buf = [], frame = null; const onload = [];
+    const getD = () => (frame && frame.contentDocument) || null;
+    const doc = {
+      open() { buf = []; return doc; },
+      write(...a) { buf.push(a.join('')); },
+      writeln(...a) { buf.push(a.join('') + '\n'); },
+      close() { pvOpen(buf.join(''), sh); },
+      querySelector(q) { const d = getD(); return d ? d.querySelector(q) : null; },
+      querySelectorAll(q) { const d = getD(); return d ? d.querySelectorAll(q) : []; },
+      get images() { const d = getD(); return d ? d.images : []; },
+      get fonts() { const d = getD(); return d ? d.fonts : undefined; }
+    };
+    const sh = { document: doc, closed: false, focus() {}, print() {}, close() {}, addEventListener(ev, fn) { if (ev === 'load') onload.push(fn); }, _attach(f) { frame = f; }, _loaded() { onload.splice(0).forEach(fn => { try { fn(); } catch (e) {} }); } };
+    toast('প্রিভিউ তৈরি হচ্ছে…');
+    return sh;
+  };
+})();
+const pvInject = html => /<head(\s[^>]*)?>/i.test(html) ? html.replace(/<head(\s[^>]*)?>/i, m => m + PV_INJ) : PV_INJ + html;
+function pvOpen(html, sh) {
+  const d = $('#pvw'), f = $('#pvF');
+  if (!PV.bound) { PV.bound = true; d.addEventListener('close', () => { f.src = 'about:blank'; if (PV.url) { try { URL.revokeObjectURL(PV.url); } catch (e) {} PV.url = ''; } }); }
+  if (PV.url) { try { URL.revokeObjectURL(PV.url); } catch (e) {} PV.url = ''; }
+  html = pvInject(html);
+  PV.html = html;
+  PV.title = ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').replace(/<[^>]*>/g, '').trim() || 'document';
+  $('#pvT').textContent = '📄 ' + PV.title;
+  PV.url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  f.onload = () => { if (!String(f.src).startsWith('blob:')) return; sh._attach(f); sh._loaded(); };
+  f.src = PV.url;
+  if (!d.open) d.showModal();
+}
+const pvLoad = src => new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error('load failed: ' + src)); document.head.appendChild(sc); });
+async function pvLibs() {
+  if (!window.html2canvas) await pvLoad('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if (!(window.jspdf && window.jspdf.jsPDF)) await pvLoad('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+}
+const pvMm = (v, u) => Number(v) * (u === 'in' ? 25.4 : u === 'cm' ? 10 : 1);
+function pvCfg(d) {
+  const css = [...d.querySelectorAll('style')].map(x => x.textContent).join('\n'), m = css.match(/@page[^{]*\{([^}]*)\}/), b = m ? m[1] : '';
+  let W = 210, H = 297; const sz = (b.match(/size:\s*([^;]+)/) || [])[1] || '', dm = sz.match(/([\d.]+)(mm|in|cm)\s+([\d.]+)(mm|in|cm)/);
+  if (/legal/i.test(sz)) { W = 215.9; H = 355.6; } else if (/letter/i.test(sz)) { W = 215.9; H = 279.4; } else if (dm) { W = pvMm(dm[1], dm[2]); H = pvMm(dm[3], dm[4]); }
+  if (/landscape/i.test(sz) && W < H) { const t = W; W = H; H = t; }
+  let mT = 10, mL = 10; const mg = b.match(/margin:\s*([\d.]+)(mm|in|cm)?(?:\s+([\d.]+)(mm|in|cm)?)?/);
+  if (mg) { mT = pvMm(mg[1], mg[2]); mL = mg[3] != null ? pvMm(mg[3], mg[4]) : mT; }
+  return { W, H, mT, mL };
+}
+/* ডকুমেন্টের প্রতিটি পাতা (.pg / .page, না থাকলে ব্লকগুলো) ছবি করে A4 (বা ডকুমেন্টে দেওয়া সাইজ ও মার্জিনের) PDF বানায় */
+async function pvOffscreen(html) {
+  const f = document.createElement('iframe'); f.setAttribute('aria-hidden', 'true');
+  f.style.cssText = 'position:fixed;left:-10000px;top:0;width:820px;height:1200px;border:0;visibility:hidden';
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+  await new Promise((ok, no) => { f.onload = ok; f.onerror = no; f.src = url; document.body.appendChild(f); });
+  const d = f.contentDocument;
+  try { if (d.fonts && d.fonts.ready) await d.fonts.ready; } catch (e) {}
+  await Promise.all([...d.images].map(i => i.complete ? 1 : new Promise(r => { i.onload = i.onerror = r; })));
+  await new Promise(r => setTimeout(r, 600));
+  return { d, done: () => { f.remove(); try { URL.revokeObjectURL(url); } catch (e) {} } };
+}
+async function pvMakePdf(html, name, prog) {
+  await pvLibs();
+  const off = await pvOffscreen(html), d = off.d;
+  try { await pvBuildPdf(d, name, prog); } finally { off.done(); }
+}
+async function pvBuildPdf(d, name, prog) {
+  const { W, H, mT, mL } = pvCfg(d), aw = W - 2 * mL, ah = H - 2 * mT, ori = W > H ? 'l' : 'p', gap = 3;
+  let els = [...d.querySelectorAll('.pg')]; if (!els.length) els = [...d.querySelectorAll('.page')];
+  let pack = false;
+  if (!els.length) { els = [...d.body.children].filter(e => !/^(SCRIPT|STYLE|LINK|META)$/.test(e.tagName) && e.offsetHeight > 0); pack = true; if (!els.length) els = [d.body]; }
+  const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: [W, H], orientation: ori, compress: true });
+  const sc = els.length > 20 ? 1.5 : 2; let y = mT, first = true;
+  const newPage = () => { if (first) first = false; else pdf.addPage([W, H], ori); y = mT; };
+  const put = (cv, x, yy, w, h) => pdf.addImage(cv.toDataURL('image/jpeg', .92), 'JPEG', x, yy, w, h);
+  const place = cv => {
+    const k0 = aw / cv.width, hh = cv.height * k0;
+    if (pack) { if (hh <= ah) { if (first || y + hh > H - mT + .5) newPage(); put(cv, mL, y, aw, hh); y += hh + gap; return; } }
+    else if (hh <= ah * 1.06) { newPage(); const k = Math.min(k0, ah / cv.height); put(cv, mL + (aw - cv.width * k) / 2, mT, cv.width * k, cv.height * k); return; }
+    const strip = Math.max(1, Math.floor(ah / k0));
+    for (let sy = 0; sy < cv.height; sy += strip) {
+      const hs = Math.min(strip, cv.height - sy), c2 = document.createElement('canvas'); c2.width = cv.width; c2.height = hs;
+      const cx = c2.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, c2.width, hs); cx.drawImage(cv, 0, sy, cv.width, hs, 0, 0, cv.width, hs);
+      newPage(); put(c2, mL, mT, aw, hs * k0);
+    }
+    if (pack) y = H;
+  };
+  for (let i = 0; i < els.length; i++) {
+    if (prog) prog(i + 1, els.length);
+    const el = els[i], z = el.style.zoom; el.style.zoom = '1'; let cv;
+    try { cv = await window.html2canvas(el, { scale: sc, useCORS: true, backgroundColor: '#ffffff', logging: false, windowWidth: d.documentElement.clientWidth }); }
+    finally { el.style.zoom = z; }
+    if (cv && cv.width && cv.height) place(cv);
+    await new Promise(r => setTimeout(r, 0));
+  }
+  if (first) throw new Error('empty document');
+  pdf.save(name + '.pdf');
+}
+const pvName = t => (String(t).replace(/[^\w\u0980-\u09FF-]+/g, '_').replace(/^_+|_+$/g, '') || 'document') + '-' + ymd(Date.now());
+async function pvRun(html, title, el) {
+  if (PV.busy) return;
+  if (!html) return toast('প্রিভিউ এখনো প্রস্তুত নয়, একটু অপেক্ষা করুন');
+  PV.busy = true; const lb = el.textContent; el.disabled = true;
+  try { await pvMakePdf(html, pvName(title), (i, n) => { el.textContent = '⏳ PDF ' + bn(i) + '/' + bn(n); }); toast('PDF ডাউনলোড শুরু হয়েছে'); }
+  catch (er) { console.error(er); toast('PDF তৈরি করা যায়নি (ইন্টারনেট সংযোগ লাগে)। "প্রিন্ট" চেপে Save as PDF ব্যবহার করুন'); }
+  finally { PV.busy = false; el.disabled = false; el.textContent = lb; }
+}
+Object.assign(A, {
+  pvdl: (d, el) => pvRun(PV.html, PV.title, el),
+  pvprint: () => { const cw = $('#pvF').contentWindow; try { (cw.__np || cw.print).call(cw); } catch (e) { toast('প্রিন্ট করা যায়নি'); } },
+  pvclose: () => $('#pvw').close(),
+  frmdl: (d, el) => { const f = document.querySelector('#dlg iframe'), fd = f && f.contentDocument; pvRun(fd && fd.documentElement ? pvInject('<!DOCTYPE html>' + fd.documentElement.outerHTML) : '', 'আবেদন ফর্ম', el); }
+});
+/* ===== এডমিট কার্ডের নতুন ডিজাইন: রঙিন ও প্রফেশনাল, স্পষ্ট লোগো, মাঝখানে লোগোর জলছাপ =====
+   প্রতিষ্ঠান প্যানেল (adcCard) ও শিক্ষার্থী প্যানেল (printAdmit) — দুই জায়গাতেই এই একই ডিজাইন ব্যবহার হয়। */
+const ADM_FONTS = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@600;700;800&display=swap">';
+const ADM_CSS = `
+@page{size:A4;margin:0}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;padding:0}
+body{font-family:'Hind Siliguri','Anek Bangla','Noto Sans Bengali','Kalpurush','Segoe UI',Arial,sans-serif;color:#1e293b;background:#fff}
+.pg{width:210mm;height:296mm;padding:.5in;margin:0 auto;overflow:hidden;background:#fff}
+.pg+.pg{page-break-before:always}
+@media screen{body{background:#cbd5e1;padding:10px 0}.pg{margin:0 auto 12px;box-shadow:0 2px 10px rgba(0,0,0,.25)}}
+.ac{position:relative;overflow:hidden;display:flex;flex-direction:column;height:100%;font-size:16px;line-height:1.35;border:1.5px solid #1f3a5f;border-radius:.5em;background:#fff}
+.bar{flex:none;height:.55em;background:linear-gradient(90deg,#1f3a5f 0%,#0f766e 60%,#f59e0b 100%);position:relative;z-index:2}
+.dc{position:absolute;border-radius:50%;z-index:0;pointer-events:none}
+.dc1{width:13em;height:13em;top:-5.5em;right:-4.5em;background:radial-gradient(circle,rgba(15,118,110,.16),rgba(15,118,110,0) 68%)}
+.dc2{width:13em;height:13em;bottom:-5em;left:-4.5em;background:radial-gradient(circle,rgba(245,158,11,.20),rgba(245,158,11,0) 68%)}
+.wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:23em;height:23em;object-fit:contain;opacity:.07;filter:grayscale(1);z-index:0;pointer-events:none}
+.hd{position:relative;z-index:1;flex:none;display:grid;grid-template-columns:6.2em 1fr 6.2em;align-items:center;gap:.7em;padding:.8em 1.5em .75em;background:linear-gradient(180deg,#eaf2fb,rgba(255,255,255,0));border-bottom:2px solid #1f3a5f}
+.lg{width:5.8em;height:5.8em;display:flex;align-items:center;justify-content:center}
+.lg img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.lg b{width:2.04em;height:2.04em;border:2px solid #1f3a5f;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.4em;line-height:1;color:#1f3a5f;font-family:'Noto Serif Bengali',serif}
+.ht{text-align:center}
+.sn{font-family:'Noto Serif Bengali','Hind Siliguri',serif;font-size:1.6em;font-weight:800;line-height:1.3;color:#1f3a5f}
+.ex{display:inline-block;margin-top:.3em;padding:.05em 1em;border-radius:2em;border:1px solid #0f766e;background:rgba(15,118,110,.08);font-size:.95em;font-weight:600;color:#0f5f58}
+.rb{position:relative;z-index:1;flex:none;display:table;margin:.9em auto 0;padding:.3em 2.2em;border-radius:2em;background:linear-gradient(90deg,#1f3a5f,#0f766e);color:#fff;font-family:'Noto Serif Bengali','Hind Siliguri',serif;font-size:1.2em;font-weight:700;letter-spacing:.04em;text-align:center}
+.rb small{font-family:'Hind Siliguri',sans-serif;font-size:.62em;font-weight:500;letter-spacing:.03em;margin-left:.5em;opacity:.9}
+.bd{position:relative;z-index:1;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:.9em 1.6em .3em}
+.top{display:grid;grid-template-columns:1fr 7.8em;gap:1.3em;align-items:start}
+.ig{width:100%;border-collapse:collapse;table-layout:fixed}
+.ig td{padding:.5em .4em;font-size:1em;border-bottom:1px solid #cfd8e3;vertical-align:middle;word-wrap:break-word}
+.ig td.l{width:36%;padding-left:.7em;color:#1f3a5f;font-weight:600;background:rgba(15,118,110,.07);border-left:3px solid #0f766e}
+.ig td.v{font-weight:700;color:#0f172a;padding-left:.8em}
+.ph{width:7.8em;height:9.8em;border:2px solid #f59e0b;border-radius:.35em;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:.85em;background:#fff;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.st{margin:1em 0 .4em;font-size:1em;font-weight:700;color:#1f3a5f;display:flex;align-items:center;gap:.5em}
+.st::before{content:"";width:.3em;height:1.05em;border-radius:.15em;background:linear-gradient(#1f3a5f,#0f766e)}
+.rt{width:100%;border-collapse:collapse;table-layout:fixed;font-size:.95em}
+.rt th{background:#dbe8f6;color:#1f3a5f;padding:.4em .7em;text-align:left;font-weight:700;border:1px solid #9fb6d0;border-bottom:2px solid #0f766e}
+.rt td{padding:.4em .7em;border:1px solid #cfd8e3;text-align:left;word-wrap:break-word}
+.rt tbody tr:nth-child(even) td{background:rgba(31,58,95,.045)}
+.nt{display:grid;grid-template-columns:1fr 6.6em;gap:1em;align-items:start;margin-top:1em}
+.nt.n1{grid-template-columns:1fr}
+.in{padding:.6em .9em;border-left:3px solid #f59e0b;border-radius:.3em;background:#fff8e6;font-size:.85em;line-height:1.65}
+.in b{color:#b45309}
+.qr{text-align:center;font-size:.68em;color:#475569}
+.qr svg{display:block;width:6.4em;height:6.4em;padding:.2em;background:#fff;border:1px solid #9fb6d0;border-radius:.25em;margin:0 auto .2em}
+.sg{margin-top:auto;padding-top:3em;display:grid;grid-template-columns:1fr 1fr;gap:4em;font-size:.9em;font-weight:600;color:#1f3a5f}
+.sg .sm{position:relative;text-align:center;border-top:1.5px solid #1f3a5f;padding-top:.3em}
+.sg .sm img{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);height:3em;max-width:10em;object-fit:contain;margin-bottom:.1em}
+.sg .sm span{display:block;font-weight:500;color:#475569;font-size:.9em}
+.ft{position:relative;z-index:1;flex:none;margin-top:.8em;padding:.4em 1em;text-align:center;font-size:.78em;color:#334155;background:#eaf2fb}
+@media print{body{padding:0;background:#fff}.pg{margin:0;box-shadow:none}}
+`;
+const D2E = x => String(x == null ? '' : x).replace(/[০-৯]/g, d => '০১২৩৪৫৬৭৮৯'.indexOf(d));
+const ADM_CLS = { 'প্লে': 'Play', 'নার্সারি': 'Nursery', 'প্রথম': 'One', 'দ্বিতীয়': 'Two', 'তৃতীয়': 'Three', 'চতুর্থ': 'Four', 'পঞ্চম': 'Five', 'ষষ্ঠ': 'Six', 'সপ্তম': 'Seven', 'অষ্টম': 'Eight', 'নবম': 'Nine', 'দশম': 'Ten', 'একাদশ': 'Eleven', 'দ্বাদশ': 'Twelve' };
+const ADM_SEC = { 'প্রভাতী': 'Morning', 'দিবা': 'Day', 'ক-শাখা': 'Section A', 'খ-শাখা': 'Section B', 'গ-শাখা': 'Section C' };
+const ADM_T = {
+  bn: { name: 'শিক্ষার্থীর নাম', uid: 'ইউনিক আইডি', cls: 'শ্রেণি', guard: 'অভিভাবক', centre: 'পরীক্ষা কেন্দ্র', photo: 'ছবি', title: 'প্রবেশপত্র', sub: '(এডমিট কার্ড)', rt: 'পরীক্ষার রুটিন', d: 'তারিখ', sj: 'বিষয়', t: 'সময়', ins: 'নির্দেশনা', scan: 'স্ক্যান করে যাচাই করুন', sig: 'শিক্ষার্থীর স্বাক্ষর', ft: 'পরীক্ষার হলে এই প্রবেশপত্র অবশ্যই সঙ্গে আনতে হবে', lang: 'bn' },
+  en: { name: 'Student Name', uid: 'Unique ID', cls: 'Class', guard: 'Guardian', centre: 'Exam Centre', photo: 'Photo', title: 'ADMIT CARD', sub: '', rt: 'Examination Routine', d: 'Date', sj: 'Subject', t: 'Time', ins: 'Instructions', scan: 'Scan to verify', sig: "Student's Signature", ft: 'This admit card must be brought to the examination hall.', lang: 'en' }
+};
+function admitCardHtml(o) {
+  const T = ADM_T[o.lang === 'en' ? 'en' : 'bn'], en = T.lang === 'en', e = o.e, s = o.s, school = o.school || '', logo = o.logo || '';
+  const cl = en ? (ADM_CLS[s.class] || D2E(s.class)) : (s.class || ''), sc = en ? (ADM_SEC[s.section] || D2E(s.section)) : (s.section || '');
+  const ct = (cl + (sc ? ' (' + sc + ')' : '')).trim();
+  const roll = RLB(o.uid), rollL = en ? (roll === 'রোল' ? 'Roll No' : 'Student ID') : roll;
+  const X = v => en ? D2E(v) : v;
+  const dt = d => d ? (en ? new Date(d + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : bnDate(d)) : '';
+  const row = (l, v) => v ? `<tr><td class="l">${l}</td><td class="v">${esc(v)}</td></tr>` : '';
+  const qr = admQrSvg(e, s, school), ins = e.instructions ? esc(e.instructions).replace(/\n/g, '<br>') : '';
+  const rt = e.routine && e.routine.length ? `<div class="st">${T.rt}</div><table class="rt"><colgroup><col style="width:34%"><col style="width:42%"><col style="width:24%"></colgroup><thead><tr><th>${T.d}</th><th>${T.sj}</th><th>${T.t}</th></tr></thead><tbody>${e.routine.map(x => `<tr><td>${dt(x.date)}</td><td>${esc(x.subject)}</td><td>${esc(X(x.time))}</td></tr>`).join('')}</tbody></table>` : '';
+  return `<div class="ac"><div class="bar"></div><div class="dc dc1"></div><div class="dc dc2"></div>${logo ? `<img class="wm" src="${esc(logo)}" alt="">` : ''}
+  <div class="hd"><div class="lg">${logo ? `<img src="${esc(logo)}" alt="">` : `<b>${esc((school || '•').trim().charAt(0))}</b>`}</div>
+    <div class="ht"><div class="sn">${esc(school)}</div><div class="ex">${esc(e.title || '')} ${esc(X(e.year || ''))}</div></div><div></div></div>
+  <div class="rb">${T.title}${T.sub ? ` <small>${T.sub}</small>` : ''}</div>
+  <div class="bd"><div class="top">
+    <table class="ig">${row(T.name, en ? (s.nameEn || s.name) : s.name)}${row(T.uid, X(s.suid))}${row(T.cls, ct)}${row(rollL, X(s.roll))}${row(T.guard, en ? (s.guardianEn || s.guardian) : s.guardian)}${row(T.centre, e.centre)}</table>
+    <div class="ph">${s.photo ? `<img src="${esc(s.photo)}" alt="">` : T.photo}</div></div>
+    ${rt}
+    ${(ins || qr) ? `<div class="nt${ins && qr ? '' : ' n1'}">${ins ? `<div class="in"><b>${T.ins}:</b> ${ins}</div>` : '<div></div>'}${qr ? `<div class="qr">${qr}<div>${T.scan}</div></div>` : ''}</div>` : ''}
+    <div class="sg"><div class="sm">${T.sig}</div><div class="sm">${o.sig ? `<img src="${esc(o.sig)}" alt="">` : ''}${esc(o.headDes || '')}${o.headName ? `<span>${esc(o.headName)}</span>` : ''}</div></div></div>
+  <div class="ft">${T.ft}</div><div class="bar"></div></div>`;
+}
+/* লেখা বেশি হলে লেখার সাইজ নিজে থেকে কমে, যাতে পুরো কার্ড এক A4 পাতায় ধরে (স্ক্রিপ্টটি ডকুমেন্টের ভেতরেই থাকে, তাই প্রিভিউ, প্রিন্ট ও PDF — সবখানে একই ফল) */
+const ADM_FIT_JS = "(function(){var pgs=function(){return document.querySelectorAll('.pg')};function zoomFor(){var w=window.innerWidth,k=w>=800?1:Math.max(.3,(w-12)/794);pgs().forEach(function(p){p.style.zoom=k===1?'':k})}function fit(){pgs().forEach(function(p){p.style.zoom=''});document.querySelectorAll('.ac').forEach(function(c){var bd=c.querySelector('.bd'),fs=16;c.style.fontSize=fs+'px';while(bd.scrollHeight>bd.clientHeight+1&&fs>5.5){fs-=.25;c.style.fontSize=fs+'px'}});zoomFor()}window.addEventListener('load',function(){(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(fit)});if(document.fonts){document.fonts.onloadingdone=fit}window.addEventListener('beforeprint',function(){pgs().forEach(function(p){p.style.zoom=''});fit()});window.addEventListener('afterprint',zoomFor);window.addEventListener('resize',zoomFor);setTimeout(fit,1200)})();";
+function printAdmitDoc(w, cards) {
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>Admit Card</title>${ADM_FONTS}<style>${ADM_CSS}</style></head><body>${cards.map(c => `<div class="pg">${c}</div>`).join('')}<script>${ADM_FIT_JS}<\/script></body></html>`);
+  w.document.close();
+}
+const admHeadDes = (t, lang) => lang === 'en' ? (t === 'college' ? 'Principal' : 'Head Teacher') : hdTitle(t);
+function printAdmit(eid, lang) {
   const e = SE[eid], r = stuRec; if (!e || !r) return;
   const w = window.open('', '_blank'); if (!w) return toast('পপ-আপ চালু করুন, তারপর আবার চেষ্টা করুন');
-  const row = (l, v) => v ? `<tr><td style="color:#667085;width:130px">${l}</td><td><b>${esc(v)}</b></td></tr>` : '';
-  w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>এডমিট কার্ড</title><style>body{font-family:'Anek Bangla','Noto Sans Bengali',sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#1d2433}.c{border:2px solid #222;border-radius:10px;padding:22px}h2,h3,h4{text-align:center;margin:2px 0}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{padding:6px 8px;border:1px solid #d0d5dd;text-align:left}.p{width:96px;height:112px;object-fit:cover;border:1px solid #999;float:right;margin-left:12px}.s{display:flex;justify-content:space-between;margin-top:56px;font-size:13px}</style></head><body><div class="c">
-  ${LC[r.uid] ? `<img src="${esc(LC[r.uid])}" alt="" style="display:block;margin:0 auto 6px;height:68px;max-width:200px;object-fit:contain">` : ''}<h2>${esc(r.school)}</h2><h3>${esc(e.title)} ${esc(e.year)}</h3><h4>প্রবেশপত্র (এডমিট কার্ড)</h4>
-  ${r.photo ? `<img class="p" src="${esc(r.photo)}" alt="">` : ''}
-  <table style="border:0;width:auto">${row('শিক্ষার্থীর নাম', r.name)}${row('ইউনিক আইডি', r.suid)}${row('শ্রেণি', r.class + (r.section ? ' (' + r.section + ')' : ''))}${row(RLB(r.uid), r.roll)}${row('অভিভাবক', r.guardian)}${row('পরীক্ষা কেন্দ্র', e.centre)}</table>
-  ${e.routine && e.routine.length ? `<table><tr><th>তারিখ</th><th>বিষয়</th><th>সময়</th></tr>${e.routine.map(x => `<tr><td>${bnDate(x.date)}</td><td>${esc(x.subject)}</td><td>${esc(x.time)}</td></tr>`).join('')}</table>` : ''}
-  ${e.instructions ? `<p style="font-size:13px"><b>নির্দেশনা:</b> ${esc(e.instructions).replace(/\n/g, '<br>')}</p>` : ''}
-  <div class="s"><span>শিক্ষার্থীর স্বাক্ষর</span><span>প্রধান শিক্ষকের স্বাক্ষর</span></div></div></body></html>`);
-  w.document.close(); w.focus(); setTimeout(() => w.print(), 500);
+  lang = lang === 'en' ? 'en' : 'bn';
+  printAdmitDoc(w, [admitCardHtml({ e, s: r, uid: r.uid, lang, school: r.school, logo: LC[r.uid] || '', headDes: admHeadDes(instTypeOf(r.uid), lang) })]);
 }
 Object.assign(A, {
   snav: d => { sp = d.p; renderStudent(); window.scrollTo(0, 0); },
-  admit: d => printAdmit(d.id),
+  admit: d => printAdmit(d.id, d.lang),
   nfile: async (d, el) => {
     el.disabled = true;
     try {
@@ -4473,13 +4888,14 @@ document.addEventListener('change', async e => {
 
 document.addEventListener('submit', async e => {
   if (e.target.id === 'pf') { e.preventDefault(); const b = e.submitter; b.disabled = true; try { await startPay(new FormData(e.target).get('sender')); } catch (err) { toast(errMsg(err)); b.disabled = false; } }
+  if (e.target.id === 'ff') { e.preventDefault(); const b = e.submitter; b.disabled = true; try { const f = new FormData(e.target); await startFund(f.get('amount'), f.get('sender')); } catch (err) { toast(errMsg(err)); b.disabled = false; } }
   if (e.target.id === 'trxF') {
     e.preventDefault(); const b = e.submitter; b.disabled = true;
     try {
       const trx = String(new FormData(e.target).get('trx') || '').trim().toUpperCase();
       if (!/^[A-Z0-9]{6,40}$/.test(trx)) throw new Error('সঠিক TrxID দিন (কমপক্ষে ৬টি ইংরেজি অক্ষর/সংখ্যা)');
       if (!confirm('ভেরিফাই রিকোয়েস্ট দিলে অ্যাডমিন ব্যবস্থা না নেওয়া পর্যন্ত নতুন পেমেন্ট করা যাবে না। চালিয়ে যাবেন?')) { b.disabled = false; return; }
-      await update(root(), { [`payReq/${payId}/trx`]: trx, [`payReq/${payId}/status`]: 'review', [`payBlock/${stuKey}`]: payId });
+      await update(root(), { [`payReq/${payId}/trx`]: trx, [`payReq/${payId}/status`]: 'review', [`payBlock/${(payCur && payCur.key) || stuKey}`]: payId });
     } catch (err) { toast(errMsg(err)); b.disabled = false; }
   }
   if (e.target.id === 'payF') { e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)); try { await set(ref(db, 'paySettings'), { instructions: f.instructions.trim(), qr: pendingQr !== undefined ? pendingQr : (paySet.qr || ''), manualOnly: paySet.manualOnly === true, updatedAt: Date.now() }); pendingQr = undefined; toast('পেমেন্ট সেটিং সংরক্ষিত হয়েছে'); } catch (err) { toast(errMsg(err)); } }
@@ -4599,6 +5015,17 @@ document.addEventListener('submit', async e => {
   finally { if (btn) btn.disabled = false; }
 });
 
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'premF') return; e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target)), b = e.submitter; b.disabled = true;
+  try {
+    if (!me || !me.isAdmin) throw new Error('শুধু অ্যাডমিন এটি বদলাতে পারবেন');
+    const prem = {};
+    Object.keys(PREM).forEach(k => { const p = Math.round(Number(f['price_' + k]) || 0); if (p < 0 || p > 100000) throw new Error(PREM[k] + '-এর দাম ০ থেকে ১,০০,০০০ এর মধ্যে দিন'); prem[k] = { on: f['on_' + k] === 'on', price: p }; });
+    await update(ref(db, 'siteSettings'), { prem, updatedAt: Date.now() }); toast('প্রিমিয়াম সার্ভিসের সেটিং সংরক্ষিত হয়েছে');
+  } catch (err) { toast(errMsg(err)); }
+  b.disabled = false;
+});
 document.addEventListener('submit', async e => {
   const id = e.target.id; if (!['loginF', 'regF', 'proF', 'siteF', 'sF', 'headF', 'maintF'].includes(id)) return;
   e.preventDefault(); const f = Object.fromEntries(new FormData(e.target)), b = e.submitter; b.disabled = true;
@@ -5338,7 +5765,7 @@ function bkStatementCsv() {
   const T = rows.reduce((t, r) => { ['n', 'total', 'charge', 'due', 'paid', 'maint', 'held'].forEach(k => t[k] += r.c[k]); return t; }, { n: 0, total: 0, charge: 0, due: 0, paid: 0, maint: 0, held: 0 });
   const r2 = n => Math.round(n * 100) / 100;
   const set = rows.flatMap(r => r.c.settle.map(x => [x.date || ymd(x.createdAt || 0), r.name, x.type === 'paid' ? 'প্রতিষ্ঠানকে পরিশোধ' : 'মেইনটেন্স চার্জ (' + (x.status === 'due' ? 'বকেয়া' : 'পরিশোধিত') + ')', x.amount, x.vno || '', x.bank ? [BANK_T[x.bank.type] || x.bank.type, x.bank.bank, x.bank.holder, x.bank.number].filter(Boolean).join(' / ') : '', x.note || ''])).sort((a, b) => String(b[0]).localeCompare(String(a[0])));
-  const vp = Object.entries(payReqs).map(([id, r]) => ({ id, ...r })).filter(r => r.status === 'verified').sort((a, b) => (b.verifiedAt || b.createdAt || 0) - (a.verifiedAt || a.createdAt || 0));
+  const vp = Object.entries(payReqs).map(([id, r]) => ({ id, ...r })).filter(r => r.status === 'verified' && r.kind !== 'fund').sort((a, b) => (b.verifiedAt || b.createdAt || 0) - (a.verifiedAt || a.createdAt || 0));
   const sm = k => r2(vp.reduce((t, r) => t + (Number(r[k]) || 0), 0));
   const L = [[site.name], ['এডমিন হিসাব বিবরণী'], ['তৈরির তারিখ', today()], [],
     ['১। প্রতিষ্ঠানভিত্তিক হিসাব'], ['প্রতিষ্ঠান', 'ভেরিফাইড পেমেন্ট (টি)', 'ভেরিফাইড মোট', 'সার্ভিস চার্জ', 'প্রাপ্য মূল টাকা', 'পরিশোধিত', 'মেইনটেন্স', 'এডমিনের নিকট জমা'],
@@ -5511,8 +5938,8 @@ const idcImg = src => new Promise(res => { if (!src) return res(null); const im 
 const idcRR = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
 const idcFit = (c, t, max) => { t = String(t || ''); if (c.measureText(t).width <= max) return t; while (t.length > 1 && c.measureText(t + '…').width > max) t = t.slice(0, -1); return t + '…'; };
 const idcWrap = (c, t, max, n) => { const w = String(t || '').split(/\s+/).filter(Boolean), L = []; let cur = ''; for (const x of w) { const y = cur ? cur + ' ' + x : x; if (!cur || c.measureText(y).width <= max) cur = y; else { L.push(cur); cur = x; } } if (cur) L.push(cur); if (L.length > n) { L.length = n; L[n - 1] = idcFit(c, L[n - 1] + '…', max); } return L.map(l => idcFit(c, l, max)); };
-function idcDraw(cv, s, exp, im) {
-  const ff = getComputedStyle(document.body).fontFamily, W = 638, H = 1011, G = 40, V = window.innerWidth < 640, P0 = ctxProfile || {}, hd = P0.head || (adminList && adminList[ctx] && adminList[ctx].head) || {};
+function idcDraw(cv, s, exp, im, hz) {
+  const ff = getComputedStyle(document.body).fontFamily, W = 638, H = 1011, G = 40, V = !hz && window.innerWidth < 640, P0 = ctxProfile || {}, hd = P0.head || (adminList && adminList[ctx] && adminList[ctx].head) || {};
   cv.width = V ? W : W * 2 + G; cv.height = V ? H * 2 + G : H; cv.style.maxWidth = V ? '340px' : '720px';
   const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height); c.textBaseline = 'alphabetic';
   const F = (w, px) => { c.font = `${w} ${px}px ${ff}`; };
@@ -5601,9 +6028,10 @@ async function stuIdCard(id) {
 Object.assign(A, {
   stuprof: d => stuProfile(d.id),
   stuidcard: d => stuIdCard(d.id),
-  idcarddl: () => {
+  idcarddl: async () => {
     const cv = $('#idcCv'), s = idcSt && S[idcSt.id]; if (!cv || !s) return;
     if (!$('#idcExp').value) return toast('কার্ডের মেয়াদ নির্ধারণ করুন');
+    try { if (!(await premGate('idcard', ['idcard_' + idcSt.id + '_' + $('#idcExp').value], 'স্টুডেন্ট আইডি কার্ড — ' + (s.name || '')))) return; } catch (e) { return toast(errMsg(e)); }
     try {
       cv.toBlob(b => { if (!b) return toast('ডাউনলোড করা যায়নি'); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'ID-Card-' + String(s.suid || s.name || 'student').replace(/[^\w\u0980-\u09FF-]+/g, '_') + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('আইডি কার্ড ডাউনলোড হয়েছে'); }, 'image/png');
     } catch (e) { toast('ডাউনলোড আটকেছে, আবার চেষ্টা করুন'); }
@@ -5618,6 +6046,189 @@ Object.assign(A, {
     const b = `instLedger/${d.u}/settle/${d.id}`;
     try { await update(root(), { [b + '/status']: 'paid', [b + '/paidDate']: today(), [b + '/after']: Math.round((c.held - amt) * 100) / 100 }); $('#dlg').close(); toast('মেইনটেন্স চার্জ পরিশোধিত হয়েছে — রসিদ দেখা যাবে'); } catch (e) { toast(errMsg(e)); }
   }
+});
+/* ===== বাম মেনুর নতুন তিনটি পেজ: স্টুডেন্ট আইডি কার্ড / এডমিট কার্ড / রেজাল্ট কার্ড =====
+   আইডি কার্ড: আগের জেনারেটরই (stuIdCard) খোলে। এডমিট ও রেজাল্ট: প্রিন্ট করার সময় premGate দিয়ে ক্রেডিট কাটে
+   (কার্ড প্রকাশের সময় যে রেফারেন্স কাটা হয় সেই একই রেফারেন্স, তাই একই কার্ডের জন্য দুইবার কাটে না)। */
+const stuIdVal = s => RLB() === 'স্টুডেন্ট আইডি' ? (s.suid || s.roll || '') : (s.roll || '');
+const cardStus = (cls, q, activeOnly) => { q = (q || '').toLowerCase(); return stuArr().filter(s => (!activeOnly || s.status === 'active') && (!cls || s.class === cls) && (!q || [s.name, s.suid, s.roll, s.guardian, s.phone].join(' ').toLowerCase().includes(q))).sort((a, b) => ((CLASSES.indexOf(a.class) + 1) || 99) - ((CLASSES.indexOf(b.class) + 1) || 99) || (a.class || '').localeCompare(b.class || '', 'bn') || String(a.roll || '').localeCompare(String(b.roll || ''), 'bn', { numeric: true })); };
+const cardClsOpts = cur => { const cl = [...new Set(stuArr().map(s => s.class).filter(Boolean))].sort((a, b) => ((CLASSES.indexOf(a) + 1) || 99) - ((CLASSES.indexOf(b) + 1) || 99) || a.localeCompare(b, 'bn')); return '<option value="">সব শ্রেণি</option>' + cl.map(c => `<option value="${esc(c)}" ${cur === c ? 'selected' : ''}>${esc(c)}</option>`).join(''); };
+const cardExOpts = cur => listOf(EX).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).map(e => `<option value="${esc(e.id)}" ${cur === e.id ? 'selected' : ''}>${esc(e.title)} ${esc(e.year || '')}</option>`).join('');
+const cardCostNote = k => premOn(k) ? `<span class="sub">প্রতিটি কার্ডে ${tk(premCfg(k).price)} ক্রেডিট কাটে${k === 'idcard' ? ' (ডাউনলোডের সময়)' : ' (একই পরীক্ষার একই কার্ড আবার প্রিন্ট ফ্রি)'}</span>` : '';
+const cardPhoto = s => `<span class="stu-av" style="width:36px;height:36px;border-radius:10px;font-size:0;display:inline-flex;vertical-align:middle;margin-right:8px">${s.photo ? `<img src="${esc(s.photo)}" alt="">` : `<svg aria-hidden="true"><use href="#${s.gender === 'মেয়ে' ? 's-girl' : 's-boy'}"/></svg>`}</span>`;
+const cardNoEx = '<div class="empty"><b>কোনো পরীক্ষা নেই</b>আগে "পরীক্ষা ও ফলাফল" পেজ থেকে পরীক্ষা তৈরি করুন।</div>';
+
+/* --- ১) স্টুডেন্ট আইডি কার্ড (একক + একসাথে একাধিক/সব) --- */
+const IDC_MAX = 300;
+function pIdc() {
+  if (!ui.idSel) ui.idSel = {};
+  if (!ui.idExp) ui.idExp = new Date().getFullYear() + '-12-31';
+  $('#main').innerHTML = `<div class="panel flush"><div class="toolbar">
+    <input data-ui="idq" placeholder="নাম, আইডি, ${RLB()}, অভিভাবক বা মোবাইল দিয়ে খুঁজুন" value="${esc(ui.idq || '')}">
+    <select data-ui="idcls">${cardClsOpts(ui.idcls)}</select>
+    <label style="margin:0;display:flex;gap:6px;align-items:center;font-weight:600">মেয়াদ (শেষ তারিখ) <input type="date" data-ui="idExp" value="${esc(ui.idExp)}" min="${today()}" style="width:auto"></label>${cardCostNote('idcard')}</div>
+    <div id="list"></div></div>`;
+  listFn = idcList; $('#list').innerHTML = idcList();
+}
+const idcSelIds = () => Object.keys(ui.idSel || {}).filter(k => ui.idSel[k] && S[k]);
+function idcList() {
+  const rows = cardStus(ui.idcls, ui.idq, false), sel = idcSelIds(), all = rows.length > 0 && rows.every(s => ui.idSel[s.id]);
+  return `<div class="row" style="padding:10px 16px;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line)">
+    <button class="btn ghost sm" data-act="idselall">${all ? '☐ সব নির্বাচন বাতিল' : '☑ তালিকার সবাইকে নির্বাচন (' + bn(rows.length) + ')'}</button>
+    <b>${bn(sel.length)} জন নির্বাচিত</b>
+    <span style="flex:1"></span>
+    <button class="btn" data-act="idbulk" data-m="print" ${sel.length ? '' : 'disabled'}>🖨 নির্বাচিতদের কার্ড প্রিন্ট / PDF</button>
+    <button class="btn ghost" data-act="idbulk" data-m="png" ${sel.length ? '' : 'disabled'}>⬇ PNG ডাউনলোড</button>
+    ${sel.length ? '<button class="btn ghost sm" data-act="idselclr">নির্বাচন মুছুন</button>' : ''}</div>
+  <div class="tw"><table><tr><th style="width:36px"><input type="checkbox" data-act="idselall" ${all ? 'checked' : ''} aria-label="সব নির্বাচন" style="width:auto;min-height:0"></th><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>${RLB()}</th><th>অভিভাবক</th><th>অবস্থা</th><th></th></tr>
+  ${rows.map(s => `<tr><td><input type="checkbox" data-act="idsel" data-id="${esc(s.id)}" ${ui.idSel[s.id] ? 'checked' : ''} aria-label="নির্বাচন" style="width:auto;min-height:0"></td><td>${cardPhoto(s)}<b>${esc(s.name)}</b>${s.suid ? `<div class="sub" style="letter-spacing:.3px">${esc(s.suid)}</div>` : ''}</td><td>${esc(s.class)}${s.section ? ' <span class="sub">(' + esc(s.section) + ')</span>' : ''}</td><td>${esc(stuIdVal(s)) || '—'}</td><td>${esc(s.guardian) || '—'}<div class="sub">${esc(s.phone || '')}</div></td><td><span class="badge b-${s.status}">${s.status === 'active' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
+  <td><button class="btn sm" data-act="stuidcard" data-id="${esc(s.id)}">🪪 আইডি কার্ড</button></td></tr>`).join('') || '<tr><td colspan="7" class="empty"><b>কোনো শিক্ষার্থী পাওয়া যায়নি</b></td></tr>'}
+  </table></div><div class="sub" style="padding:10px 16px;border-top:1px solid var(--line)">মোট ${bn(rows.length)} জন</div>`;
+}
+let idcBusy = false;
+async function idcBulk(mode) {
+  if (idcBusy) return;
+  const ids = idcSelIds(), exp = ui.idExp;
+  if (!ids.length) return toast('আগে শিক্ষার্থী নির্বাচন করুন');
+  if (!exp) return toast('কার্ডের মেয়াদ (শেষ তারিখ) দিন');
+  if (ids.length > IDC_MAX) return toast('একবারে সর্বোচ্চ ' + bn(IDC_MAX) + ' জন নির্বাচন করা যাবে — কয়েক ধাপে করুন');
+  const sts = ids.map(id => ({ id, ...S[id] })).sort((a, b) => ((CLASSES.indexOf(a.class) + 1) || 99) - ((CLASSES.indexOf(b.class) + 1) || 99) || String(a.roll || '').localeCompare(String(b.roll || ''), 'bn', { numeric: true }));
+  const w = mode === 'print' ? window.open('', '_blank') : null;
+  if (mode === 'print' && !w) return toast('পপ-আপ চালু করুন, তারপর আবার চেষ্টা করুন');
+  idcBusy = true;
+  try {
+    if (!(await premGate('idcard', sts.map(s => 'idcard_' + s.id + '_' + exp), 'স্টুডেন্ট আইডি কার্ড — ' + bn(sts.length) + ' জন'))) { if (w) w.close(); return; }
+    if (w) w.document.write('<p style="font-family:sans-serif;padding:20px">কার্ড তৈরি হচ্ছে… অনুগ্রহ করে অপেক্ষা করুন</p>');
+    const sg = headSig(), [logo, sig] = await Promise.all([idcImg(instLogo || (ctxProfile && ctxProfile.logo)), idcImg(sg)]), outs = [];
+    for (let i = 0; i < sts.length; i++) {
+      const s = sts[i], photo = await idcImg(s.photo), cv = document.createElement('canvas');
+      idcDraw(cv, s, exp, { logo, photo, sig }, true);
+      if (mode === 'print') outs.push(cv.toDataURL('image/jpeg', .92));
+      else { await new Promise(r => cv.toBlob(b => { if (b) { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'ID-Card-' + String(s.suid || s.name || 'student').replace(/[^\w\u0980-\u09FF-]+/g, '_') + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); } r(); }, 'image/png')); await new Promise(r => setTimeout(r, 350)); }
+      if (i % 5 === 4) toast(bn(i + 1) + '/' + bn(sts.length) + ' কার্ড তৈরি হয়েছে…');
+    }
+    if (mode === 'print') {
+      w.document.open();
+      w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>আইডি কার্ড</title><style>@page{size:A4;margin:10mm}body{margin:0;font-family:sans-serif}img{display:block;width:180mm;margin:0 auto 8mm;break-inside:avoid;page-break-inside:avoid;border:1px dashed #bbb}</style></head><body>${outs.map(u => `<img src="${u}" alt="">`).join('')}</body></html>`);
+      w.document.close(); w.focus(); setTimeout(() => w.print(), 800);
+    }
+    toast(bn(sts.length) + ' জনের আইডি কার্ড ' + (mode === 'print' ? 'প্রস্তুত' : 'ডাউনলোড হয়েছে'));
+  } catch (er) { if (w) w.close(); toast(errMsg(er)); }
+  finally { idcBusy = false; }
+}
+Object.assign(A, {
+  idsel: (d, el) => { ui.idSel[d.id] = el.checked; if (listFn) $('#list').innerHTML = listFn(); },
+  idselall: () => { const rows = cardStus(ui.idcls, ui.idq, false), all = rows.length > 0 && rows.every(s => ui.idSel[s.id]); rows.forEach(s => { ui.idSel[s.id] = !all; }); $('#list').innerHTML = idcList(); },
+  idselclr: () => { ui.idSel = {}; $('#list').innerHTML = idcList(); },
+  idbulk: d => idcBulk(d.m)
+});
+
+/* --- প্রিন্ট উইন্ডো (এডমিট ও রেজাল্ট কার্ডের জন্য): প্রতি কার্ড আলাদা পাতায় --- */
+function printCards(w, title, cards) {
+  w.document.write(`<!DOCTYPE html><html lang="bn"><head><meta charset="UTF-8"><title>${esc(title)}</title><style>body{font-family:'Anek Bangla','Noto Sans Bengali',sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#1d2433}.pg{page-break-after:always;margin-bottom:24px}.pg:last-child{page-break-after:auto}.c{border:2px solid #222;border-radius:10px;padding:22px}h2,h3,h4{text-align:center;margin:2px 0}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{padding:6px 8px;border:1px solid #d0d5dd;text-align:left}.n{text-align:right}.p{width:96px;height:112px;object-fit:cover;border:1px solid #999;float:right;margin-left:12px}.s{display:flex;justify-content:space-between;align-items:flex-end;margin-top:56px;font-size:13px}.s img{display:block;height:44px;max-width:160px;object-fit:contain;margin:0 auto 2px}.sm{display:inline-block;text-align:center}@media print{body{margin:0}}</style></head><body>${cards.map(c => `<div class="pg">${c}</div>`).join('')}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 600);
+}
+function cardHead(sub, sub2) {
+  const lg = LC[ctx] || instLogo || '', P0 = ctxProfile || {};
+  return `${lg ? `<img src="${esc(lg)}" alt="" style="display:block;margin:0 auto 6px;height:68px;max-width:200px;object-fit:contain">` : ''}<h2>${esc(P0.name || '')}</h2><h3>${sub}</h3>${sub2 ? `<h4>${sub2}</h4>` : ''}`;
+}
+function cardSign(left) {
+  const P0 = ctxProfile || {}, hd = P0.head || (adminList && adminList[ctx] && adminList[ctx].head) || {}, sg = headSig();
+  return `<div class="s"><span class="sm">${esc(left)}</span><span class="sm">${sg ? `<img src="${esc(sg)}" alt="">` : ''}${esc(hd.designation || hdTitle(instType(P0)))}${hd.name ? '<br>' + esc(hd.name) : ''}</span></div>`;
+}
+const cardInfoRow = (l, v) => v ? `<tr><td style="color:#667085;width:130px">${l}</td><td><b>${esc(v)}</b></td></tr>` : '';
+
+/* --- ২) এডমিট কার্ড --- */
+function pAdc() {
+  if (!ui.adE || !EX[ui.adE]) ui.adE = (listOf(EX).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0] || {}).id || '';
+  if (!ui.adE) { $('#main').innerHTML = `<div class="panel flush">${cardNoEx}</div>`; listFn = null; return; }
+  $('#main').innerHTML = `<div class="panel flush"><div class="toolbar">
+    <select data-ui="adE" aria-label="পরীক্ষা">${cardExOpts(ui.adE)}</select>
+    <select data-ui="adCls">${cardClsOpts(ui.adCls)}</select>
+    <input data-ui="adQ" placeholder="নাম, আইডি বা ${RLB()} দিয়ে খুঁজুন" value="${esc(ui.adQ || '')}">
+    <select data-ui="adLang" aria-label="কার্ডের ভাষা"><option value="bn" ${ui.adLang === 'en' ? '' : 'selected'}>কার্ড: বাংলা</option><option value="en" ${ui.adLang === 'en' ? 'selected' : ''}>Card: English</option></select>
+    ${cardCostNote('admit')}<button class="btn" data-act="adcall">🖨 সবার এডমিট কার্ড</button></div>
+    <div id="list"></div></div>`;
+  listFn = adcList; $('#list').innerHTML = adcList();
+}
+const adcRows = () => { const e = EX[ui.adE]; return e ? cardStus(ui.adCls, ui.adQ, true).filter(s => examFor(e, s.class)) : []; };
+const adcSelIds = () => { const ok = new Set(adcRows().map(s => s.id)); return Object.keys(ui.adSel || {}).filter(k => ui.adSel[k] && ok.has(k)); };
+function adcList() {
+  if (!ui.adSel) ui.adSel = {};
+  const e = EX[ui.adE] || {}, rows = adcRows(), sel = adcSelIds(), all = rows.length > 0 && rows.every(s => ui.adSel[s.id]);
+  return `<div class="sub" style="padding:10px 16px">${e.routine && e.routine.length ? 'পরীক্ষা শুরু: ' + bnDate(e.routine[0].date) : 'রুটিন দেওয়া হয়নি'}${e.centre ? ' • কেন্দ্র: ' + esc(e.centre) : ''} • এডমিট কার্ড ${e.admitOn ? 'প্রকাশিত' : 'এখনো প্রকাশিত নয় (শুধু প্রতিষ্ঠান প্রিন্ট করতে পারবে)'}</div>
+  <div class="row" style="padding:10px 16px;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+    <button class="btn ghost sm" data-act="adselall">${all ? '☐ সব নির্বাচন বাতিল' : '☑ তালিকার সবাইকে নির্বাচন (' + bn(rows.length) + ')'}</button>
+    <b>${bn(sel.length)} জন নির্বাচিত</b><span style="flex:1"></span>
+    <button class="btn" data-act="adcsel" ${sel.length ? '' : 'disabled'}>🖨 নির্বাচিতদের এডমিট কার্ড প্রিন্ট / PDF</button>
+    ${sel.length ? '<button class="btn ghost sm" data-act="adselclr">নির্বাচন মুছুন</button>' : ''}</div>
+  <div class="tw"><table><tr><th style="width:36px"><input type="checkbox" data-act="adselall" ${all ? 'checked' : ''} aria-label="সব নির্বাচন" style="width:auto;min-height:0"></th><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>${RLB()}</th><th></th></tr>
+  ${rows.map(s => `<tr><td><input type="checkbox" data-act="adsel" data-id="${esc(s.id)}" ${ui.adSel[s.id] ? 'checked' : ''} aria-label="নির্বাচন" style="width:auto;min-height:0"></td><td>${cardPhoto(s)}<b>${esc(s.name)}</b>${s.suid ? `<div class="sub">${esc(s.suid)}</div>` : ''}</td><td>${esc(s.class)}${s.section ? ' <span class="sub">(' + esc(s.section) + ')</span>' : ''}</td><td>${esc(stuIdVal(s)) || '—'}</td><td><button class="btn sm" data-act="adcone" data-id="${esc(s.id)}">🖨 প্রিন্ট</button></td></tr>`).join('') || '<tr><td colspan="5" class="empty"><b>এই পরীক্ষার জন্য কোনো সক্রিয় শিক্ষার্থী নেই</b></td></tr>'}
+  </table></div><div class="sub" style="padding:10px 16px;border-top:1px solid var(--line)">মোট ${bn(rows.length)} জন</div>`;
+}
+function adcCard(e, s) {
+  const P0 = ctxProfile || {}, hd = P0.head || (adminList && adminList[ctx] && adminList[ctx].head) || {}, lang = ui.adLang === 'en' ? 'en' : 'bn';
+  return admitCardHtml({ e, s, lang, school: P0.name || '', logo: LC[ctx] || instLogo || '', sig: headSig(), headDes: hd.designation || admHeadDes(instType(P0), lang), headName: hd.name || '' });
+}
+async function adcPrint(ids) {
+  const e = EX[ui.adE]; if (!e) return toast('আগে পরীক্ষা বেছে নিন');
+  const sts = ids.map(id => S[id] && { id, ...S[id] }).filter(Boolean); if (!sts.length) return toast('কোনো শিক্ষার্থী নেই');
+  const w = window.open('', '_blank'); if (!w) return toast('পপ-আপ চালু করুন, তারপর আবার চেষ্টা করুন');
+  try { if (!(await premGate('admit', sts.map(s => 'admit_' + e.id + '_' + s.id), 'এডমিট কার্ড — ' + e.title))) { w.close(); return; } } catch (er) { w.close(); return toast(errMsg(er)); }
+  printAdmitDoc(w, sts.map(s => adcCard(e, s)));
+}
+
+/* --- ৩) রেজাল্ট কার্ড --- */
+function pRsc() {
+  if (!ui.rsE || !EX[ui.rsE]) ui.rsE = (listOf(EX).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0] || {}).id || '';
+  if (!ui.rsE) { $('#main').innerHTML = `<div class="panel flush">${cardNoEx}</div>`; listFn = null; return; }
+  $('#main').innerHTML = `<div class="panel flush"><div class="toolbar">
+    <select data-ui="rsE" aria-label="পরীক্ষা">${cardExOpts(ui.rsE)}</select>
+    <select data-ui="rsCls">${cardClsOpts(ui.rsCls)}</select>
+    <input data-ui="rsQ" placeholder="নাম, আইডি বা ${RLB()} দিয়ে খুঁজুন" value="${esc(ui.rsQ || '')}">
+    ${cardCostNote('result')}<button class="btn" data-act="rscall">🖨 সবার রেজাল্ট কার্ড</button></div>
+    <div id="list"></div></div>`;
+  listFn = rscList; $('#list').innerHTML = rscList();
+}
+const rscRows = () => { const e = EX[ui.rsE]; return e ? cardStus(ui.rsCls, ui.rsQ, true).filter(s => examFor(e, s.class)).map(s => ({ ...s, r: (RS[e.id] || {})[s.id] || null })) : []; };
+function rscList() {
+  const e = EX[ui.rsE] || {}, rows = rscRows(), have = rows.filter(x => x.r).length;
+  return `<div class="sub" style="padding:10px 16px">ফলাফল ${e.resultOn ? 'প্রকাশিত' : 'এখনো প্রকাশিত নয় (শুধু প্রতিষ্ঠান প্রিন্ট করতে পারবে)'} • ${bn(have)} জনের ফলাফল এন্ট্রি আছে। ফলাফল দিতে "পরীক্ষা ও ফলাফল" পেজের "ফলাফল এন্ট্রি" ব্যবহার করুন।</div>
+  <div class="tw"><table><tr><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>${RLB()}</th><th class="n">মোট নম্বর</th><th>জিপিএ</th><th>ফলাফল</th><th></th></tr>
+  ${rows.map(s => `<tr><td>${cardPhoto(s)}<b>${esc(s.name)}</b>${s.suid ? `<div class="sub">${esc(s.suid)}</div>` : ''}</td><td>${esc(s.class)}${s.section ? ' <span class="sub">(' + esc(s.section) + ')</span>' : ''}</td><td>${esc(stuIdVal(s)) || '—'}</td>
+  ${s.r ? `<td class="n">${bn(s.r.total)}</td><td>${bn(Number(s.r.gpa || 0).toFixed(2))} (${esc(s.r.grade)})</td><td><span class="badge b-${s.r.pass ? 'approved' : 'pending'}">${s.r.pass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}</span></td><td><button class="btn sm" data-act="rscone" data-id="${esc(s.id)}">🖨 প্রিন্ট</button></td>` : '<td class="n">—</td><td>—</td><td><span class="sub">ফলাফল নেই</span></td><td></td>'}</tr>`).join('') || '<tr><td colspan="7" class="empty"><b>এই পরীক্ষার জন্য কোনো সক্রিয় শিক্ষার্থী নেই</b></td></tr>'}
+  </table></div><div class="sub" style="padding:10px 16px;border-top:1px solid var(--line)">মোট ${bn(rows.length)} জন</div>`;
+}
+function rscCard(e, s, r) {
+  const ct = (s.class || '') + (s.section ? ' (' + s.section + ')' : ''), full = r.subjects.reduce((a, x) => a + x.full, 0);
+  return `<div class="c">${cardHead(esc(e.title) + ' ' + esc(e.year || ''), 'ফলাফল কার্ড (রেজাল্ট কার্ড)')}
+  ${s.photo ? `<img class="p" src="${esc(s.photo)}" alt="">` : ''}
+  <table style="border:0;width:auto">${cardInfoRow('শিক্ষার্থীর নাম', s.name)}${cardInfoRow('ইউনিক আইডি', s.suid)}${cardInfoRow('শ্রেণি', ct.trim())}${cardInfoRow(RLB(), s.roll)}${cardInfoRow('অভিভাবক', s.guardian)}</table>
+  <table style="clear:both"><tr><th>বিষয়</th><th class="n">পূর্ণমান</th><th class="n">প্রাপ্ত নম্বর</th><th>গ্রেড</th></tr>
+  ${r.subjects.map(x => `<tr><td>${esc(x.n)}</td><td class="n">${bn(x.full)}</td><td class="n">${bn(x.got)}</td><td>${gpOf(x.got / x.full * 100)[1]}</td></tr>`).join('')}
+  <tr><td><b>মোট</b></td><td class="n">${bn(full)}</td><td class="n"><b>${bn(r.total)}</b></td><td></td></tr></table>
+  <table><tr><th>ফলাফল</th><th>জিপিএ</th><th>গ্রেড</th><th>মেধাক্রম (শ্রেণিতে)</th></tr><tr><td><b>${r.pass ? 'উত্তীর্ণ' : 'অনুত্তীর্ণ'}</b></td><td><b>${bn(Number(r.gpa || 0).toFixed(2))}</b></td><td><b>${esc(r.grade)}</b></td><td><b>${r.rank ? bn(r.rank) : '—'}</b></td></tr></table>
+  ${cardSign('অভিভাবকের স্বাক্ষর')}</div>`;
+}
+async function rscPrint(ids) {
+  const e = EX[ui.rsE]; if (!e) return toast('আগে পরীক্ষা বেছে নিন');
+  const items = ids.map(id => { const r = (RS[e.id] || {})[id]; return S[id] && r && r.subjects ? { s: { id, ...S[id] }, r } : null; }).filter(Boolean);
+  if (!items.length) return toast('এই পরীক্ষার কোনো ফলাফল এন্ট্রি নেই');
+  const w = window.open('', '_blank'); if (!w) return toast('পপ-আপ চালু করুন, তারপর আবার চেষ্টা করুন');
+  try { if (!(await premGate('result', items.map(x => 'result_' + e.id + '_' + x.s.id), 'রেজাল্ট কার্ড — ' + e.title))) { w.close(); return; } } catch (er) { w.close(); return toast(errMsg(er)); }
+  printCards(w, 'রেজাল্ট কার্ড', items.map(x => rscCard(e, x.s, x.r)));
+}
+Object.assign(A, {
+  rtadd: () => { const b = $('#rtB'); if (b) { b.insertAdjacentHTML('beforeend', rtRow()); const i = b.lastElementChild.querySelector('input'); if (i) i.focus(); } },
+  rtdel: (d, el) => { const b = $('#rtB'), tr = el.closest('tr'); if (!b || !tr) return; if (b.children.length <= 1) { tr.querySelectorAll('input').forEach(i => { i.value = ''; }); return; } tr.remove(); },
+  adcone: d => adcPrint([d.id]),
+  adcall: () => adcPrint(adcRows().map(s => s.id)),
+  adsel: (d, el) => { (ui.adSel = ui.adSel || {})[d.id] = el.checked; $('#list').innerHTML = adcList(); },
+  adselall: () => { ui.adSel = ui.adSel || {}; const rows = adcRows(), all = rows.length > 0 && rows.every(s => ui.adSel[s.id]); rows.forEach(s => { ui.adSel[s.id] = !all; }); $('#list').innerHTML = adcList(); },
+  adselclr: () => { ui.adSel = {}; $('#list').innerHTML = adcList(); },
+  adcsel: () => { const ids = adcSelIds(); if (!ids.length) return toast('আগে শিক্ষার্থী নির্বাচন করুন'); adcPrint(ids); },
+  rscone: d => rscPrint([d.id]),
+  rscall: () => rscPrint(rscRows().filter(x => x.r).map(s => s.id))
 });
 /* এডমিন প্যানেল থেকে কিছু মুছতে হলে এডমিন পাসওয়ার্ড লাগবে */
 const ADMIN_DEL = {
@@ -5742,16 +6353,19 @@ function reportCsv(key, r) {
 }
 /* ================= বিভাগ ও বিষয় ================= */
 let DP = {};
-const SUB_TYPES = ['আবশ্যিক', 'ঐচ্ছিক'], SUB_BOTH = 'আবশ্যিক ও ঐচ্ছিক';
-const inTab = (x, tp) => { const t = x.type || 'আবশ্যিক'; return t === tp || t === SUB_BOTH; };
+const SUB_TYPES = ['আবশ্যিক', 'ঐচ্ছিক'], SUB_BOTH = 'আবশ্যিক ও ঐচ্ছিক', SUB_COMMON = 'কমন';
+const inTab = (x, tp) => { const t = x.type || 'আবশ্যিক'; return tp === SUB_COMMON ? t === SUB_COMMON : t === tp || t === SUB_BOTH; };
 const deptArr = () => Object.entries(DP || {}).map(([id, v]) => ({ id, ...v })).filter(d => d && d.name).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'bn'));
 const subArr = d => Object.entries((d && d.subjects) || {}).map(([id, v]) => ({ id, ...v })).filter(x => x && x.name).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'bn'));
+const deptCompCount = d => d && d.compulsoryCount != null ? Number(d.compulsoryCount) : subArr(d).filter(x => (x.type || 'আবশ্যিক') === 'আবশ্যিক').length;
+const deptOptCount = d => d && d.optionalCount != null ? Number(d.optionalCount) : 0;
 function pDept() {
   const ds = deptArr(), nSub = ds.reduce((a, d) => a + subArr(d).length, 0);
   $('#main').innerHTML = `<div class="kpis sm" style="margin-bottom:12px"><div class="kpi"><span>মোট বিভাগ</span><b>${bn(ds.length)} টি</b></div><div class="kpi"><span>মোট বিষয়</span><b>${bn(nSub)} টি</b></div></div>
   <div class="panel"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0">🏛 বিভাগ ও বিষয়ের তালিকা</h3><button type="button" class="btn ok" data-act="deptadd">+ নতুন বিভাগ</button></div>
   <div class="sub" style="margin:6px 0 0">প্রতিষ্ঠানের সব বিভাগ (যেমন: বিজ্ঞান, মানবিক, ব্যবসায় শিক্ষা) যোগ করুন, তারপর প্রতিটি বিভাগের বিষয়গুলো যুক্ত করুন।</div></div>
-  ${ds.map(d => { const ss = subArr(d); return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">${esc(d.name)} <span class="badge ${d.level === 'Secondary' ? 'b-income' : 'b-pending'}">${d.level === 'Secondary' ? 'মাধ্যমিক (Secondary)' : d.level === 'Higher Secondary' ? 'উচ্চ মাধ্যমিক (Higher Secondary)' : 'শিক্ষাস্তর নির্ধারিত নয়'}</span>${d.code ? ` <span class="badge b-pending">${esc(d.code)}</span>` : ''}</h3><div class="sub">${bn(ss.length)} টি বিষয় (আবশ্যিক ${bn(ss.filter(x => inTab(x, 'আবশ্যিক')).length)}, ঐচ্ছিক ${bn(ss.filter(x => inTab(x, 'ঐচ্ছিক')).length)})${d.note ? ' • ' + esc(d.note) : ''}</div></div><div class="row"><button type="button" class="btn sm ok" data-act="subadd" data-d="${esc(d.id)}" data-t="আবশ্যিক">+ আবশ্যিক বিষয়</button><button type="button" class="btn sm warn" data-act="subadd" data-d="${esc(d.id)}" data-t="ঐচ্ছিক">+ ঐচ্ছিক বিষয়</button><button type="button" class="btn sm ghost" data-act="deptedit" data-d="${esc(d.id)}">✏ বিভাগ সম্পাদনা</button><button type="button" class="btn sm ghost" data-act="deptdel" data-d="${esc(d.id)}">মুছুন</button></div></div>
+  ${ds.map(d => { const ss = subArr(d); return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">${esc(d.name)} <span class="badge ${d.level === 'Secondary' ? 'b-income' : 'b-pending'}">${d.level === 'Secondary' ? 'মাধ্যমিক (Secondary)' : d.level === 'Higher Secondary' ? 'উচ্চ মাধ্যমিক (Higher Secondary)' : 'শিক্ষাস্তর নির্ধারিত নয়'}</span>${d.code ? ` <span class="badge b-pending">${esc(d.code)}</span>` : ''}</h3><div class="sub">${bn(ss.length)} টি বিষয় (কমন ${bn(ss.filter(x => x.type === SUB_COMMON).length)}, আবশ্যিক তালিকা ${bn(ss.filter(x => inTab(x, 'আবশ্যিক')).length)}, ঐচ্ছিক তালিকা ${bn(ss.filter(x => inTab(x, 'ঐচ্ছিক')).length)}) • আবশ্যিক নিতে হবে ${bn(deptCompCount(d))} টি • ঐচ্ছিক নিতে হবে ${bn(deptOptCount(d))} টি${d.note ? ' • ' + esc(d.note) : ''}</div></div><div class="row"><button type="button" class="btn sm" data-act="subadd" data-d="${esc(d.id)}" data-t="কমন">+ কমন বিষয়</button><button type="button" class="btn sm ok" data-act="subadd" data-d="${esc(d.id)}" data-t="আবশ্যিক">+ আবশ্যিক বিষয়</button><button type="button" class="btn sm warn" data-act="subadd" data-d="${esc(d.id)}" data-t="ঐচ্ছিক">+ ঐচ্ছিক বিষয়</button><button type="button" class="btn sm ghost" data-act="deptedit" data-d="${esc(d.id)}">✏ বিভাগ সম্পাদনা</button><button type="button" class="btn sm ghost" data-act="deptdel" data-d="${esc(d.id)}">মুছুন</button></div></div>
+    ${ss.some(x => x.type === SUB_COMMON) ? `<h4 style="margin:14px 0 6px">📙 কমন বিষয় <span class="badge b-income">${bn(ss.filter(x => x.type === SUB_COMMON).length)} টি</span></h4><div class="tw"><table><tr><th>ক্রম</th><th>বিষয়ের নাম</th><th>কোড</th><th></th></tr>${ss.filter(x => x.type === SUB_COMMON).map((x,i) => `<tr><td>${bn(i+1)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.code || '—')}</td><td><div class="row"><button type="button" class="btn sm ghost" data-act="subedit" data-d="${esc(d.id)}" data-s="${esc(x.id)}">✏ এডিট</button><button type="button" class="btn sm ghost" data-act="subdel" data-d="${esc(d.id)}" data-s="${esc(x.id)}">মুছুন</button></div></td></tr>`).join('')}</table></div>` : ''}
     ${SUB_TYPES.map(tp => { const g = ss.filter(x => inTab(x, tp)), ot = tp === 'আবশ্যিক' ? 'ঐচ্ছিক' : 'আবশ্যিক'; return `<h4 style="margin:14px 0 6px">${tp === 'আবশ্যিক' ? '📘' : '📗'} ${tp} বিষয় <span class="badge ${tp === 'আবশ্যিক' ? 'b-income' : 'b-pending'}">${bn(g.length)} টি</span></h4>
     <div class="tw"><table><tr><th>ক্রম</th><th>বিষয়ের নাম</th><th>কোড</th><th></th></tr>
     ${g.map((x, i) => `<tr><td>${bn(i + 1)}</td><td><b>${esc(x.name)}</b>${x.type === SUB_BOTH ? ` <span class="badge b-pending">উভয়</span>` : ''}</td><td>${esc(x.code || '—')}</td><td><div class="row">${x.type === SUB_BOTH ? `<button type="button" class="btn sm ghost" data-act="subtype" data-d="${esc(d.id)}" data-s="${esc(x.id)}" data-n="${ot}" title="এই তালিকা থেকে সরিয়ে শুধু ${ot} রাখুন">✖ শুধু ${ot} রাখুন</button>` : `<button type="button" class="btn sm ghost" data-act="subtype" data-d="${esc(d.id)}" data-s="${esc(x.id)}" data-n="${SUB_BOTH}" title="${ot} তালিকাতেও রাখুন">＋ ${ot}-তেও রাখুন</button><button type="button" class="btn sm ghost" data-act="subtype" data-d="${esc(d.id)}" data-s="${esc(x.id)}" data-n="${ot}">⇄ ${ot} করুন</button>`}<button type="button" class="btn sm ghost" data-act="subedit" data-d="${esc(d.id)}" data-s="${esc(x.id)}">✏ এডিট</button><button type="button" class="btn sm ghost" data-act="subdel" data-d="${esc(d.id)}" data-s="${esc(x.id)}">মুছুন</button></div></td></tr>`).join('') || `<tr><td colspan="4" class="empty"><b>কোনো ${tp} বিষয় নেই</b></td></tr>`}
@@ -5759,21 +6373,23 @@ function pDept() {
 }
 function openDept(did) {
   const d = did ? DP[did] : {};
-  modal(did ? 'বিভাগ সম্পাদনা' : 'নতুন বিভাগ', inp('বিভাগের নাম *', 'name', d.name, 'text', 'required maxlength="80" placeholder="যেমন: বিজ্ঞান"', true) + sel('শিক্ষাস্তর *', 'level', [['Secondary', 'মাধ্যমিক (Secondary)'], ['Higher Secondary', 'উচ্চ মাধ্যমিক (Higher Secondary)']], d.level || '', true, 'required') + inp('কোড (ঐচ্ছিক)', 'code', d.code, 'text', 'maxlength="20"') + inp('নোট (ঐচ্ছিক)', 'note', d.note, 'text', 'maxlength="150"'),
+  modal(did ? 'বিভাগ সম্পাদনা' : 'নতুন বিভাগ', inp('বিভাগের নাম *', 'name', d.name, 'text', 'required maxlength="80" placeholder="যেমন: বিজ্ঞান"', true) + sel('শিক্ষাস্তর *', 'level', [['Secondary', 'মাধ্যমিক (Secondary)'], ['Higher Secondary', 'উচ্চ মাধ্যমিক (Higher Secondary)']], d.level || '', true, 'required') + inp('কোড (ঐচ্ছিক)', 'code', d.code, 'text', 'maxlength="20"') + inp('আবশ্যিক তালিকা থেকে নিতে হবে (সংখ্যা)', 'compulsoryCount', deptCompCount(d), 'number', 'min="0" step="1" required') + inp('ঐচ্ছিক তালিকা থেকে নিতে হবে (সংখ্যা)', 'optionalCount', deptOptCount(d), 'number', 'min="0" step="1" required') + inp('নোট (ঐচ্ছিক)', 'note', d.note, 'text', 'maxlength="150"'),
     async f => {
       const name = f.name.trim(); if (!name) throw new Error('বিভাগের নাম লিখুন');
       if (deptArr().some(x => x.id !== did && x.name.trim().toLowerCase() === name.toLowerCase())) throw new Error('এই নামে বিভাগ আগেই আছে');
       const id = did || push(ref(db, `${base()}/departments`)).key;
       const level = (f.level || '').trim(); if (!['Secondary', 'Higher Secondary'].includes(level)) throw new Error('বিভাগের শিক্ষাস্তর নির্বাচন করুন');
-      const rec = { name, level, code: (f.code || '').trim(), note: (f.note || '').trim(), createdAt: did ? (d.createdAt || Date.now()) : Date.now() };
-      await update(root(), { [`${base()}/departments/${id}/name`]: rec.name, [`${base()}/departments/${id}/level`]: rec.level, [`${base()}/departments/${id}/code`]: rec.code, [`${base()}/departments/${id}/note`]: rec.note, [`${base()}/departments/${id}/createdAt`]: rec.createdAt });
+      const compulsoryCount = Math.max(0, Math.floor(Number(f.compulsoryCount || 0))), optionalCount = Math.max(0, Math.floor(Number(f.optionalCount || 0)));
+      if (!Number.isFinite(compulsoryCount) || !Number.isFinite(optionalCount) || compulsoryCount > 100 || optionalCount > 100) throw new Error('বিষয় নির্বাচনের সংখ্যা ০ থেকে ১০০-এর মধ্যে দিন');
+      const rec = { name, level, code: (f.code || '').trim(), note: (f.note || '').trim(), compulsoryCount, optionalCount, createdAt: did ? (d.createdAt || Date.now()) : Date.now() };
+      await update(root(), { [`${base()}/departments/${id}/name`]: rec.name, [`${base()}/departments/${id}/level`]: rec.level, [`${base()}/departments/${id}/code`]: rec.code, [`${base()}/departments/${id}/note`]: rec.note, [`${base()}/departments/${id}/compulsoryCount`]: rec.compulsoryCount, [`${base()}/departments/${id}/optionalCount`]: rec.optionalCount, [`${base()}/departments/${id}/createdAt`]: rec.createdAt });
       toast(did ? 'বিভাগ সংরক্ষিত হয়েছে' : 'নতুন বিভাগ যোগ হয়েছে');
     });
 }
 function openSubject(did, sid, pt) {
   const dp = DP[did]; if (!dp) return toast('বিভাগটি আর নেই');
   const x = sid ? ((dp.subjects || {})[sid] || {}) : {};
-  modal((sid ? 'বিষয় সম্পাদনা' : 'নতুন বিষয়') + ' — ' + esc(dp.name), inp('বিষয়ের নাম *', 'name', x.name, 'text', 'required maxlength="80" placeholder="যেমন: পদার্থবিজ্ঞান"', true) + inp('বিষয় কোড (ঐচ্ছিক)', 'code', x.code, 'text', 'maxlength="20"') + sel('বিষয়ের ধরন * (একই বিষয় দুই তালিকাতেই রাখা যায়)', 'type', [...SUB_TYPES, SUB_BOTH, ...(x.type && ![...SUB_TYPES, SUB_BOTH].includes(x.type) ? [x.type] : [])].map(t => [t, t]), x.type || pt || 'আবশ্যিক'),
+  modal((sid ? 'বিষয় সম্পাদনা' : 'নতুন বিষয়') + ' — ' + esc(dp.name), inp('বিষয়ের নাম *', 'name', x.name, 'text', 'required maxlength="80" placeholder="যেমন: পদার্থবিজ্ঞান"', true) + inp('বিষয় কোড (ঐচ্ছিক)', 'code', x.code, 'text', 'maxlength="20"') + sel('বিষয়ের ধরন * (একই বিষয় দুই তালিকাতেই রাখা যায়)', 'type', [SUB_COMMON, ...SUB_TYPES, SUB_BOTH, ...(x.type && ![SUB_COMMON, ...SUB_TYPES, SUB_BOTH].includes(x.type) ? [x.type] : [])].map(t => [t, t]), x.type || pt || 'আবশ্যিক'),
     async f => {
       const name = f.name.trim(); if (!name) throw new Error('বিষয়ের নাম লিখুন');
       if (subArr(dp).some(y => y.id !== sid && y.name.trim().toLowerCase() === name.toLowerCase())) throw new Error('এই বিভাগে এই নামে বিষয় আগেই আছে');
