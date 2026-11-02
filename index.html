@@ -684,6 +684,63 @@ details.dd>.ddb{padding:4px 18px 16px;border-top:1px solid var(--line)}
 #agrForm label,#agrSignedForm label{font-weight:600}
 .agr-row[hidden]{display:none}
 @media(max-width:680px){#agrForm .fg{grid-template-columns:1fr}#agrForm .fg>.w{grid-column:1/-1}}
+
+/* ===== প্রতিষ্ঠান নিবন্ধন: অগ্রগতি / অভিনন্দন পপআপ ===== */
+.rp-ov{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:16px;background:rgba(20,33,61,.58);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);animation:rpF .25s ease both}
+.rp-card{position:relative;width:100%;max-width:430px;max-height:94vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,.38);animation:rpU .45s cubic-bezier(.2,.9,.3,1.15) both}
+.rp-hd{position:relative;background:linear-gradient(135deg,var(--ink,#14213d),var(--pri,#0f7b6c));color:#fff;padding:22px 22px 20px;text-align:center;overflow:hidden}
+.rp-hd:before,.rp-hd:after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
+.rp-hd:before{width:130px;height:130px;right:-40px;top:-50px}.rp-hd:after{width:90px;height:90px;left:-30px;bottom:-45px}
+.rp-logo{position:relative;width:54px;height:54px;margin:0 auto 10px;border-radius:16px;background:#fff;color:var(--pri,#0f7b6c);display:grid;place-items:center;box-shadow:0 8px 20px rgba(0,0,0,.22)}
+.rp-logo svg{width:30px;height:30px}
+.rp-portal{position:relative;font-size:21px;font-weight:800;letter-spacing:.2px}
+.rp-sub{position:relative;font-size:12.5px;opacity:.88;margin-top:2px}
+.rp-co{position:relative;display:inline-block;margin-top:10px;padding:4px 14px;border-radius:99px;background:rgba(255,255,255,.16);font-size:12.5px;font-weight:600}
+.rp-bd{padding:20px 22px 22px}
+.rp-ttl{margin:0;text-align:center;font-size:18px;font-weight:800;color:var(--tx,#1d2433)}
+.rp-msg{margin:6px 0 0;text-align:center;font-size:13.5px;color:var(--mut,#667085)}
+.rp-steps{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px}
+.rp-steps li{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--line,#e3e6eb);border-radius:12px;font-size:14px;color:var(--mut,#667085);transition:.3s}
+.rp-steps li.run{border-color:var(--pri,#0f7b6c);background:var(--pri-bg,#e5f3f0);color:var(--pri-d,#0b6357);font-weight:600}
+.rp-steps li.ok{border-color:#b7e3da;background:#f3fbf9;color:var(--pri-d,#0b6357)}
+.rp-dot{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid #cfd5dd;display:grid;place-items:center;font-size:0}
+.rp-steps li.run .rp-dot{border-color:rgba(15,123,108,.25);border-top-color:var(--pri,#0f7b6c);animation:rpSp .8s linear infinite}
+.rp-steps li.ok .rp-dot{border:0;background:var(--pri,#0f7b6c);animation:rpPop .35s ease}
+.rp-steps li.ok .rp-dot:after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.rp-badge{display:flex;align-items:center;justify-content:center;gap:8px;margin:14px auto 0;width:max-content;max-width:100%;padding:7px 15px;border-radius:99px;background:var(--amb-bg,#fcf0dc);color:var(--amb,#a15f0a);font-weight:700;font-size:13.5px}
+.rp-badge i{width:9px;height:9px;border-radius:50%;background:currentColor;animation:rpBl 1.2s ease-in-out infinite}
+.rp-ok{position:relative;width:104px;height:104px;margin:2px auto 8px}
+.rp-ok svg{width:104px;height:104px;display:block}
+.rp-ok .c{fill:none;stroke:var(--pri,#0f7b6c);stroke-width:5;stroke-linecap:round;stroke-dasharray:302;stroke-dashoffset:302;transform:rotate(-90deg);transform-origin:50% 50%;animation:rpDr .7s .1s ease forwards}
+.rp-ok .f{fill:var(--pri-bg,#e5f3f0);opacity:0;animation:rpFi .4s .55s ease forwards}
+.rp-ok .t{fill:none;stroke:var(--pri,#0f7b6c);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:rpDr .45s .7s ease forwards}
+.rp-ok:before{content:"";position:absolute;inset:0;border-radius:50%;border:3px solid var(--pri,#0f7b6c);opacity:0;animation:rpRing 1.1s .8s ease-out 1}
+.rp-cf{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.rp-cf span{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;opacity:0;animation:rpCf 2.4s ease-out forwards}
+.rp-name{display:block;margin:2px 0 0;text-align:center;font-weight:800;color:var(--pri-d,#0b6357);font-size:16px;word-break:break-word}
+.rp-info{margin:14px 0 0;padding:11px 13px;border-radius:12px;background:#f6f8fa;border:1px solid var(--line,#e3e6eb);font-size:13px;color:var(--mut,#667085);text-align:center}
+.rp-ct{margin:16px 0 0;display:grid;gap:10px}
+.rp-ct .lb{text-align:center;font-size:12.5px;color:var(--mut,#667085)}
+.rp-row{display:flex;gap:10px}
+.rp-a{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 16px;border-radius:12px;font-weight:700;font-size:14.5px;text-decoration:none;border:1px solid transparent;transition:transform .15s,box-shadow .15s}
+.rp-a:hover{transform:translateY(-1px)}.rp-a svg{width:21px;height:21px;flex:none}
+.rp-wa{flex:1;background:#25d366;color:#fff;box-shadow:0 6px 16px rgba(37,211,102,.32)}
+.rp-tel{flex:none;width:46px;padding:0;background:#fff;color:#128c4a;border-color:#25d366}
+.rp-gm{background:#fff;color:#c5221f;border-color:#f1b9b6}
+.rp-gm small{display:block;font-weight:500;font-size:11.5px;color:var(--mut,#667085);line-height:1.2}
+.rp-gm span{display:block;line-height:1.25;text-align:left}
+.rp-done{margin-top:16px;width:100%}
+.rp-err .rp-ttl{color:var(--out,#c0392b)}
+@keyframes rpF{from{opacity:0}to{opacity:1}}
+@keyframes rpU{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes rpSp{to{transform:rotate(360deg)}}
+@keyframes rpPop{0%{transform:scale(.4)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+@keyframes rpBl{50%{opacity:.25}}
+@keyframes rpDr{to{stroke-dashoffset:0}}
+@keyframes rpFi{to{opacity:1}}
+@keyframes rpRing{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+@keyframes rpCf{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),330px) rotate(var(--rt))}}
+@media (prefers-reduced-motion:reduce){.rp-ov,.rp-card,.rp-ok .c,.rp-ok .f,.rp-ok .t,.rp-cf span,.rp-ok:before,.rp-badge i,.rp-steps li.ok .rp-dot{animation:none!important}.rp-ok .c,.rp-ok .t{stroke-dashoffset:0}.rp-ok .f{opacity:1}}
 </style>
 </head>
 <body>
@@ -1485,9 +1542,16 @@ const ADM_LABELS = {
 };
 const admGroupOf = c => (ADM_GROUPS.find(g => g.c.includes(c)) || {}).k || '';
 const admClassOpts = (type = '') => {
+  // Always show Primary classes for schools; colleges show XI-XII only.
   const t = String(type || '').trim().toLowerCase();
-  const classes = t === 'coaching' ? [...COACH_COURSES, ...CLASSES] : t === 'primary' ? CLASSES.slice(0, 7) : t === 'school' ? CLASSES.slice(7, 12) : t === 'college' ? CLASSES.slice(12, 14) : CLASSES;
-  return '<option value="">Select class / course</option>' + classes.map(c => `<option value="${esc(c)}">${esc(ADM_EN[c] || c)}</option>`).join('');
+  const primary = { t: 'Play – Class 5 (Primary)', c: ['প্লে', 'নার্সারি', 'প্রথম', 'দ্বিতীয়', 'তৃতীয়', 'চতুর্থ', 'পঞ্চম'] };
+  const secondary = { t: 'Class 6 – 10 (Secondary)', c: ['ষষ্ঠ', 'সপ্তম', 'অষ্টম', 'নবম', 'দশম'] };
+  const higher = { t: 'Class 11 – 12 (Higher Secondary)', c: ['একাদশ', 'দ্বাদশ'] };
+  const coach = { t: 'Private Institute / Coaching Center (Course)', c: COACH_COURSES };
+  const groups = t === 'coaching' ? [coach] : t === 'primary' ? [primary] : t === 'college' ? [higher] : t === 'school' ? [secondary] : [primary, secondary, higher];
+  return '<option value="">Select class</option>' + groups.map(g =>
+    `<optgroup label="${esc(g.t)}">${g.c.map(c => `<option value="${esc(c)}">${ADM_EN[c]}</option>`).join('')}</optgroup>`
+  ).join('');
 };
 const ADM_GROUP_OPTS = ['Science', 'Humanities', 'Business Studies'];
 const ADM_TC_OPTS = ['Yes — available', 'No', 'Will submit later'];
@@ -1599,7 +1663,7 @@ let apDeptSrc = null;
 function admDepts() {
   if (apDeptSrc) return apDeptSrc();
   const sid = ($('#admSchool') || {}).value, o = PDEPT[sid]; if (!o) return [];
-  return Object.entries(o).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', compulsoryCount: v && v.compulsoryCount != null ? Number(v.compulsoryCount) : Object.values((v && v.subjects) || {}).filter(x => x && (x.type || 'আবশ্যিক') === 'আবশ্যিক').length, optionalCount: v && v.optionalCount != null ? Number(v.optionalCount) : 0, subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) }))
+  return Object.entries(o).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) }))
     .filter(d => d.name).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
 }
 function admGroupFields(cls) {
@@ -1617,26 +1681,23 @@ function admSubFill() {
   const g = $('#admBody [name="wantGroup"]'), info = $('#admSubInfo'), hint = $('#admGroupHint');
   if (!g || !info) return;
   const ds = admDepts(), d = ds.find(x => x.name === g.value), all = d ? d.subs : [];
-  const common = all.filter(x => x.type === SUB_COMMON), comp = all.filter(x => (x.type || 'আবশ্যিক') === 'আবশ্যিক' || x.type === SUB_BOTH), optional = all.filter(x => x.type === 'ঐচ্ছিক' || x.type === SUB_BOTH);
-  const reqComp = Number(d && d.compulsoryCount || 0), reqOpt = Number(d && d.optionalCount || 0);
-  if (hint) hint.innerHTML = !ds.length ? '<div class="admhint">এই প্রতিষ্ঠানের বিভাগ ও বিষয়ের তালিকা পাওয়া যায়নি। কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।</div>' : '';
-  if (!d) { info.innerHTML = '<div class="admhint">প্রথমে বিভাগ নির্বাচন করুন।</div>'; return; }
-  if (!all.length) { info.innerHTML = '<div class="admhint">এই বিভাগের জন্য কোনো বিষয় সেট করা নেই।</div>'; return; }
-  const block = (title, arr, kind, count) => `<div style="margin:10px 0"><b>${title}</b>${count !== null ? `<div class="sub">এই তালিকা থেকে ${bn(count)} টি নির্বাচন করতে হবে</div>` : ''}${arr.map((x,i)=>{
-    if (kind === 'common') return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:6px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#f3f8f4;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" checked disabled style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} <small style="color:var(--mut)">(কমন — স্বয়ংক্রিয়ভাবে যুক্ত)</small></span></label>`;
-    const shared = x.type === SUB_BOTH;
-    return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:6px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" data-subject-type="${kind}" ${shared ? `data-shared-subject="${esc(x.name)}"` : ''} style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} ${shared ? '<small style="color:var(--mut)">(দুই তালিকাতেই আছে — একবারই নির্বাচন করা যাবে)</small>' : ''}</span></label>`;
-  }).join('')}</div>`;
-  info.innerHTML = (common.length ? block('কমন বিষয়', common, 'common', null) : '') +
-    (comp.length ? block('আবশ্যিক বিষয়', comp, 'compulsory', reqComp) : '') +
-    (optional.length ? block('ঐচ্ছিক বিষয়', optional, 'optional', reqOpt) : '') +
-    `<div class="sub" style="margin-top:8px">একই বিষয় দুই তালিকায় থাকলে সেটি আবশ্যিক বা ঐচ্ছিক—যেকোনো এক তালিকা থেকে একবারই নেওয়া যাবে।</div>`;
-  // Shared subjects may appear twice in the two lists, but checking one unchecks its counterpart.
-  info.querySelectorAll('[data-shared-subject]').forEach(el => el.addEventListener('change', () => {
-    if (!el.checked) return;
-    info.querySelectorAll('[data-shared-subject]').forEach(other => { if (other !== el && other.dataset.sharedSubject === el.dataset.sharedSubject) other.checked = false; });
-    admBuildFeeQuote();
-  }));
+  const typeOf = x => x.type || 'আবশ্যিক';
+  const comp = all.filter(x => typeOf(x) === 'আবশ্যিক');
+  const flexible = all.filter(x => typeOf(x) === 'আবশ্যিক ও ঐচ্ছিক');
+  if (hint) hint.innerHTML = !ds.length
+    ? '<div class="admhint">এই প্রতিষ্ঠান Secondary / Higher Secondary-এর জন্য এখনো কোনো Group বা Department সেট করেনি। অনুগ্রহ করে প্রতিষ্ঠান কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।</div>'
+    : '';
+  if (!d) { info.innerHTML = '<div class="admhint">প্রথমে গ্রুপ নির্বাচন করুন।</div>'; return; }
+  if (!all.length) { info.innerHTML = '<div class="admhint">এই গ্রুপের জন্য কোনো বিষয় সেট করা নেই। প্রতিষ্ঠান কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।</div>'; return; }
+  info.innerHTML =
+    (comp.length ? `<div class="admsum" style="margin:6px 0">আবশ্যিক বিষয় / Compulsory: <b>${comp.map(x => esc(x.name)).join(', ')}</b></div>` : '') +
+    `<div class="sub" style="margin:8px 0">বিষয় নির্বাচন করুন। “আবশ্যিক ও ঐচ্ছিক” বিষয়ের ক্ষেত্রে আপনার জন্য কোনটি প্রযোজ্য তা বেছে নিন।</div>` +
+    all.map((x, i) => {
+      const ty = typeOf(x);
+      if (ty === 'আবশ্যিক') return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:7px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#f3f8f4;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" checked disabled style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} <small style="color:var(--mut)">(আবশ্যিক — স্বয়ংক্রিয়ভাবে নির্বাচিত)</small></span></label>`;
+      if (ty === 'আবশ্যিক ও ঐচ্ছিক') return `<div class="adm-subject-option" style="margin:7px 0;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:#fff"><b>${esc(x.name)}</b> <small style="color:var(--mut)">(আবশ্যিক অথবা ঐচ্ছিক—একটি বেছে নিন)</small><div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px"><label><input type="radio" name="subjectType_${i}" value="আবশ্যিক" data-flex-subject="${esc(x.name)}" style="width:auto;min-height:0"> আবশ্যিক</label><label><input type="radio" name="subjectType_${i}" value="ঐচ্ছিক" data-flex-subject="${esc(x.name)}" style="width:auto;min-height:0"> ঐচ্ছিক</label></div></div>`;
+      return `<label class="adm-subject-option" style="display:flex;gap:9px;align-items:center;margin:7px 0;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:500"><input type="checkbox" name="selectedSubjects" value="${esc(x.name)}" data-subject-type="ঐচ্ছিক" style="width:17px;min-height:17px;margin:0;flex:none"><span>${esc(x.name)} <small style="color:var(--mut)">(ঐচ্ছিক)</small></span></label>`;
+    }).join('');
 }
 // Admission fee configuration is published per institution + class + group.
 const admFeeKey = (cls, group) => (String(cls || '').trim() + '__' + String(group || 'সাধারণ').trim()).replace(/[.#$\[\]\/]/g, '_').slice(0, 100);
@@ -1725,36 +1786,13 @@ ${k("Guardian's name", r.guardian)}${r.guardianRel ? k("Relationship with applic
 </div><div class="np"><button onclick="window.print()">🖨 Print / Save as PDF</button></div></body></html>`;
 }
 
-let admFeeSettingsSeq = 0;
-async function admFeeSettingsSubjects() {
-  const seq = ++admFeeSettingsSeq, cls = ($('#admFeeClass') || {}).value || '', group = ($('#admFeeGroup') || {}).value || '', box = $('#admFeeSubjectTable'), form = $('#admFeeSettingsForm');
-  if (!box || !form) return;
-  ['admissionFee','sessionFee','otherFee','discount','feeSession'].forEach(n => { const el = form.elements[n]; if (el) el.value = n === 'feeSession' ? '' : '0'; });
-  const published = form.elements.feePublished; if (published) published.checked = true;
-  if (!cls) { box.innerHTML = '<div class="admhint">শ্রেণি/কোর্স নির্বাচন করুন।</div>'; return; }
-  box.innerHTML = '<div class="admhint">ফি সেটিংস লোড হচ্ছে…</div>';
-  let cfg = null;
-  try { if (ctx) cfg = (await get(ref(db, `publicAdmissionFees/${ctx}/${admFeeKey(cls, group)}`))).val(); } catch (_) {}
-  if (seq !== admFeeSettingsSeq) return;
-  if (cfg) {
-    ['admissionFee','sessionFee','otherFee','discount'].forEach(n => { if (form.elements[n]) form.elements[n].value = Number(cfg[n] || 0); });
-    if (form.elements.feeSession) form.elements.feeSession.value = cfg.session || '';
-    if (published) published.checked = cfg.published === true;
-  }
-  const dept = deptArr().find(d => d.name === group), subjects = dept ? subArr(dept) : [];
-  if (!group || !subjects.length) { box.innerHTML = '<div class="admhint">সাধারণ ফি সেটিংস: এই শ্রেণি/কোর্সে বিভাগভিত্তিক বিষয় প্রযোজ্য নয়।</div>'; return; }
-  const fees = cfg && cfg.subjectFees || {};
-  box.innerHTML = `<table><tr><th>বিষয়</th><th>ধরন</th><th>ফি (৳)</th></tr>${subjects.map(x => `<tr><td>${esc(x.name)}</td><td>${esc(x.type || 'আবশ্যিক')}</td><td><input type="number" min="0" step="1" name="feeSubject_${esc(x.id)}" data-fee-subject="${esc(x.name)}" value="${Number(fees[x.name] || 0)}" style="max-width:130px"></td></tr>`).join('')}</table>`;
-}
-document.addEventListener('change', e => { if (e.target.id === 'admFeeClass' || e.target.id === 'admFeeGroup') admFeeSettingsSubjects(); });
-
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'admFeeSettingsForm') return;
   e.preventDefault(); const f = new FormData(e.target), msg = $('#admFeeSaveMsg');
   try {
     if (!ctx || !ctxProfile || ctxProfile.status !== 'approved') throw new Error('অনুমোদিত প্রতিষ্ঠান অ্যাডমিন হিসেবে লগইন করুন');
     const cls = String(f.get('feeClass') || '').trim(), group = String(f.get('feeGroup') || '').trim();
-    const cfg = { class:cls, group, session:String(f.get('feeSession') || '').trim(), admissionFee:Math.max(0, Number(f.get('admissionFee') || 0)), sessionFee:Math.max(0, Number(f.get('sessionFee') || 0)), otherFee:Math.max(0, Number(f.get('otherFee') || 0)), discount:Math.max(0, Number(f.get('discount') || 0)), subjectFees:Object.fromEntries([...e.target.querySelectorAll('[data-fee-subject]')].map(el => [el.dataset.feeSubject, Math.max(0, Number(el.value || 0))])), published:f.get('feePublished') === 'on', version:Date.now(), updatedAt:{'.sv':'timestamp'} };
+    const cfg = { class:cls, group, session:String(f.get('feeSession') || '').trim(), admissionFee:Math.max(0, Number(f.get('admissionFee') || 0)), sessionFee:Math.max(0, Number(f.get('sessionFee') || 0)), otherFee:Math.max(0, Number(f.get('otherFee') || 0)), discount:Math.max(0, Number(f.get('discount') || 0)), subjectFees:admFeeSubjectRows(f.get('subjectFees')), published:f.get('feePublished') === 'on', version:Date.now(), updatedAt:{'.sv':'timestamp'} };
     if (!cls || !cfg.session || [cfg.admissionFee,cfg.sessionFee,cfg.otherFee,cfg.discount,...Object.values(cfg.subjectFees)].some(n => !Number.isFinite(n) || n > 1000000)) throw new Error('শ্রেণি, সেশন ও সঠিক ফি লিখুন (সর্বোচ্চ ১০,০০,০০০ টাকা)');
     await set(ref(db, `publicAdmissionFees/${ctx}/${admFeeKey(cls, group)}`), cfg);
     if (msg) msg.textContent = 'সংরক্ষণ হয়েছে';
@@ -1786,18 +1824,23 @@ document.addEventListener('submit', async e => {
       if (!depts.length) throw new Error('এই প্রতিষ্ঠানের ডেটাবেজে Group সেট করা নেই। প্রতিষ্ঠান কর্তৃপক্ষের সঙ্গে যোগাযোগ করুন।');
       if (!selectedDept) throw new Error('অনুগ্রহ করে প্রতিষ্ঠানের তালিকা থেকে একটি বৈধ Group নির্বাচন করুন।');
       const validSubjects = selectedDept.subs.map(x => x.name);
-      const commonSubjects = selectedDept.subs.filter(x => x.type === SUB_COMMON).map(x => x.name);
-      const reqComp = Number(selectedDept.compulsoryCount || 0), reqOpt = Number(selectedDept.optionalCount || 0);
-      const pickedComp = [...e.target.querySelectorAll('#admSubInfo [data-subject-type="compulsory"]:checked')].map(x => x.value);
-      const pickedOpt = [...e.target.querySelectorAll('#admSubInfo [data-subject-type="optional"]:checked')].map(x => x.value);
-      const overlap = pickedComp.filter(x => pickedOpt.includes(x));
-      if (overlap.length) throw new Error('একই বিষয় আবশ্যিক ও ঐচ্ছিক দুই তালিকা থেকে একসঙ্গে নেওয়া যাবে না: ' + overlap.join(', '));
-      if (pickedComp.length !== reqComp) throw new Error('আবশ্যিক তালিকা থেকে ঠিক ' + reqComp + ' টি বিষয় নির্বাচন করুন।');
-      if (pickedOpt.length !== reqOpt) throw new Error('ঐচ্ছিক তালিকা থেকে ঠিক ' + reqOpt + ' টি বিষয় নির্বাচন করুন।');
-      chosenSubjects = [...new Set([...commonSubjects, ...pickedComp, ...pickedOpt])];
-      if (chosenSubjects.some(x => !validSubjects.includes(x))) throw new Error('নির্বাচিত বিষয় এই বিভাগের জন্য বৈধ নয়। আবার নির্বাচন করুন।');
+      const compulsory = selectedDept.subs.filter(x => (x.type || 'আবশ্যিক') === 'আবশ্যিক').map(x => x.name);
+      const flexibleTypes = {};
+      selectedDept.subs.filter(x => x.type === 'আবশ্যিক ও ঐচ্ছিক').forEach(x => {
+        const radios = [...e.target.querySelectorAll('[data-flex-subject]')].filter(el => el.dataset.flexSubject === x.name);
+        const picked = radios.find(el => el.checked);
+        if (!picked) throw new Error('“' + x.name + '” বিষয়টি আপনার জন্য আবশ্যিক নাকি ঐচ্ছিক, তা নির্বাচন করুন।');
+        flexibleTypes[x.name] = picked.value;
+      });
+      chosenSubjects = [...new Set([...compulsory, ...chosenSubjects, ...Object.keys(flexibleTypes)])];
+      if (!chosenSubjects.length && validSubjects.length) throw new Error('অনুগ্রহ করে অন্তত একটি বিষয় নির্বাচন করুন।');
+      if (chosenSubjects.some(x => !validSubjects.includes(x))) throw new Error('নির্বাচিত বিষয় এই Group-এর জন্য বৈধ নয়। আবার নির্বাচন করুন।');
       f.selectedSubjects = chosenSubjects;
-      f.selectedSubjectTypes = Object.fromEntries([ ...commonSubjects.map(x => [x, 'কমন']), ...pickedComp.map(x => [x, 'আবশ্যিক']), ...pickedOpt.map(x => [x, 'ঐচ্ছিক']) ]);
+      f.selectedSubjectTypes = Object.fromEntries([
+        ...compulsory.map(x => [x, 'আবশ্যিক']),
+        ...selectedDept.subs.filter(x => (x.type || 'আবশ্যিক') === 'ঐচ্ছিক' && chosenSubjects.includes(x.name)).map(x => [x.name, 'ঐচ্ছিক']),
+        ...Object.entries(flexibleTypes)
+      ]);
     }
     if (!guardian) throw new Error("Please enter the guardian's name");
     const ph = tenDigits(f.phone); if (!validPhone10(ph)) throw new Error("Guardian's mobile number must be 10 digits after +880");
@@ -1825,7 +1868,6 @@ document.addEventListener('submit', async e => {
     const isPerm = x => x && (x.code === 'PERMISSION_DENIED' || /permission/i.test(x.message || ''));
     const dupMsg = 'An application or admission already exists in this class/course with the same birth registration no., NID no., or the same phone number and name — or the institution is not accepting applications right now. Please contact the institution.';
     const feeQuote = await admBuildFeeQuote(false);
-    if (!feeQuote) throw new Error('এই শ্রেণি/বিভাগের ভর্তি ফি এখনো প্রকাশ করা হয়নি। আবেদন করার আগে প্রতিষ্ঠান কর্তৃপক্ষকে ফি প্রকাশ করতে বলুন।');
     const rec = { ...r, ...ex, ...(feeQuote ? { feeQuote } : {}), prevSchool: r.prev, adm: true }; delete rec.prev; if (admPhoto) rec.photo = admPhoto; if (!rec.msg) delete rec.msg; if (!rec.dob) delete rec.dob; if (!rec.prevSchool) delete rec.prevSchool;
     const wr = { [`studentRegs/${sid}/${ph}-${ci}-${h.toString(36)}`]: { ...rec, createdAt: { '.sv': 'timestamp' } } };
     wr[`admPublic/${manKey(r.regNo)}`] = { ...rec, sid, school: schools[sid].name || '', createdAt: { '.sv': 'timestamp' } };
@@ -2750,19 +2792,7 @@ function admHtml() {
   const cnt = k => k === 'all' ? all.length : all.filter(x => x.status === k).length;
   return `<div class="panel"><h3 style="margin-top:0">📩 আবেদন</h3>
   <div class="sub" style="margin-bottom:10px">এখানে ভর্তি আবেদন ও ${hdTitle(instTypeOf(ctx))} বরাবর অনলাইন আবেদন দেখা যাবে। ভর্তি আবেদন থেকে “শিক্ষার্থী যোগ” করলে শিক্ষার্থী যুক্ত করার একই ফর্ম খুলবে। অনলাইন আবেদন অনুমোদনের পর আবেদন নম্বর দিয়ে স্বাক্ষরিত কপি প্রিন্ট করুন।</div>
-  <details class="panel" style="margin:12px 0"><summary style="cursor:pointer;font-weight:700">⚙️ ভর্তি ফি নির্ধারণ (শ্রেণি ও গ্রুপ অনুযায়ী)</summary>
-  <form id="admFeeSettingsForm" class="fg" style="margin-top:12px">
-    <div><label>শ্রেণি / কোর্স</label><select name="feeClass" id="admFeeClass" required>${['', ...instClasses()].map(c => `<option value="${esc(c)}">${c ? esc(c) : 'শ্রেণি / কোর্স নির্বাচন করুন'}</option>`).join('')}</select></div>
-    <div><label>বিভাগ / গ্রুপ</label><select name="feeGroup" id="admFeeGroup"><option value="">সাধারণ / গ্রুপ প্রযোজ্য নয়</option>${deptArr().map(d => `<option value="${esc(d.name)}">${esc(d.name)}</option>`).join('')}</select></div>
-    <div class="w"><label>বিষয়ভিত্তিক ফি (টেবিল)</label><div id="admFeeSubjectTable" class="tw"><div class="admhint">শ্রেণি ও বিভাগ নির্বাচন করলে বিষয়ের তালিকা আসবে।</div></div></div>
-    <div><label>ভর্তি ফি (৳)</label><input name="admissionFee" type="number" min="0" step="1" value="0" required></div>
-    <div><label>বার্ষিক সেশন ফি (৳)</label><input name="sessionFee" type="number" min="0" step="1" value="0" required></div>
-    <div><label>অন্যান্য ফি (৳)</label><input name="otherFee" type="number" min="0" step="1" value="0" required></div>
-    <div><label>ছাড় (৳)</label><input name="discount" type="number" min="0" step="1" value="0" required></div>
-    <div><label>শিক্ষাবর্ষ / সেশন</label><input name="feeSession" maxlength="20" required placeholder="যেমন: ২০২৭"></div>
-    <div class="w"><label><input type="checkbox" name="feePublished" checked style="width:auto;min-height:0"> আবেদনকারীদের জন্য ফি প্রকাশ করুন</label></div>
-    <div class="w"><button class="btn" type="submit">ফি সেটিংস সংরক্ষণ</button><span class="sub" id="admFeeSaveMsg" style="margin-left:10px"></span></div>
-  </form></details>
+
   <div class="row" style="margin:10px 0"><input id="admLookup" placeholder="অনলাইন আবেদনের নম্বর দিয়ে খুঁজুন (MAN-...)" style="max-width:420px"><button class="btn ghost" data-act="manualsearch">আবেদন নম্বর খুঁজুন / প্রিন্ট</button></div>
   <div class="chips" style="margin-bottom:10px">${[['pending', 'অপেক্ষায়'], ['accepted', 'গৃহীত'], ['admitted', 'ভর্তি সম্পন্ন'], ['rejected', 'প্রত্যাখ্যাত'], ['all', 'সব']].map(([k, l]) => `<button class="${admF === k ? 'on' : ''}" data-act="admf" data-f="${k}">${l} (${bn(cnt(k))})</button>`).join('')}</div>
   <div class="tw"><table><tr><th>তারিখ</th><th>আবেদনকারী</th><th>ভর্তির শ্রেণি</th><th>অভিভাবক ও যোগাযোগ</th><th>অবস্থা</th><th></th></tr>
@@ -2787,9 +2817,22 @@ function regDupHtml(x, rows) {
 function pReg() {
   const rows = regList();
   $('#main').innerHTML = `<div class="panel"><h3 style="margin-top:0">🧒 শিক্ষার্থী নিবন্ধনের আবেদন${rows.length ? ' (' + bn(rows.length) + ')' : ''}</h3>
+  <details class="panel" style="margin:12px 0"><summary style="cursor:pointer;font-weight:700">⚙️ ভর্তি ফি নির্ধারণ (শ্রেণি ও গ্রুপ অনুযায়ী)</summary>
+  <form id="admFeeSettingsForm" class="fg" style="margin-top:12px">
+    <div><label>শ্রেণি / কোর্স</label><input name="feeClass" required maxlength="30" placeholder="যেমন: নবম / একাদশ"></div>
+    <div><label>গ্রুপ (না থাকলে ফাঁকা)</label><input name="feeGroup" maxlength="60" placeholder="যেমন: বিজ্ঞান"></div>
+    <div><label>ভর্তি ফি (৳)</label><input name="admissionFee" type="number" min="0" step="1" value="0" required></div>
+    <div><label>বার্ষিক সেশন ফি (৳)</label><input name="sessionFee" type="number" min="0" step="1" value="0" required></div>
+    <div><label>অন্যান্য ফি (৳)</label><input name="otherFee" type="number" min="0" step="1" value="0" required></div>
+    <div><label>ছাড় (৳)</label><input name="discount" type="number" min="0" step="1" value="0" required></div>
+    <div><label>শিক্ষাবর্ষ / সেশন</label><input name="feeSession" maxlength="20" required placeholder="যেমন: ২০২৭"></div>
+    <div class="w"><label>বিষয়ভিত্তিক ফি (প্রতি লাইনে বিষয়:টাকা)</label><textarea name="subjectFees" rows="4" placeholder="পদার্থবিজ্ঞান:500&#10;রসায়ন:500&#10;জীববিজ্ঞান:400"></textarea></div>
+    <div class="w"><label><input type="checkbox" name="feePublished" checked style="width:auto;min-height:0"> আবেদনকারীদের জন্য ফি প্রকাশ করুন</label></div>
+    <div class="w"><button class="btn" type="submit">ফি সেটিংস সংরক্ষণ</button><span class="sub" id="admFeeSaveMsg" style="margin-left:10px"></span></div>
+  </form></details>
   <div class="sub" style="margin-bottom:10px">হোম পেজের "শিক্ষার্থী নিবন্ধন" ও "এডমিশন (ভর্তির আবেদন)" ফর্ম থেকে আবেদন এখানে আসে। "অনুমোদন" চাপলে তথ্য ভরা শিক্ষার্থী ফর্ম খুলবে — রোল (কোচিংয়ে স্টুডেন্ট আইডি), শাখা ও মাসিক ফি দেখে সংরক্ষণ করলেই শিক্ষার্থী তালিকায় যুক্ত হবে।</div>
   <div class="tw"><table><tr><th>তারিখ</th><th>শিক্ষার্থী</th><th>শ্রেণি</th><th>অভিভাবক</th><th>মোবাইল</th><th>ঠিকানা</th><th></th></tr>
-  ${rows.map(x => `<tr><td>${bnDate(ymd(x.createdAt || 0))}<div class="sub">${esc(x.regNo || '')}</div></td><td><div class="row tap" data-act="regview" data-id="${esc(x.id)}" title="ফর্ম দেখতে চাপুন" style="gap:8px;flex-wrap:nowrap;cursor:pointer">${x.photo ? `<img src="${esc(x.photo)}" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover">` : ''}<div><b>${esc(x.name)}</b>${x.nameEn ? `<div class="sub">${esc(x.nameEn)}</div>` : ''}<div class="sub">${esc(x.gender || '')}</div>${x.adm ? '<span class="badge b-approved">ভর্তির আবেদন</span>' + admExtraHtml(x) : ''}${regDupHtml(x, rows)}</div></div></td><td>${esc(x.class)}${x.section ? ' • ' + esc(x.section) : ''}${x.roll ? '<div class="sub">' + RLB() + ': ' + esc(x.roll) + '</div>' : ''}</td><td>${esc(x.guardian || '—')}${x.guardianRel ? ' <span class="sub">(' + esc(x.guardianRel) + ')</span>' : ''}${x.fatherName ? '<div class="sub">পিতা: ' + esc(x.fatherName) + '</div>' : ''}${x.motherName ? '<div class="sub">মাতা: ' + esc(x.motherName) + '</div>' : ''}</td><td>${esc(x.phone)}</td><td style="font-size:12px">${esc(x.address || '—')}</td><td><div class="row"><button type="button" class="btn sm ok" data-act="regok" data-id="${esc(x.id)}">✔ অনুমোদন</button><button type="button" class="btn sm ghost" data-act="regview" data-id="${esc(x.id)}">🧾 ফর্ম দেখুন</button><button type="button" class="btn sm ghost" data-act="regno" data-id="${esc(x.id)}">✖ প্রত্যাখ্যান</button></div></td></tr>`).join('') || '<tr><td colspan="7" class="empty"><b>কোনো নতুন আবেদন নেই</b>শিক্ষার্থী হোম পেজ থেকে নিবন্ধন করলে এখানে দেখা যাবে।</td></tr>'}
+  ${rows.map(x => `<tr><td>${bnDate(ymd(x.createdAt || 0))}<div class="sub">${esc(x.regNo || '')}</div></td><td><div class="row tap" data-act="regview" data-id="${esc(x.id)}" title="ফর্ম দেখতে চাপুন" style="gap:8px;flex-wrap:nowrap;cursor:pointer">${x.photo ? `<img src="${esc(x.photo)}" alt="" style="width:38px;height:38px;border-radius:50%;object-fit:cover">` : ''}<div><b>${esc(x.name)}</b>${x.nameEn ? `<div class="sub">${esc(x.nameEn)}</div>` : ''}<div class="sub">${esc(x.gender || '')}</div>${x.adm ? '<span class="badge b-approved">ভর্তির আবেদন</span>' + admExtraHtml(x) : ''}${x.feeQuote ? `<div class="sub" style="margin-top:5px"><b>নির্ধারিত ভর্তি ফি:</b> ${tk(x.feeQuote.total)} • ${esc(x.feeQuote.session || '')}<br>ভর্তি ${tk(x.feeQuote.admissionFee)} + সেশন ${tk(x.feeQuote.sessionFee)} + বিষয় ${tk(x.feeQuote.subjectFee)} + অন্যান্য ${tk(x.feeQuote.otherFee)}${x.feeQuote.discount ? ' − ছাড় ' + tk(x.feeQuote.discount) : ''}<br><b>পেমেন্ট অবস্থা:</b> ${esc(x.feeQuote.paymentStatus || 'unpaid')}</div>` : ''}${regDupHtml(x, rows)}</div></div></td><td>${esc(x.class)}${x.section ? ' • ' + esc(x.section) : ''}${x.roll ? '<div class="sub">' + RLB() + ': ' + esc(x.roll) + '</div>' : ''}</td><td>${esc(x.guardian || '—')}${x.guardianRel ? ' <span class="sub">(' + esc(x.guardianRel) + ')</span>' : ''}${x.fatherName ? '<div class="sub">পিতা: ' + esc(x.fatherName) + '</div>' : ''}${x.motherName ? '<div class="sub">মাতা: ' + esc(x.motherName) + '</div>' : ''}</td><td>${esc(x.phone)}</td><td style="font-size:12px">${esc(x.address || '—')}</td><td><div class="row"><button type="button" class="btn sm ok" data-act="regok" data-id="${esc(x.id)}">✔ অনুমোদন</button><button type="button" class="btn sm ghost" data-act="regview" data-id="${esc(x.id)}">🧾 ফর্ম দেখুন</button><button type="button" class="btn sm ghost" data-act="regno" data-id="${esc(x.id)}">✖ প্রত্যাখ্যান</button></div></td></tr>`).join('') || '<tr><td colspan="7" class="empty"><b>কোনো নতুন আবেদন নেই</b>শিক্ষার্থী হোম পেজ থেকে নিবন্ধন করলে এখানে দেখা যাবে।</td></tr>'}
   </table></div></div>`;
 }
 /* অনুরোধ পাঠানোর পর থেকে অ্যাডমিন সিদ্ধান্ত দেওয়া পর্যন্ত প্রতিষ্ঠানের ড্যাশবোর্ডের উপরে হলুদ "অপেক্ষায়" কার্ড */
@@ -3443,7 +3486,7 @@ document.addEventListener('input', e => {
 });
 
 /* ---- অনুমোদনের ফর্ম: শিক্ষার্থী যে ফর্ম পূরণ করেছে হুবহু সেটাই, সব ঘর সম্পাদনযোগ্য ---- */
-const apDepts = () => Object.entries(DP || {}).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', compulsoryCount: v && v.compulsoryCount != null ? Number(v.compulsoryCount) : Object.values((v && v.subjects) || {}).filter(x => x && (x.type || 'আবশ্যিক') === 'আবশ্যিক').length, optionalCount: v && v.optionalCount != null ? Number(v.optionalCount) : 0, subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) })).filter(d => d.name).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
+const apDepts = () => Object.entries(DP || {}).map(([id, v]) => ({ id, name: (v && v.name) || '', level: (v && v.level) || '', subs: Object.values((v && v.subjects) || {}).filter(x => x && x.name) })).filter(d => d.name).sort((a, b) => a.name.localeCompare(b.name, 'bn'));
 const apKey = n => String(n).replace(/[.#$\[\]\/]/g, '_').slice(0, 120);
 function apAdmHtml(cls) {
   const photo = `<div class="w"><label>Applicant's photo (optional — বড় ছবি নিজে থেকে ছোট হবে)</label><div class="logoprev"><div class="logo ${stuPhoto ? 'has' : ''}" id="stuPhotoBox" style="border-radius:50%">${stuPhoto ? `<img src="${esc(stuPhoto)}" alt="" style="object-fit:cover">` : ic('stu')}</div><input type="file" id="stuPhoto" accept="image/jpeg,image/png,image/webp"><button type="button" class="btn ghost sm" data-act="rmphoto" data-p="stu">Remove photo</button></div></div>`;
@@ -5075,13 +5118,63 @@ document.addEventListener('submit', async e => {
     else {
       if (!['primary', 'school', 'college', 'coaching'].includes(f.type)) throw new Error('প্রতিষ্ঠানের ধরন (প্রাইমারি / স্কুল / কলেজ) নির্বাচন করুন');
       registering = true;
+      const pop = regPopOpen(f.name.trim());
       const c = await createUserWithEmailAndPassword(auth, f.email.trim(), f.pw);
+      pop.step(2);
       await set(ref(db, 'institutionProfiles/' + c.user.uid), { type: f.type, name: f.name.trim(), eiin: f.eiin.trim(), phone: fullPhone(f.phone), address: f.address.trim(), email: f.email.trim(), status: 'pending', createdAt: Date.now() });
+      pop.step(3);
+      await pop.finish();
       registering = false; await init(c.user);
     }
-  } catch (err) { registering = false; toast(errMsg(err)); if (id === 'regF' && auth.currentUser) init(auth.currentUser); }
+  } catch (err) { registering = false; if (regPopRef) regPopRef.fail(errMsg(err)); else toast(errMsg(err)); if (id === 'regF' && auth.currentUser) init(auth.currentUser); }
   finally { b.disabled = false; }
 });
+
+/* ================= প্রতিষ্ঠান নিবন্ধন: অগ্রগতি ও অভিনন্দন পপআপ ================= */
+const RP = { company: 'SMP Portal Bangladesh', portal: 'Student Pay', portalSub: 'Student Management Portal (SMP)', wa: '8801518411872', tel: '+8801518411872', mail: 'studentpay.smp@gmail.com' };
+let regPopRef = null;
+function regPopClose() { if (regPopRef) { regPopRef.el.remove(); regPopRef = null; } }
+function regPopOpen(instName) {
+  regPopClose();
+  const o = document.createElement('div'); o.className = 'rp-ov'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-modal', 'true');
+  const labels = ['অ্যাকাউন্ট তৈরি হচ্ছে', 'আবেদন জমা দেওয়া হচ্ছে', 'অ্যাডমিনের কাছে পাঠানো হচ্ছে'];
+  const head = `<div class="rp-hd"><div class="rp-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div><div class="rp-portal">${esc(RP.portal)}</div><div class="rp-sub">${esc(RP.portalSub)}</div><span class="rp-co">${esc(RP.company)}</span></div>`;
+  o.innerHTML = `<div class="rp-card">${head}<div class="rp-bd" id="rpBd"><h3 class="rp-ttl">আপনার আবেদন পাঠানো হচ্ছে…</h3><p class="rp-msg">অনুগ্রহ করে অপেক্ষা করুন, পেজ বন্ধ করবেন না।</p><ul class="rp-steps">${labels.map(t => `<li data-i="0"><span class="rp-dot"></span>${t}</li>`).join('')}</ul><div class="rp-badge"><i></i>অবস্থা: প্রক্রিয়াধীন</div></div></div>`;
+  document.body.appendChild(o);
+  const lis = [...o.querySelectorAll('.rp-steps li')];
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const ref_ = {
+    el: o,
+    step(n) { lis.forEach((l, i) => { l.className = i < n - 1 ? 'ok' : i === n - 1 ? 'run' : ''; }); },
+    fail(msg) {
+      $('#rpBd').innerHTML = `<div class="rp-err"><h3 class="rp-ttl">আবেদন জমা দেওয়া যায়নি</h3><p class="rp-msg">${esc(msg || 'কিছু সমস্যা হয়েছে, আবার চেষ্টা করুন।')}</p></div><button type="button" class="btn rp-done" data-rp="close">ঠিক আছে</button>`;
+      o.querySelector('[data-rp=close]').onclick = regPopClose;
+    },
+    async finish() {
+      lis.forEach(l => l.className = 'ok'); await sleep(650);
+      const mailHref = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(RP.mail)}&su=${encodeURIComponent('প্রতিষ্ঠান নিবন্ধন আবেদন — ' + instName)}`;
+      const waHref = `https://wa.me/${RP.wa}?text=${encodeURIComponent('আসসালামু আলাইকুম, আমি "' + instName + '" প্রতিষ্ঠানের পক্ষ থেকে ' + RP.portal + '-এ নিবন্ধনের আবেদন করেছি। অনুগ্রহ করে অনুমোদনের বিষয়টি দেখুন।')}`;
+      const waIc = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2a9.9 9.9 0 0 0-8.43 15.1L2 22l5.04-1.58A9.9 9.9 0 1 0 12.04 2zm0 1.8a8.1 8.1 0 1 1-4.3 14.96l-.3-.18-2.99.94.97-2.9-.2-.31A8.1 8.1 0 0 1 12.04 3.8zm-3.1 3.9c-.2 0-.5.07-.77.37-.26.3-1 1-1 2.4s1.03 2.8 1.17 3c.15.2 2 3.2 4.93 4.36 2.45.96 2.95.77 3.48.72.53-.05 1.7-.7 1.94-1.37.24-.68.24-1.26.17-1.38-.07-.12-.26-.2-.55-.34-.3-.15-1.7-.84-1.96-.94-.27-.1-.46-.15-.65.14-.2.3-.75.94-.92 1.13-.17.2-.34.22-.63.07-.3-.14-1.23-.45-2.34-1.44-.87-.77-1.45-1.72-1.62-2.01-.17-.3-.02-.45.13-.6.13-.13.3-.34.44-.5.14-.18.2-.3.3-.5.1-.2.05-.37-.02-.5-.07-.15-.65-1.6-.9-2.17-.23-.55-.47-.48-.65-.49h-.55z"/></svg>';
+      const telIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>';
+      const gmIc = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 7 10-7"/></svg>';
+      $('#rpBd').innerHTML = `<div style="position:relative"><div class="rp-cf" id="rpCf"></div>
+        <div class="rp-ok"><svg viewBox="0 0 104 104"><circle class="f" cx="52" cy="52" r="48"/><circle class="c" cx="52" cy="52" r="48"/><path class="t" d="M31 54l15 15 28-31"/></svg></div>
+        <h3 class="rp-ttl">অভিনন্দন! আবেদন সফলভাবে জমা হয়েছে 🎉</h3>
+        <span class="rp-name">${esc(instName)}</span>
+        <div class="rp-badge"><i></i>অবস্থা: অ্যাডমিনের অনুমোদনের অপেক্ষায়</div>
+        <div class="rp-info">${esc(RP.portal)}-এ আপনাকে স্বাগতম। অনুমোদন পেলেই আপনি সফটওয়্যার ব্যবহার শুরু করতে পারবেন। দ্রুত অনুমোদনের জন্য আমাদের সাথে যোগাযোগ করুন।</div>
+        <div class="rp-ct"><div class="lb">${esc(RP.company)} — যোগাযোগ</div>
+          <div class="rp-row"><a class="rp-a rp-wa" href="${waHref}" target="_blank" rel="noopener noreferrer">${waIc}WhatsApp-এ মেসেজ করুন</a><a class="rp-a rp-tel" href="tel:${RP.tel}" aria-label="কল করুন" title="কল করুন: ${RP.tel}">${telIc}</a></div>
+          <a class="rp-a rp-gm" href="${mailHref}" target="_blank" rel="noopener noreferrer">${gmIc}<span><small>Gmail-এ ইমেইল করুন</small>${esc(RP.mail)}</span></a></div></div>
+        <button type="button" class="btn rp-done" data-rp="ok">ঠিক আছে, এগিয়ে যান</button>`;
+      const cf = $('#rpCf'), cols = ['#0f7b6c', '#3fc1ad', '#f5b301', '#ef5b5b', '#6c4cf1', '#25d366'];
+      for (let i = 0; i < 34; i++) { const sp = document.createElement('span'); sp.style.cssText = `left:${Math.random() * 100}%;background:${cols[i % cols.length]};--dx:${(Math.random() * 120 - 60) | 0}px;--rt:${(Math.random() * 720 - 360) | 0}deg;animation-delay:${(0.5 + Math.random() * 0.7).toFixed(2)}s`; cf.appendChild(sp); }
+      return new Promise(res => { o.querySelector('[data-rp=ok]').onclick = () => { regPopClose(); res(); }; });
+    }
+  };
+  regPopRef = ref_; ref_.step(1);
+  return ref_;
+}
 /* ================= প্রতিষ্ঠান প্রধান: প্রোফাইল, পাসওয়ার্ড ও অনুমোদন-অনুরোধ ================= */
 const AST = { pending: ['অপেক্ষমাণ', 'pending'], approved: ['অনুমোদিত', 'approved'], rejected: ['প্রত্যাখ্যাত', 'rejected'], used: ['সম্পন্ন', 'approved'], cancelled: ['বাতিল', 'suspended'] };
 const apSt = s => AST[s] || [s || '', 'pending'];
@@ -6353,19 +6446,16 @@ function reportCsv(key, r) {
 }
 /* ================= বিভাগ ও বিষয় ================= */
 let DP = {};
-const SUB_TYPES = ['আবশ্যিক', 'ঐচ্ছিক'], SUB_BOTH = 'আবশ্যিক ও ঐচ্ছিক', SUB_COMMON = 'কমন';
-const inTab = (x, tp) => { const t = x.type || 'আবশ্যিক'; return tp === SUB_COMMON ? t === SUB_COMMON : t === tp || t === SUB_BOTH; };
+const SUB_TYPES = ['আবশ্যিক', 'ঐচ্ছিক'], SUB_BOTH = 'আবশ্যিক ও ঐচ্ছিক';
+const inTab = (x, tp) => { const t = x.type || 'আবশ্যিক'; return t === tp || t === SUB_BOTH; };
 const deptArr = () => Object.entries(DP || {}).map(([id, v]) => ({ id, ...v })).filter(d => d && d.name).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'bn'));
 const subArr = d => Object.entries((d && d.subjects) || {}).map(([id, v]) => ({ id, ...v })).filter(x => x && x.name).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'bn'));
-const deptCompCount = d => d && d.compulsoryCount != null ? Number(d.compulsoryCount) : subArr(d).filter(x => (x.type || 'আবশ্যিক') === 'আবশ্যিক').length;
-const deptOptCount = d => d && d.optionalCount != null ? Number(d.optionalCount) : 0;
 function pDept() {
   const ds = deptArr(), nSub = ds.reduce((a, d) => a + subArr(d).length, 0);
   $('#main').innerHTML = `<div class="kpis sm" style="margin-bottom:12px"><div class="kpi"><span>মোট বিভাগ</span><b>${bn(ds.length)} টি</b></div><div class="kpi"><span>মোট বিষয়</span><b>${bn(nSub)} টি</b></div></div>
   <div class="panel"><div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0">🏛 বিভাগ ও বিষয়ের তালিকা</h3><button type="button" class="btn ok" data-act="deptadd">+ নতুন বিভাগ</button></div>
   <div class="sub" style="margin:6px 0 0">প্রতিষ্ঠানের সব বিভাগ (যেমন: বিজ্ঞান, মানবিক, ব্যবসায় শিক্ষা) যোগ করুন, তারপর প্রতিটি বিভাগের বিষয়গুলো যুক্ত করুন।</div></div>
-  ${ds.map(d => { const ss = subArr(d); return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">${esc(d.name)} <span class="badge ${d.level === 'Secondary' ? 'b-income' : 'b-pending'}">${d.level === 'Secondary' ? 'মাধ্যমিক (Secondary)' : d.level === 'Higher Secondary' ? 'উচ্চ মাধ্যমিক (Higher Secondary)' : 'শিক্ষাস্তর নির্ধারিত নয়'}</span>${d.code ? ` <span class="badge b-pending">${esc(d.code)}</span>` : ''}</h3><div class="sub">${bn(ss.length)} টি বিষয় (কমন ${bn(ss.filter(x => x.type === SUB_COMMON).length)}, আবশ্যিক তালিকা ${bn(ss.filter(x => inTab(x, 'আবশ্যিক')).length)}, ঐচ্ছিক তালিকা ${bn(ss.filter(x => inTab(x, 'ঐচ্ছিক')).length)}) • আবশ্যিক নিতে হবে ${bn(deptCompCount(d))} টি • ঐচ্ছিক নিতে হবে ${bn(deptOptCount(d))} টি${d.note ? ' • ' + esc(d.note) : ''}</div></div><div class="row"><button type="button" class="btn sm" data-act="subadd" data-d="${esc(d.id)}" data-t="কমন">+ কমন বিষয়</button><button type="button" class="btn sm ok" data-act="subadd" data-d="${esc(d.id)}" data-t="আবশ্যিক">+ আবশ্যিক বিষয়</button><button type="button" class="btn sm warn" data-act="subadd" data-d="${esc(d.id)}" data-t="ঐচ্ছিক">+ ঐচ্ছিক বিষয়</button><button type="button" class="btn sm ghost" data-act="deptedit" data-d="${esc(d.id)}">✏ বিভাগ সম্পাদনা</button><button type="button" class="btn sm ghost" data-act="deptdel" data-d="${esc(d.id)}">মুছুন</button></div></div>
-    ${ss.some(x => x.type === SUB_COMMON) ? `<h4 style="margin:14px 0 6px">📙 কমন বিষয় <span class="badge b-income">${bn(ss.filter(x => x.type === SUB_COMMON).length)} টি</span></h4><div class="tw"><table><tr><th>ক্রম</th><th>বিষয়ের নাম</th><th>কোড</th><th></th></tr>${ss.filter(x => x.type === SUB_COMMON).map((x,i) => `<tr><td>${bn(i+1)}</td><td><b>${esc(x.name)}</b></td><td>${esc(x.code || '—')}</td><td><div class="row"><button type="button" class="btn sm ghost" data-act="subedit" data-d="${esc(d.id)}" data-s="${esc(x.id)}">✏ এডিট</button><button type="button" class="btn sm ghost" data-act="subdel" data-d="${esc(d.id)}" data-s="${esc(x.id)}">মুছুন</button></div></td></tr>`).join('')}</table></div>` : ''}
+  ${ds.map(d => { const ss = subArr(d); return `<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px"><div><h3 style="margin:0">${esc(d.name)} <span class="badge ${d.level === 'Secondary' ? 'b-income' : 'b-pending'}">${d.level === 'Secondary' ? 'মাধ্যমিক (Secondary)' : d.level === 'Higher Secondary' ? 'উচ্চ মাধ্যমিক (Higher Secondary)' : 'শিক্ষাস্তর নির্ধারিত নয়'}</span>${d.code ? ` <span class="badge b-pending">${esc(d.code)}</span>` : ''}</h3><div class="sub">${bn(ss.length)} টি বিষয় (আবশ্যিক ${bn(ss.filter(x => inTab(x, 'আবশ্যিক')).length)}, ঐচ্ছিক ${bn(ss.filter(x => inTab(x, 'ঐচ্ছিক')).length)})${d.note ? ' • ' + esc(d.note) : ''}</div></div><div class="row"><button type="button" class="btn sm ok" data-act="subadd" data-d="${esc(d.id)}" data-t="আবশ্যিক">+ আবশ্যিক বিষয়</button><button type="button" class="btn sm warn" data-act="subadd" data-d="${esc(d.id)}" data-t="ঐচ্ছিক">+ ঐচ্ছিক বিষয়</button><button type="button" class="btn sm ghost" data-act="deptedit" data-d="${esc(d.id)}">✏ বিভাগ সম্পাদনা</button><button type="button" class="btn sm ghost" data-act="deptdel" data-d="${esc(d.id)}">মুছুন</button></div></div>
     ${SUB_TYPES.map(tp => { const g = ss.filter(x => inTab(x, tp)), ot = tp === 'আবশ্যিক' ? 'ঐচ্ছিক' : 'আবশ্যিক'; return `<h4 style="margin:14px 0 6px">${tp === 'আবশ্যিক' ? '📘' : '📗'} ${tp} বিষয় <span class="badge ${tp === 'আবশ্যিক' ? 'b-income' : 'b-pending'}">${bn(g.length)} টি</span></h4>
     <div class="tw"><table><tr><th>ক্রম</th><th>বিষয়ের নাম</th><th>কোড</th><th></th></tr>
     ${g.map((x, i) => `<tr><td>${bn(i + 1)}</td><td><b>${esc(x.name)}</b>${x.type === SUB_BOTH ? ` <span class="badge b-pending">উভয়</span>` : ''}</td><td>${esc(x.code || '—')}</td><td><div class="row">${x.type === SUB_BOTH ? `<button type="button" class="btn sm ghost" data-act="subtype" data-d="${esc(d.id)}" data-s="${esc(x.id)}" data-n="${ot}" title="এই তালিকা থেকে সরিয়ে শুধু ${ot} রাখুন">✖ শুধু ${ot} রাখুন</button>` : `<button type="button" class="btn sm ghost" data-act="subtype" data-d="${esc(d.id)}" data-s="${esc(x.id)}" data-n="${SUB_BOTH}" title="${ot} তালিকাতেও রাখুন">＋ ${ot}-তেও রাখুন</button><button type="button" class="btn sm ghost" data-act="subtype" data-d="${esc(d.id)}" data-s="${esc(x.id)}" data-n="${ot}">⇄ ${ot} করুন</button>`}<button type="button" class="btn sm ghost" data-act="subedit" data-d="${esc(d.id)}" data-s="${esc(x.id)}">✏ এডিট</button><button type="button" class="btn sm ghost" data-act="subdel" data-d="${esc(d.id)}" data-s="${esc(x.id)}">মুছুন</button></div></td></tr>`).join('') || `<tr><td colspan="4" class="empty"><b>কোনো ${tp} বিষয় নেই</b></td></tr>`}
@@ -6373,23 +6463,21 @@ function pDept() {
 }
 function openDept(did) {
   const d = did ? DP[did] : {};
-  modal(did ? 'বিভাগ সম্পাদনা' : 'নতুন বিভাগ', inp('বিভাগের নাম *', 'name', d.name, 'text', 'required maxlength="80" placeholder="যেমন: বিজ্ঞান"', true) + sel('শিক্ষাস্তর *', 'level', [['Secondary', 'মাধ্যমিক (Secondary)'], ['Higher Secondary', 'উচ্চ মাধ্যমিক (Higher Secondary)']], d.level || '', true, 'required') + inp('কোড (ঐচ্ছিক)', 'code', d.code, 'text', 'maxlength="20"') + inp('আবশ্যিক তালিকা থেকে নিতে হবে (সংখ্যা)', 'compulsoryCount', deptCompCount(d), 'number', 'min="0" step="1" required') + inp('ঐচ্ছিক তালিকা থেকে নিতে হবে (সংখ্যা)', 'optionalCount', deptOptCount(d), 'number', 'min="0" step="1" required') + inp('নোট (ঐচ্ছিক)', 'note', d.note, 'text', 'maxlength="150"'),
+  modal(did ? 'বিভাগ সম্পাদনা' : 'নতুন বিভাগ', inp('বিভাগের নাম *', 'name', d.name, 'text', 'required maxlength="80" placeholder="যেমন: বিজ্ঞান"', true) + sel('শিক্ষাস্তর *', 'level', [['Secondary', 'মাধ্যমিক (Secondary)'], ['Higher Secondary', 'উচ্চ মাধ্যমিক (Higher Secondary)']], d.level || '', true, 'required') + inp('কোড (ঐচ্ছিক)', 'code', d.code, 'text', 'maxlength="20"') + inp('নোট (ঐচ্ছিক)', 'note', d.note, 'text', 'maxlength="150"'),
     async f => {
       const name = f.name.trim(); if (!name) throw new Error('বিভাগের নাম লিখুন');
       if (deptArr().some(x => x.id !== did && x.name.trim().toLowerCase() === name.toLowerCase())) throw new Error('এই নামে বিভাগ আগেই আছে');
       const id = did || push(ref(db, `${base()}/departments`)).key;
       const level = (f.level || '').trim(); if (!['Secondary', 'Higher Secondary'].includes(level)) throw new Error('বিভাগের শিক্ষাস্তর নির্বাচন করুন');
-      const compulsoryCount = Math.max(0, Math.floor(Number(f.compulsoryCount || 0))), optionalCount = Math.max(0, Math.floor(Number(f.optionalCount || 0)));
-      if (!Number.isFinite(compulsoryCount) || !Number.isFinite(optionalCount) || compulsoryCount > 100 || optionalCount > 100) throw new Error('বিষয় নির্বাচনের সংখ্যা ০ থেকে ১০০-এর মধ্যে দিন');
-      const rec = { name, level, code: (f.code || '').trim(), note: (f.note || '').trim(), compulsoryCount, optionalCount, createdAt: did ? (d.createdAt || Date.now()) : Date.now() };
-      await update(root(), { [`${base()}/departments/${id}/name`]: rec.name, [`${base()}/departments/${id}/level`]: rec.level, [`${base()}/departments/${id}/code`]: rec.code, [`${base()}/departments/${id}/note`]: rec.note, [`${base()}/departments/${id}/compulsoryCount`]: rec.compulsoryCount, [`${base()}/departments/${id}/optionalCount`]: rec.optionalCount, [`${base()}/departments/${id}/createdAt`]: rec.createdAt });
+      const rec = { name, level, code: (f.code || '').trim(), note: (f.note || '').trim(), createdAt: did ? (d.createdAt || Date.now()) : Date.now() };
+      await update(root(), { [`${base()}/departments/${id}/name`]: rec.name, [`${base()}/departments/${id}/level`]: rec.level, [`${base()}/departments/${id}/code`]: rec.code, [`${base()}/departments/${id}/note`]: rec.note, [`${base()}/departments/${id}/createdAt`]: rec.createdAt });
       toast(did ? 'বিভাগ সংরক্ষিত হয়েছে' : 'নতুন বিভাগ যোগ হয়েছে');
     });
 }
 function openSubject(did, sid, pt) {
   const dp = DP[did]; if (!dp) return toast('বিভাগটি আর নেই');
   const x = sid ? ((dp.subjects || {})[sid] || {}) : {};
-  modal((sid ? 'বিষয় সম্পাদনা' : 'নতুন বিষয়') + ' — ' + esc(dp.name), inp('বিষয়ের নাম *', 'name', x.name, 'text', 'required maxlength="80" placeholder="যেমন: পদার্থবিজ্ঞান"', true) + inp('বিষয় কোড (ঐচ্ছিক)', 'code', x.code, 'text', 'maxlength="20"') + sel('বিষয়ের ধরন * (একই বিষয় দুই তালিকাতেই রাখা যায়)', 'type', [SUB_COMMON, ...SUB_TYPES, SUB_BOTH, ...(x.type && ![SUB_COMMON, ...SUB_TYPES, SUB_BOTH].includes(x.type) ? [x.type] : [])].map(t => [t, t]), x.type || pt || 'আবশ্যিক'),
+  modal((sid ? 'বিষয় সম্পাদনা' : 'নতুন বিষয়') + ' — ' + esc(dp.name), inp('বিষয়ের নাম *', 'name', x.name, 'text', 'required maxlength="80" placeholder="যেমন: পদার্থবিজ্ঞান"', true) + inp('বিষয় কোড (ঐচ্ছিক)', 'code', x.code, 'text', 'maxlength="20"') + sel('বিষয়ের ধরন * (একই বিষয় দুই তালিকাতেই রাখা যায়)', 'type', [...SUB_TYPES, SUB_BOTH, ...(x.type && ![...SUB_TYPES, SUB_BOTH].includes(x.type) ? [x.type] : [])].map(t => [t, t]), x.type || pt || 'আবশ্যিক'),
     async f => {
       const name = f.name.trim(); if (!name) throw new Error('বিষয়ের নাম লিখুন');
       if (subArr(dp).some(y => y.id !== sid && y.name.trim().toLowerCase() === name.toLowerCase())) throw new Error('এই বিভাগে এই নামে বিষয় আগেই আছে');
